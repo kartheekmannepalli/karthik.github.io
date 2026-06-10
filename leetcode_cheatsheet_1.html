@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode Cheat Sheet · Kotlin</title>
+<style>
+  :root{
+    --bg:#0e0f12; --surface:#17191e; --surface2:#1d2026; --line:#2a2e36;
+    --ink:#e7e9ee; --mute:#8b919e; --faint:#5c6270;
+    --easy:#34d399; --med:#f5a623; --hard:#fb5d6b;
+    --pat:#7aa2ff; --code:#d6deff; --kw:#c792ea; --acc:#ffd166;
+    --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+
+  header{position:sticky;top:0;z-index:10;background:rgba(14,15,18,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:9px 20px 9px}
+  .titlebar{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  h1{font-size:16px;font-weight:700;margin:0;letter-spacing:.3px}
+  h1 .sub{color:var(--med);font-family:var(--mono);font-weight:500}
+  .count{color:var(--faint);font-family:var(--mono);font-size:12px}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  #search{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--line);
+    color:var(--ink);padding:7px 11px;border-radius:7px;font-size:13px;font-family:var(--mono)}
+  #search:focus{outline:none;border-color:var(--pat)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{background:var(--surface);border:1px solid var(--line);color:var(--mute);
+    padding:4px 10px;border-radius:20px;font-size:12px;cursor:pointer;
+    font-family:var(--mono);white-space:nowrap;transition:.12s}
+  .chip:hover{border-color:var(--faint);color:var(--ink)}
+  .chip.on{background:var(--pat);border-color:var(--pat);color:#0e0f12;font-weight:600}
+
+  main{padding:2px 14px 40px;max-width:1280px;margin:0 auto}
+  .row{display:grid;grid-template-columns:42px minmax(160px,1.3fr) 50px 118px 128px minmax(260px,2fr);
+    gap:11px;align-items:center;padding:3px 10px;border-bottom:1px solid var(--line)}
+  .row.head{position:sticky;top:0;color:var(--faint);font-size:10px;text-transform:uppercase;
+    letter-spacing:.6px;font-family:var(--mono);border-bottom:1px solid var(--line);
+    padding-bottom:6px;padding-top:6px}
+  .row:not(.head):hover{background:var(--surface)}
+  .num{font-family:var(--mono);color:var(--faint);font-size:12px}
+  .name{font-weight:600;font-size:13.5px}
+  .diff{font-family:var(--mono);font-size:11.5px;font-weight:600}
+  .diff.Easy{color:var(--easy)} .diff.Med{color:var(--med)} .diff.Hard{color:var(--hard)}
+  .pat{font-family:var(--mono);font-size:11.5px;color:var(--pat);
+    background:rgba(122,162,255,.10);border:1px solid rgba(122,162,255,.25);
+    padding:3px 8px;border-radius:6px;display:inline-block}
+  .ds{font-family:var(--mono);font-size:11.5px;color:var(--acc)}
+  .code{font-family:var(--mono);font-size:11px;color:var(--code);
+    background:var(--surface2);border:1px solid var(--line);border-radius:6px;
+    padding:4px 8px;white-space:pre;overflow-x:auto;line-height:1.3}
+  .code .k{color:var(--kw)}
+  .empty{padding:40px;text-align:center;color:var(--faint);font-family:var(--mono)}
+
+  @media(max-width:860px){
+    .row.head{display:none}
+    .row{grid-template-columns:1fr;gap:6px;padding:13px 6px}
+    .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .code{white-space:pre-wrap}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="titlebar">
+    <h1>LeetCode Cheat Sheet <span class="sub">// kotlin</span></h1>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="controls">
+    <input id="search" placeholder="search title / pattern / data structure…" autocomplete="off">
+    <div class="chips" id="chips"></div>
+  </div>
+</header>
+<main>
+  <div class="row head">
+    <div>#</div><div>Problem</div><div>Diff</div><div>Pattern</div><div>Data Structure</div><div>Kotlin hint</div>
+  </div>
+  <div id="list"></div>
+  <div class="empty" id="empty" style="display:none">no match</div>
+</main>
+
+<script>
+const K = s => s.replace(/\b(val|var|for|while|if|else|return|fun|in|class|when|override)\b/g,'<span class="k">$1</span>');
+
+const D = [
+ [1,"Two Sum","Easy","Hash Map","HashMap","val m=HashMap<Int,Int>()\nfor(i in nums.indices){\n  m[t-nums[i]]?.let{return intArrayOf(it,i)}; m[nums[i]]=i }"],
+ [3,"Longest Substring No Repeat","Med","Sliding Window","HashMap<Char,Int>","var l=0;var best=0\nfor(r in s.indices){ seen[s[r]]?.let{l=maxOf(l,it+1)}\n  seen[s[r]]=r; best=maxOf(best,r-l+1) }"],
+ [42,"Trapping Rain Water","Hard","Two Pointers","Two pointers + lMax/rMax","while(l<r){ if(h[l]<h[r]){lm=maxOf(lm,h[l]);res+=lm-h[l];l++}\n  else {rm=maxOf(rm,h[r]);res+=rm-h[r];r--} }"],
+ [2,"Add Two Numbers","Med","Linked List","ListNode + carry","while(p!=null||q!=null||carry>0){\n  val s=(p?.`val`?:0)+(q?.`val`?:0)+carry\n  carry=s/10; cur.next=ListNode(s%10) }"],
+ [5,"Longest Palindromic Substr","Med","Expand Center","Two pointers","fun exp(l:Int,r:Int):Int{ var a=l;var b=r\n  while(a>=0&&b<n&&s[a]==s[b]){a--;b++}; return b-a-1 }\n// max over each center (odd+even)"],
+ [15,"3Sum","Med","Two Pointers","Sort + 2-ptr","nums.sort()\nfor(i in 0..n-3){ var l=i+1;var r=n-1\n  while(l<r){ /* sum vs 0, skip dups */ } }"],
+ [146,"LRU Cache","Med","Design","LinkedHashMap / DLL+Map","class LRU(cap:Int):LinkedHashMap<Int,Int>(cap,0.75f,true){\n  override fun removeEldestEntry(e:Entry<Int,Int>)=size>cap }"],
+ [200,"Number of Islands","Med","DFS / BFS","Grid + flood fill","fun dfs(i:Int,j:Int){ if(oob||g[i][j]!='1')return\n  g[i][j]='0'; dfs(i±1,j); dfs(i,j±1) }\n// count dfs launches"],
+ [14,"Longest Common Prefix","Easy","String","String scan","var pre=strs[0]\nfor(s in strs){ while(!s.startsWith(pre)) pre=pre.dropLast(1) }\nreturn pre"],
+ [22,"Generate Parentheses","Med","Backtracking","Recursion","fun bt(s:String,o:Int,c:Int){ if(s.length==2*n){res+=s;return}\n  if(o<n)bt(s+\"(\",o+1,c); if(c<o)bt(s+\")\",o,c+1) }"],
+ [33,"Search Rotated Sorted Arr","Med","Binary Search","Modified bin-search","while(l<=r){ val m=(l+r)/2; if(a[m]==t)return m\n  if(a[l]<=a[m]){ if(t in a[l]..a[m])r=m-1 else l=m+1 }\n  else { if(t in a[m]..a[r])l=m+1 else r=m-1 } }"],
+ [56,"Merge Intervals","Med","Sorting","Sort by start","iv.sortBy{it[0]}\nfor(i in iv){ if(res.isEmpty()||res.last()[1]<i[0])res+=i\n  else res.last()[1]=maxOf(res.last()[1],i[1]) }"],
+ [560,"Subarray Sum Equals K","Med","Prefix Sum","HashMap<sum,count>","val m=hashMapOf(0 to 1);var sum=0;var cnt=0\nfor(x in nums){ sum+=x; cnt+=m[sum-k]?:0\n  m[sum]=(m[sum]?:0)+1 }"],
+ [7,"Reverse Integer","Med","Math","Overflow guard","var x=n;var r=0\nwhile(x!=0){ if(overflow)return 0\n  r=r*10+x%10; x/=10 }"],
+ [11,"Container With Most Water","Med","Two Pointers","2-ptr inward","while(l<r){ best=maxOf(best,minOf(h[l],h[r])*(r-l))\n  if(h[l]<h[r])l++ else r-- }"],
+ [23,"Merge k Sorted Lists","Hard","Heap","PriorityQueue (min)","val pq=PriorityQueue<ListNode>(compareBy{it.`val`})\nlists.forEach{ it?.let{pq.add(it)} }\nwhile(pq.isNotEmpty()){ val n=pq.poll(); n.next?.let{pq.add(it)} }"],
+ [53,"Maximum Subarray","Med","DP · Kadane","Running max","var cur=nums[0];var best=cur\nfor(i in 1 until n){ cur=maxOf(nums[i],cur+nums[i])\n  best=maxOf(best,cur) }"],
+ [76,"Minimum Window Substring","Hard","Sliding Window","HashMap need/have","// expand r to cover need; shrink l while valid;\n// track smallest (r-l). Use count map + 'have==need'."],
+ [128,"Longest Consecutive Seq","Med","Hash Set","HashSet","val set=nums.toHashSet()\nfor(x in set){ if(x-1 !in set){ var c=x;var len=1\n  while(c+1 in set){c++;len++}; best=maxOf(best,len) } }"],
+ [1475,"Final Prices w/ Discount","Easy","Monotonic Stack","Stack of indices","for(i in p.indices){\n  while(st.isNotEmpty()&&p[st.last()]>=p[i])\n    p[st.removeLast()]-=p[i]; st.addLast(i) }"],
+ [31,"Next Permutation","Med","Array","In-place swap+reverse","var i=n-2; while(i>=0&&a[i]>=a[i+1])i--\nif(i>=0){ var j=n-1; while(a[j]<=a[i])j--; swap(i,j) }\nreverse(i+1,n-1)"],
+ [70,"Climbing Stairs","Easy","DP","Fib roll","var a=1;var b=1\nrepeat(n){ val c=a+b; a=b; b=c }\nreturn a"],
+ [121,"Best Time Buy/Sell Stock","Easy","DP · Greedy","Track min","var min=Int.MAX_VALUE;var best=0\nfor(p in prices){ min=minOf(min,p); best=maxOf(best,p-min) }"],
+ [202,"Happy Number","Easy","Cycle Detect","HashSet / fast-slow","fun sq(x:Int):Int{ /* sum of digit² */ }\n// slow=sq(n); fast=sq(sq(n)) until equal; happy if ==1"],
+ [295,"Find Median Data Stream","Hard","Heap","Two heaps (max+min)","val lo=PriorityQueue<Int>(reverseOrder()); val hi=PriorityQueue<Int>()\n// add → balance sizes; median = top(s)"],
+ [297,"Serialize/Deser Bin Tree","Hard","Tree DFS","Preorder + '#'","// ser: preorder, null→\"#\", join \",\"\n// deser: consume tokens recursively, \"#\"→null"],
+ [424,"Longest Repeating Char Repl","Med","Sliding Window","HashMap freq","// window valid while (len - maxFreq) <= k\n// expand r; shrink l when invalid; track best len"],
+ [509,"Fibonacci Number","Easy","DP","Two vars","var a=0;var b=1\nrepeat(n){ val c=a+b; a=b; b=c }\nreturn a"],
+ [9,"Palindrome Number","Easy","Math","Reverse half","if(x<0||(x%10==0&&x!=0))return false\nvar rev=0;var y=x\nwhile(y>rev){ rev=rev*10+y%10; y/=10 }\nreturn y==rev||y==rev/10"],
+ [138,"Copy List w/ Random Ptr","Med","Hash Map","Map<old,new>","val map=HashMap<Node,Node>()\n// pass1: clone nodes  pass2: wire next & random via map"],
+ [143,"Reorder List","Med","Linked List","slow/fast + reverse","// 1) find mid (slow/fast) 2) reverse 2nd half\n// 3) weave: a→b→a.next→b.next…"],
+ [232,"Queue using Stacks","Easy","Design","Two stacks","// push→inStack\n// pop/peek: if outStack empty, drain in→out, then pop out"],
+ [253,"Meeting Rooms II","Med","Heap","Sort + min-heap ends","iv.sortBy{it[0]}; val pq=PriorityQueue<Int>()\nfor(i in iv){ if(pq.peek()?.let{it<=i[0]}==true)pq.poll()\n  pq.add(i[1]) }; return pq.size"],
+ [300,"Longest Increasing Subseq","Med","DP · Binary Search","tails array + bsearch","val tails=ArrayList<Int>()\nfor(x in nums){ val i=tails.binarySearch(x).let{if(it<0)-it-1 else it}\n  if(i==tails.size)tails+=x else tails[i]=x }"],
+ [875,"Koko Eating Bananas","Med","Binary Search","Search on answer","var lo=1;var hi=piles.max()\n// hours(speed)=Σ ceil(p/speed); shrink to min speed ≤ h"],
+ [2858,"Min Edge Reversals","Hard","Graph DFS","Reroot tree","// undirected: fwd cost0, rev cost1\n// dfs root sum, then reroot: child = parent ± edgeCost"],
+ [6,"Zigzag Conversion","Med","Simulation","Array of rows","var row=0;var dir=1\nfor(c in s){ rows[row]+=c\n  if(row==0)dir=1 else if(row==n-1)dir=-1; row+=dir }"],
+ [13,"Roman to Integer","Easy","Hash Map","Map<Char,Int>","for(i in s.indices){\n  if(i<n-1&&m[s[i]]!!<m[s[i+1]]!!) res-=m[s[i]]!!\n  else res+=m[s[i]]!! }"],
+ [18,"4Sum","Med","Two Pointers","Sort + 2 loops + 2-ptr","nums.sort()\n// two outer loops + inner 2-ptr; skip dups;\n// use Long for sum to avoid overflow"],
+ [20,"Valid Parentheses","Easy","Stack","ArrayDeque<Char>","for(c in s){ if(c in \"([{\")st.addLast(c)\n  else { if(st.isEmpty()||!match(st.removeLast(),c))return false } }\nreturn st.isEmpty()"],
+ [21,"Merge Two Sorted Lists","Easy","Linked List","dummy + 2-ptr","val d=ListNode(0);var cur=d\nwhile(a!=null&&b!=null){ /* attach smaller, advance */ }\ncur.next=a?:b"],
+ [45,"Jump Game II","Med","Greedy","BFS levels","var jumps=0;var end=0;var far=0\nfor(i in 0 until n-1){ far=maxOf(far,i+nums[i])\n  if(i==end){jumps++;end=far} }"],
+ [46,"Permutations","Med","Backtracking","used set + recurse","fun bt(){ if(cur.size==n){res+=cur.toList();return}\n  for(x in nums) if(x !in cur){cur+=x;bt();cur.removeLast()} }"],
+ [49,"Group Anagrams","Med","Hash Map","Map<sortedKey,List>","for(s in strs){ val k=s.toCharArray().sorted().joinToString(\"\")\n  m.getOrPut(k){ArrayList()}.add(s) }"],
+ [50,"Pow(x, n)","Med","Math","Fast exponentiation","fun pow(x:Double,n:Long):Double{ if(n==0L)return 1.0\n  val h=pow(x,n/2); return if(n%2==0L)h*h else h*h*x }"],
+ [51,"N-Queens","Hard","Backtracking","Sets: col/diag/anti","// place per row; skip if col∈cols or (r-c)∈diag or (r+c)∈anti\n// recurse, then undo"],
+ [55,"Jump Game","Med","Greedy","Max reach","var reach=0\nfor(i in nums.indices){ if(i>reach)return false\n  reach=maxOf(reach,i+nums[i]) }\nreturn true"],
+ [61,"Rotate List","Med","Linked List","Close ring + cut","// len; k%=len; connect tail→head\n// newTail at len-k; head=newTail.next; cut"],
+ [75,"Sort Colors","Med","Two Pointers","Dutch flag (3-ptr)","var lo=0;var mid=0;var hi=n-1\nwhile(mid<=hi){ when(a[mid]){0->{swap(lo++,mid++)}\n  1->mid++; 2->swap(mid,hi--)} }"],
+ [84,"Largest Rectangle Histogram","Hard","Monotonic Stack","Increasing stack","// push increasing bars; on pop:\n// area = h[pop] * (i - st.last() - 1); track max"],
+ [88,"Merge Sorted Array","Easy","Two Pointers","Fill from end","var i=m-1;var j=n-1;var k=m+n-1\nwhile(j>=0){ a[k--]=if(i>=0&&a[i]>b[j])a[i--] else b[j--] }"],
+ [105,"Build Tree Pre+Inorder","Med","Tree","Recurse + idx map","// root=pre[preIdx++]; pos=inMap[root.val]\n// build left then right around pos"],
+ [125,"Valid Palindrome","Easy","Two Pointers","2-ptr skip non-alnum","while(l<r){ while(l<r&&!s[l].isLetterOrDigit())l++\n  while(l<r&&!s[r].isLetterOrDigit())r--\n  if(s[l++].lowercaseChar()!=s[r--].lowercaseChar())return false }"]
+];
+
+const patterns = [...new Set(D.map(d=>d[2]))].sort();
+let active = new Set(), q = "";
+
+const chips = document.getElementById('chips');
+patterns.forEach(p=>{
+  const c=document.createElement('span'); c.className='chip'; c.textContent=p;
+  c.onclick=()=>{ c.classList.toggle('on'); active.has(p)?active.delete(p):active.add(p); render(); };
+  chips.appendChild(c);
+});
+document.getElementById('search').addEventListener('input',e=>{q=e.target.value.toLowerCase();render();});
+
+function render(){
+  const list=document.getElementById('list'); list.innerHTML='';
+  const rows=D.filter(d=>{
+    const okP = active.size===0 || active.has(d[2]);
+    const hay = (d[0]+' '+d[1]+' '+d[2]+' '+d[3]+' '+d[4]).toLowerCase();
+    return okP && hay.includes(q);
+  });
+  rows.forEach(d=>{
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML =
+      `<div class="num">${d[0]}</div>`+
+      `<div class="name">${d[1]}</div>`+
+      `<div class="meta"><span class="diff ${d[2]}">${d[2]}</span></div>`+
+      `<div><span class="pat">${d[3]}</span></div>`+
+      `<div class="ds">${d[4]}</div>`+
+      `<div class="code">${K(d[5].replace(/</g,'&lt;').replace(/>/g,'&gt;'))}</div>`;
+    list.appendChild(r);
+  });
+  document.getElementById('empty').style.display = rows.length?'none':'block';
+  document.getElementById('count').textContent = `${rows.length} / ${D.length} problems`;
+}
+render();
+</script>
+</body>
+</html>

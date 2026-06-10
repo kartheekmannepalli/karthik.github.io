@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fetch Rewards Interview Guide</title>
+<style>
+  :root {
+    --purple: #6B21A8;
+    --purple-light: #F5F0FF;
+    --purple-mid: #9333EA;
+    --purple-deep: #4C1D95;
+    --gold: #D97706;
+    --gold-light: #FFFBEB;
+    --teal: #0F766E;
+    --teal-light: #F0FDFA;
+    --pink: #DB2777;
+    --pink-light: #FDF2F8;
+    --gray: #F8F9FA;
+    --text: #1A1A2E;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F0FF; color: var(--text); }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #3B0764 0%, #6B21A8 55%, #9333EA 100%);
+    color: white; padding: 36px 40px 30px;
+  }
+  .header-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .coin { font-size: 2.2rem; }
+  .header h1 { font-size: 1.9rem; font-weight: 700; }
+  .header-sub { font-size: 0.95rem; opacity: 0.85; margin-bottom: 16px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  /* Company snapshot */
+  .snapshot { background: white; margin: 24px 32px 0; border-radius: var(--radius); padding: 22px 28px; box-shadow: var(--shadow); display: flex; gap: 32px; flex-wrap: wrap; }
+  .snap-item { display: flex; flex-direction: column; gap: 2px; }
+  .snap-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .snap-value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+
+  /* Sources bar */
+  .sources-bar { margin: 16px 32px 0; background: white; border-radius: var(--radius); padding: 14px 22px; box-shadow: var(--shadow); }
+  .sources-bar h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .source-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .source-link { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 13px; font-size: 0.8rem; color: var(--purple); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+  .source-link:hover { background: var(--purple-light); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-purple { background: var(--purple); }
+  .dot-teal { background: var(--teal); }
+  .dot-gold { background: var(--gold); }
+
+  /* Nav tabs */
+  .tabs { display: flex; gap: 0; margin: 22px 32px 0; background: white; border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); overflow: hidden; border-bottom: 2px solid var(--border); }
+  .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab:hover { background: var(--gray); color: var(--text); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); background: white; }
+  .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+
+  /* Content panels */
+  .panel { display: none; background: white; margin: 0 32px 32px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .panel.active { display: block; }
+
+  /* Section headings */
+  .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .section-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Process flow */
+  .process { display: flex; gap: 0; margin-bottom: 28px; flex-wrap: wrap; }
+  .process-step { flex: 1; min-width: 140px; background: var(--purple-light); border-radius: 10px; padding: 14px; text-align: center; position: relative; }
+  .process-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--purple); font-size: 1.2rem; font-weight: bold; }
+  .step-num { background: var(--purple); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .step-title { font-size: 0.8rem; font-weight: 700; color: var(--purple); margin-bottom: 3px; }
+  .step-detail { font-size: 0.72rem; color: #6B21A8; }
+
+  /* Cards grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-icon { font-size: 1.3rem; }
+  .card-title { font-size: 0.9rem; font-weight: 700; }
+  .card p, .card li { font-size: 0.85rem; line-height: 1.6; color: #374151; }
+  .card ul { padding-left: 16px; }
+  .card li { margin-bottom: 4px; }
+
+  /* Example questions */
+  .q-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .q-item { background: var(--gray); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--purple); }
+  .q-item.gold { border-left-color: var(--gold); }
+  .q-item.teal { border-left-color: var(--teal); }
+  .q-item.pink { border-left-color: var(--pink); }
+  .q-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .q-text { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .q-tip { font-size: 0.8rem; color: #4b5563; line-height: 1.5; }
+
+  /* STAR box */
+  .star-box { background: linear-gradient(135deg, #F5F0FF, #EDE9FE); border: 1px solid #C4B5FD; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .star-box h3 { font-size: 0.92rem; font-weight: 700; color: var(--purple); margin-bottom: 12px; }
+  .star-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .star-cell { background: white; border-radius: 8px; padding: 10px 14px; }
+  .star-letter { font-size: 1.4rem; font-weight: 800; color: var(--purple); line-height: 1; }
+  .star-word { font-size: 0.75rem; font-weight: 600; color: var(--purple-mid); margin-bottom: 4px; }
+  .star-desc { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Tips */
+  .tips { background: var(--gold-light); border: 1px solid #FDE68A; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .tips h3 { font-size: 0.85rem; font-weight: 700; color: var(--gold); margin-bottom: 10px; }
+  .tips ul { padding-left: 18px; }
+  .tips li { font-size: 0.83rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+
+  .info-box { background: var(--teal-light); border: 1px solid #99F6E4; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .info-box h3 { font-size: 0.85rem; font-weight: 700; color: var(--teal); margin-bottom: 8px; }
+  .info-box p, .info-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .info-box ul { padding-left: 18px; }
+
+  .purple-box { background: var(--purple-light); border: 1px solid #C4B5FD; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; }
+  .purple-box h3 { font-size: 0.88rem; font-weight: 700; color: var(--purple); margin-bottom: 10px; }
+  .purple-box p, .purple-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .purple-box ul { padding-left: 18px; }
+  .purple-box li { margin-bottom: 5px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+  /* Priority badge */
+  .priority { display: inline-block; background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; border-radius: 20px; font-size: 0.72rem; font-weight: 700; padding: 2px 10px; margin-left: 8px; }
+  .priority.med { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
+  .priority.info { background: var(--teal-light); color: var(--teal); border-color: #99F6E4; }
+
+  /* Warning box */
+  .warn-box { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .warn-box h3 { font-size: 0.85rem; font-weight: 700; color: #C2410C; margin-bottom: 8px; }
+  .warn-box p, .warn-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .warn-box ul { padding-left: 18px; }
+
+  @media (max-width: 680px) {
+    .snapshot, .tabs, .panel, .sources-bar { margin-left: 12px; margin-right: 12px; }
+    .header { padding: 24px 18px 20px; }
+    .star-grid { grid-template-columns: 1fr; }
+    .process { flex-direction: column; gap: 8px; }
+    .process-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -14px; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="coin">🎁</span>
+    <h1>Fetch Rewards Interview Guide</h1>
+  </div>
+  <p class="header-sub">Sourced from Glassdoor, Indeed, Blind, InterviewQuery & Fetch Engineering Careers · Updated May 2026</p>
+  <div class="tags">
+    <span class="tag">🛒 Consumer Rewards App</span>
+    <span class="tag">🏙️ HQ: Madison, WI</span>
+    <span class="tag">⭐ 3.4/5 Glassdoor</span>
+    <span class="tag">👥 ~1,000 Employees</span>
+    <span class="tag">💰 $772M Raised</span>
+  </div>
+</div>
+
+<!-- Sources -->
+<div class="sources-bar">
+  <h3>📚 Reliable Sources Checked</h3>
+  <div class="source-links">
+    <a class="source-link" href="https://www.glassdoor.com/Interview/Fetch-Software-Engineer-Interview-Questions-EI_IE1078413.0,5_KO6,23.htm" target="_blank"><span class="dot dot-purple"></span>Glassdoor Interviews</a>
+    <a class="source-link" href="https://www.glassdoor.com/Interview/Fetch-Backend-Engineer-Interview-Questions-EI_IE1078413.0,5_KO6,22.htm" target="_blank"><span class="dot dot-purple"></span>Glassdoor Backend SWE</a>
+    <a class="source-link" href="https://www.interviewquery.com/interview-guides/fetch-rewards-llc-data-engineer" target="_blank"><span class="dot dot-teal"></span>InterviewQuery</a>
+    <a class="source-link" href="https://www.indeed.com/cmp/Fetch-21706356/interviews" target="_blank"><span class="dot dot-gold"></span>Indeed Reviews</a>
+    <a class="source-link" href="https://www.teamblind.com/company/Fetch/posts" target="_blank"><span class="dot dot-purple"></span>Blind Discussions</a>
+    <a class="source-link" href="https://fetch.com/careers/faq" target="_blank"><span class="dot dot-teal"></span>Fetch Careers FAQ</a>
+  </div>
+</div>
+
+<!-- Company snapshot -->
+<div class="snapshot">
+  <div class="snap-item"><span class="snap-label">What They Do</span><span class="snap-value">Mobile rewards app — scan receipts, earn points, redeem gift cards</span></div>
+  <div class="snap-item"><span class="snap-label">Tech Stack</span><span class="snap-value">Kotlin, Go, AWS, PostgreSQL, Python, React Native</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Difficulty</span><span class="snap-value">3.2 / 5 (Glassdoor) — Long but structured</span></div>
+  <div class="snap-item"><span class="snap-label">Culture Focus</span><span class="snap-value">Trust, action, accountability, freedom, growth</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Style</span><span class="snap-value">Take-home → Tech deep-dive → "Super Day" panel</span></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')"><span class="tab-icon">🗺️</span>Process Overview</div>
+  <div class="tab" onclick="showTab('coderpad')"><span class="tab-icon">🤖</span>CoderPad Round <span class="priority" style="background:#fef9c3;color:#854d0e;border-color:#fde047;">Round 1</span></div>
+  <div class="tab" onclick="showTab('behavioral')"><span class="tab-icon">💬</span>Behavioral</div>
+  <div class="tab" onclick="showTab('coding')"><span class="tab-icon">💻</span>Coding</div>
+  <div class="tab" onclick="showTab('design')"><span class="tab-icon">🏗️</span>System Design</div>
+</div>
+
+<!-- CODERPAD PANEL -->
+<div class="panel" id="panel-coderpad">
+  <div class="section-title">🤖 Round 1: CoderPad Live Build Interview <span class="priority" style="background:#fef9c3;color:#854d0e;border-color:#fde047;">Your Next Round</span></div>
+  <p class="section-desc">This is Fetch's first live technical round — conducted entirely inside CoderPad with AI assistance enabled. Unlike traditional LeetCode-style screens, Fetch expects you to <strong>build a small working application</strong> from a prompt, iteratively, in real time. Think of it as a simulated work session, not a puzzle contest.</p>
+
+  <div class="purple-box">
+    <h3>⚡ What Makes This Round Different</h3>
+    <p>Fetch uses CoderPad's AI-enabled environment — meaning you <strong>can and should use the built-in AI assistant</strong> (typically ChatGPT or Claude via CoderPad's AI Chat tab). You are evaluated not just on whether the app works, but on <em>how you direct, verify, and extend AI-generated code</em>. The interviewer wants to see you in the driver's seat — decomposing the problem, catching AI mistakes, and iterating toward production-quality output.</p>
+  </div>
+
+  <div class="info-box">
+    <h3>📋 Format — What to Expect (from Glassdoor reports + CoderPad docs)</h3>
+    <ul>
+      <li><strong>Duration:</strong> ~60 minutes live with an interviewer watching in real time</li>
+      <li><strong>Setup:</strong> You receive a link, join as a guest or with your name, and land in the shared editor — no installs needed</li>
+      <li><strong>AI:</strong> CoderPad's AI Chat tab is available (ChatGPT/Claude). Use it. Not using it is not an advantage.</li>
+      <li><strong>Style:</strong> Collaborative pair-programming — the interviewer may give hints, tighten scope, or add requirements mid-session</li>
+      <li><strong>Run your code:</strong> CoderPad has a built-in executor — run early and often; don't wait until the end</li>
+      <li><strong>Language:</strong> Choose your strongest. Backend: Go or Python. Mobile: Kotlin/Swift. Full-stack: TypeScript/React. Confirm with recruiter.</li>
+      <li><strong>Confirmed Fetch theme:</strong> Build an app that fetches data from an API, processes/filters it, and displays or returns the result cleanly</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">🧪 How the Interview Typically Flows</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">⏱️ Minutes 0–5 · Problem Setup</div>
+      <div class="q-text">Interviewer shares the prompt. Read it twice. Ask 2–3 clarifying questions before writing a single line.</div>
+      <div class="q-tip">💡 Confirm: expected input/output format, error handling expectations, whether tests are required, and any constraints on libraries. Candidates who ask zero questions and dive straight in often miss hidden requirements.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">⏱️ Minutes 5–15 · Plan + Scaffold with AI</div>
+      <div class="q-text">Verbally outline your approach, then use the AI to scaffold boilerplate (project structure, imports, API call setup). Review every line the AI generates before keeping it.</div>
+      <div class="q-tip">💡 Good AI prompt: "Generate a Go/Python function that calls [endpoint], handles a 4xx error gracefully, and returns a list of [items] sorted by [field]." Then read the output critically — AI commonly ignores null checks and edge cases.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">⏱️ Minutes 15–40 · Build & Iterate</div>
+      <div class="q-text">Implement the core logic. Run the code. Read the output. Fix bugs out loud. The interviewer is evaluating your debugging process, not just the final result.</div>
+      <div class="q-tip">💡 Narrate constantly: "I'm seeing a null pointer here — I think the API is returning an empty list when there are no results, so I'll add a guard clause." Silence kills your score in CoderPad rounds.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">⏱️ Minutes 40–55 · Extension & Follow-ups</div>
+      <div class="q-text">Interviewer will extend the requirements: add pagination, a new filter, error handling for a new case, or a user token. Extend cleanly without breaking what you've built.</div>
+      <div class="q-tip">💡 Confirmed by multiple Glassdoor reports: Fetch's live technical round always adds requirements mid-session. Structure your code from the start so extensions are easy — a monolithic function is hard to extend cleanly.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">⏱️ Minutes 55–60 · Wrap-up & Questions</div>
+      <div class="q-text">Interviewer asks what you'd improve with more time. Have a real answer ready — mention tests, error handling, performance, or documentation.</div>
+      <div class="q-tip">💡 "I'd add unit tests for the edge cases I mentioned, extract the API client into a separate module, and add retry logic for transient network failures" is a strong close that signals production thinking.</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Practice Problems — Close to Fetch's Actual Prompts</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🧾 Practice 1 · Receipt Item API (Most Confirmed)</div>
+      <div class="q-text">Given this URL: <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem;">https://fetch-hiring.s3.amazonaws.com/hiring.json</code> — build an app that fetches the list of items, groups them by <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem;">listId</code>, sorts by <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem;">listId</code> then by <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem;">name</code>, and filters out any item where <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem;">name</code> is blank or null.</div>
+      <div class="q-tip">💡 This is the confirmed Fetch mobile take-home prompt, widely reported across Android, backend, and iOS Glassdoor reports. Likely variations exist for the live CoderPad round. Practice this one exactly — it covers grouping, sorting, filtering, and API calling all in one.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🌦️ Practice 2 · Weather/Geocoding Utility (Confirmed 2024)</div>
+      <div class="q-text">Given the OpenWeather Geocoding API, write a utility that takes a city name, state, or zip code and returns the latitude, longitude, place name, and other relevant data. Use both the "Coordinates by location name" and "Coordinates by zip/post code" endpoints.</div>
+      <div class="q-tip">💡 Directly confirmed in a Glassdoor report from Sep 2024. This tests: API key handling, multi-endpoint logic, input validation (city vs. zip vs. state), and clean return types. Practice error handling when the city isn't found.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">📱 Practice 3 · Single-Screen App from API</div>
+      <div class="q-text">Build a one-screen app (console app or simple UI) that fetches a list of products from a public API (e.g., <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem;">dummyjson.com/products</code>), displays them sorted by price descending, and lets the user filter by category via a command-line argument or query param.</div>
+      <div class="q-tip">💡 Based on the Glassdoor Nov 2024 report: "build a one-screen app which was meant to take around 5 hours." In the live CoderPad version, scope is smaller (~60 min) but the pattern is identical. Filtering + sorting + API call = the core skill set.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🏪 Practice 4 · Points Calculator (Domain-Specific)</div>
+      <div class="q-text">Given a JSON list of purchase transactions (brand, amount, date), write a function that calculates loyalty points per user (e.g., 1 point per $1 spent, 2x for partner brands). Group results by user, sort by total points descending, and return the top 10.</div>
+      <div class="q-tip">💡 Not confirmed directly, but highly likely given Fetch's domain. Tests: data transformation, conditional logic, grouping/aggregation, and clean function design — all core to Fetch engineering work. Great live-extension candidate: "now add a tier multiplier."</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🔌 Practice 5 · REST API Endpoint (Backend Roles)</div>
+      <div class="q-text">Build a simple REST API endpoint (<code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem">POST /receipts/process</code>) that accepts a JSON receipt, validates required fields (retailer, purchaseDate, items, total), and returns a unique receipt ID. Add a <code style="background:#f0f0f0;padding:2px 6px;border-radius:4px;font-size:0.85rem">GET /receipts/{id}/points</code> endpoint that returns the calculated points for that receipt.</div>
+      <div class="q-tip">💡 Classic Fetch backend pattern — directly mirrors their receipt scanning product. Practice in Go (Gin) or Python (FastAPI). Focus on: input validation, error responses (400 vs 404 vs 500), and clean route organization.</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">🔄 Common Follow-Up Questions After Your App Works</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🔧 Extension 1 · Add User Context</div>
+      <div class="q-text">"Now associate each receipt scan with a user token passed in the request header. Store the user's scans in memory and add an endpoint to retrieve all receipts for a given user."</div>
+      <div class="q-tip">💡 Confirmed in Glassdoor reports. Tests: header parsing, in-memory data structures (map/hashmap keyed by token), and extending an existing codebase without breaking it.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🔧 Extension 2 · Handle Edge Cases</div>
+      <div class="q-text">"What happens if the API returns a 500? What if an item has a null price? What if the same receipt ID is submitted twice?"</div>
+      <div class="q-tip">💡 Very common at Fetch. They want to see you think defensively. Add retry logic, null guards, and idempotency handling. Answer verbally first ("I'd add a check here for...") before coding.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">🔧 Extension 3 · Performance & Scalability</div>
+      <div class="q-text">"If this endpoint receives 10,000 requests per second, what would break and how would you fix it?"</div>
+      <div class="q-tip">💡 Not always a coding task — sometimes just a verbal discussion. Have a ready answer: in-memory map becomes a bottleneck → move to Redis; synchronous HTTP calls → async/goroutines; no caching → cache the offer catalog. Shows you think beyond the toy problem.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🔧 Extension 4 · Testing</div>
+      <div class="q-text">"Can you write a unit test for the points calculation logic? What cases would you cover?"</div>
+      <div class="q-tip">💡 Fetch values production-quality code. Be ready to write at least one test. Cases to mention: normal input, empty items list, zero total, max boundary, null fields, duplicate submission. Even if you can't write them all, naming them demonstrates mature engineering instincts.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🔧 Extension 5 · Design Discussion</div>
+      <div class="q-text">"How would you refactor this to support multiple receipt formats (grocery vs. restaurant vs. gas station)?"</div>
+      <div class="q-tip">💡 Tests OOP and extensibility thinking. Answer: interface/abstract base for receipt types, separate parsers per format, factory pattern for selecting the right parser. This is the OOP/interface design block bleeding into the live coding round.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 CoderPad-Specific Preparation Tips (3 Days Out)</h3>
+    <ul>
+      <li><strong>Practice in CoderPad's sandbox today:</strong> Go to <a href="https://coderpad.io/sandbox" target="_blank" style="color:var(--gold);">coderpad.io/sandbox</a> and code in it for 30 minutes. Get comfortable with the editor, running code, and the output panel. The UI is different from your usual IDE.</li>
+      <li><strong>Practice with AI as a pair:</strong> Open Claude or ChatGPT alongside a CoderPad sandbox. Simulate the session: give yourself a prompt, use AI to scaffold, then critically review and extend the output. This is the exact muscle Fetch is testing.</li>
+      <li><strong>Build the receipt item app from Practice 1 right now:</strong> It's the most confirmed Fetch prompt. Time yourself — can you build, run, and clean it up in under 20 minutes? That's the target pace for the live round.</li>
+      <li><strong>Talk out loud while you code:</strong> Record yourself for 10 minutes solving a problem. Watch it back. Are you narrating your reasoning? If there are silences longer than 30 seconds, that's where you lose points in a live CoderPad session.</li>
+      <li><strong>Clear the output panel between runs:</strong> CoderPad's output panel doesn't auto-clear. Always check you're reading the freshest output before deciding on your next step.</li>
+      <li><strong>Treat AI output as a draft, not a solution:</strong> AI commonly misses null checks, ignores error handling, and hallucinates API method names. Always read the generated code line by line. Saying "let me review this before I run it" out loud signals engineering maturity.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:6px;">🗂️ AI-Assisted Session Workflow</div>
+  <p class="section-desc">Follow this exact order every time. Deviating — especially skipping steps 1–3 — is the most common reason candidates build the wrong thing confidently.</p>
+
+  <div class="cards" style="margin-bottom:12px;">
+
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title" style="color:var(--purple);">Step 1 · Clarify Requirements</span></div>
+      <ul>
+        <li>Listen to the full problem before touching the editor</li>
+        <li>Ask about input source, shape, and nullable fields</li>
+        <li>Ask about expected output format and sort/filter rules</li>
+        <li>Ask which error cases matter vs. can be ignored</li>
+        <li>Ask about scale — 100 items or 10 million?</li>
+        <li>Write a 3–5 line summary and read it back: <em>"So to confirm…"</em></li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--gold);">
+      <div class="card-header"><span class="card-icon">📄</span><span class="card-title" style="color:var(--gold);">Step 2 · Paste & Trim AGENT.md</span></div>
+      <ul>
+        <li>Have your AGENT.md pre-written — don't write it from scratch live</li>
+        <li>Paste it into CoderPad as a comment block at the top</li>
+        <li>Trim any irrelevant sections for this specific problem</li>
+        <li>Takes under 2 minutes — do not let this slow you down</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--teal);">
+      <div class="card-header"><span class="card-icon">🗺️</span><span class="card-title" style="color:var(--teal);">Step 3 · Ask for Plan Only</span></div>
+      <ul>
+        <li>Prompt: <em>"Do not write any code yet. Give me a component diagram and bullet list of what you'll build."</em></li>
+        <li>Plan should include: data flow diagram, components list, edge cases</li>
+        <li>Plan should be under 20 lines — no paragraphs</li>
+        <li>Do not proceed until plan is confirmed</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <div class="card-header"><span class="card-icon">🔍</span><span class="card-title" style="color:var(--purple);">Step 4 · Review Plan Out Loud</span></div>
+      <ul>
+        <li>Narrate your review to the interviewer — they're scoring this</li>
+        <li>Check: are all edge cases covered? Is error handling accounted for?</li>
+        <li>Check: does the structure match the requirements you clarified?</li>
+        <li>Request targeted updates — not a full replan</li>
+        <li>Get verbal confirmation before moving to code</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--gold);">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title" style="color:var(--gold);">Step 5 · Build Layer by Layer</span></div>
+      <ul>
+        <li>Build and review one layer at a time: model → service → controller</li>
+        <li>Read every line of AI-generated code before accepting it</li>
+        <li>Run the code after each layer — don't wait until the end</li>
+        <li>Narrate what you're reviewing and why you're changing things</li>
+        <li>Catch AI mistakes out loud: <em>"It missed a null check here, fixing that"</em></li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--teal);">
+      <div class="card-header"><span class="card-icon">🧪</span><span class="card-title" style="color:var(--teal);">Step 6 · Edge Case Walkthrough</span></div>
+      <ul>
+        <li>Before running tests, spend 60 seconds asking: what breaks this?</li>
+        <li>Empty list, null field, duplicate ID, max size input, bad API response</li>
+        <li>Add missing test cases or flag them verbally to the interviewer</li>
+        <li>This step alone separates good solutions from great ones</li>
+      </ul>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--purple);">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title" style="color:var(--purple);">Step 7 · Run Tests → Demo</span></div>
+      <ul>
+        <li>Run unit tests first — fix all failures before moving on</li>
+        <li>Run integration tests second</li>
+        <li>Run the app itself if time allows — a live demo beats green tests alone</li>
+        <li>Close with: <em>"With more time I'd add retry logic, load tests, and extract config to env vars"</em></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">✅ Implementation Checklist — Things to Consider</div>
+  <p class="section-desc">Run through this mentally before and during the session. You won't implement everything in 60 minutes — but naming what you'd add signals production maturity.</p>
+
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📥</span><span class="card-title">Input / Output</span></div>
+      <ul>
+        <li>Exact shape of input — JSON, query params, headers?</li>
+        <li>Which fields are nullable or optional?</li>
+        <li>Output format — JSON body, list, paginated response?</li>
+        <li>Is output order deterministic? (same input → same order)</li>
+        <li>Field naming conventions — camelCase vs snake_case?</li>
+        <li>Max payload size to handle?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🛠️</span><span class="card-title">Language & Framework</span></div>
+      <ul>
+        <li>Pick what you debug fastest in — not the theoretically best choice</li>
+        <li>Kotlin + Spring Boot for REST APIs; stdlib for scripts</li>
+        <li>Confirm allowed libraries with interviewer before importing</li>
+        <li>Avoid heavy frameworks for a 60-min scope — keep it lean</li>
+        <li>Use functional style: map, filter, fold over imperative loops</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">Error Handling</span></div>
+      <ul>
+        <li>Distinguish expected errors (404, empty) from unexpected (500, malformed)</li>
+        <li>Use a sealed Result&lt;T&gt; type — never throw raw exceptions from services</li>
+        <li>Define HTTP status code contract: 400, 404, 422, 500</li>
+        <li>Handle partial failures — fail all or return partial results?</li>
+        <li>Null/blank field guards before processing begins</li>
+        <li>Idempotency — same request twice should not double-process</li>
+        <li>Never expose stack traces in API responses</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🧪</span><span class="card-title">Testing</span></div>
+      <ul>
+        <li>Unit tests: pure logic — sorting, filtering, points calculation</li>
+        <li>Integration tests: full request → response cycle per endpoint</li>
+        <li>Mock external APIs with WireMock — no real network in tests</li>
+        <li>Edge cases: empty list, null field, duplicate ID, max size</li>
+        <li>Error paths: bad input, upstream 500, missing required field</li>
+        <li>Idempotency: same request twice returns consistent result</li>
+        <li>Name tests descriptively: <code style="font-size:0.78rem;background:#f0f0f0;padding:1px 5px;border-radius:3px;">should_returnEmpty_when_nameIsNull()</code></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📋</span><span class="card-title">Logging & Observability</span></div>
+      <ul>
+        <li>Use SLF4J — structured JSON logs in prod, plain in dev</li>
+        <li>INFO: request in, key business event, external call + latency</li>
+        <li>WARN: recoverable issues, retries, fallbacks</li>
+        <li>ERROR: unhandled exceptions, upstream failures</li>
+        <li>Attach a correlation ID to every request via MDC</li>
+        <li>Log every outbound call: URL, status code, response time</li>
+        <li>Never log tokens, passwords, or PII</li>
+        <li>Metrics to mention: error rate, p50/p95/p99 latency</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚡</span><span class="card-title">Performance & Latency</span></div>
+      <ul>
+        <li>What's the acceptable response time SLA?</li>
+        <li>I/O-bound vs CPU-bound — different optimization strategies</li>
+        <li>Avoid N+1 — batch API calls, don't loop and call</li>
+        <li>Cache read-heavy, low-churn data (offer catalog, brand list)</li>
+        <li>Sort/filter server-side, not in memory for large datasets</li>
+        <li>Use async/concurrent calls when fetching multiple sources</li>
+        <li>Mention cold start cost if serverless (Lambda) is in scope</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🔒</span><span class="card-title">Security</span></div>
+      <ul>
+        <li>Validate and sanitize all inputs before processing</li>
+        <li>API keys via environment variables — never hardcoded</li>
+        <li>Rate limiting — prevent single caller from flooding endpoint</li>
+        <li>Token validation — not just presence, verify it's legitimate</li>
+        <li>Don't return more fields than the caller needs</li>
+        <li>Sanitize error messages — no internal paths or stack traces</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚙️</span><span class="card-title">Configuration</span></div>
+      <ul>
+        <li>No hardcoded values — URLs, timeouts, keys go in config</li>
+        <li>Use typed config via <code style="font-size:0.78rem;background:#f0f0f0;padding:1px 5px;border-radius:3px;">@ConfigurationProperties</code></li>
+        <li>Separate configs per environment (local, prod)</li>
+        <li>Document every config key and its default in README</li>
+        <li>In interview: say "I'd move this to env var" even if you hardcode temporarily</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏛️</span><span class="card-title">Code Structure</span></div>
+      <ul>
+        <li>Separate layers: controller → service → repository / util</li>
+        <li>Interfaces for services and repositories only — not everywhere</li>
+        <li>Max function length ~20 lines — extract if longer</li>
+        <li>Prefer data classes + copy() over mutation</li>
+        <li>Comments only for non-obvious logic — never for self-explanatory code</li>
+        <li>One responsibility per class — if you can't name it, split it</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📝</span><span class="card-title">Documentation</span></div>
+      <ul>
+        <li>README: what it does, how to run it, config values, known gaps</li>
+        <li>Inline comments only for non-obvious algorithms or workarounds</li>
+        <li>Document API contract: endpoints, request/response shape, error codes</li>
+        <li>Use TODO comments to flag intentionally deferred work</li>
+        <li>Fetch explicitly grades take-homes on README quality</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — CoderPad Round</div>
+  <p class="section-desc">The CoderPad interviewer is a working engineer on the team. These questions show you think about real engineering craft, not just interview performance.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · AI in Daily Work</div>
+      <div class="q-text">"Since this round uses AI-assisted coding — how does the team use AI tools day-to-day in production work? Is there a standard toolset, or does each engineer choose their own?"</div>
+      <div class="q-tip">💡 Directly connects the interview format to real work. Shows you're thinking about how you'd actually operate on the team, not just how to pass this round.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 2 · Code Review Culture</div>
+      <div class="q-text">"How does the team approach code review — what does a typical PR review look like, and what signals separate a 'good enough' PR from an exceptional one at Fetch?"</div>
+      <div class="q-tip">💡 Ties directly to what you just demonstrated in the CoderPad session. Shows you care about the same production quality bar they evaluated you on.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">Question 3 · Real Feature Complexity</div>
+      <div class="q-text">"The kind of app-building we did here — API calls, data transformation, filtering — is that representative of day-to-day engineering work, or is it a simplified version of what the team actually works on?"</div>
+      <div class="q-tip">💡 Invites the interviewer to share real context about the role. The answer tells you whether you'd be building greenfield features or wrestling with a complex legacy receipt pipeline.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Onboarding to the Codebase</div>
+      <div class="q-text">"For a new engineer joining the team, how long does it typically take to make a meaningful first contribution — and what does that first project usually look like?"</div>
+      <div class="q-tip">💡 Practical and shows you're already thinking about impact from day one. Also surfaces whether Fetch has good documentation and onboarding, or if new engineers are expected to figure it out themselves.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 5 · Technical Feedback Loop</div>
+      <div class="q-text">"Is there a post-interview debrief or feedback process for candidates — and within the team, how does the hiring bar get calibrated across interviewers?"</div>
+      <div class="q-tip">💡 Shows process maturity awareness. Also a graceful way to signal you're invested in improving — not just getting an offer. Keep it light and curious, not anxious.</div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW PANEL -->
+<div class="panel active" id="panel-overview">
+  <div class="section-title">🗺️ Full Interview Process at Fetch Rewards</div>
+  <p class="section-desc">Based on dozens of Glassdoor and Blind reports from backend, frontend, and mobile engineers. Fetch's process is consistently described as structured and multi-stage — take it seriously at every step.</p>
+
+  <div class="process">
+    <div class="process-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Application &<br>CTF Challenge</div>
+      <div class="step-detail">Optional "Capture the Flag" puzzle during application. Finding all flags may accelerate your progress.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Take-Home<br>Project</div>
+      <div class="step-detail">Write production-ready code. README + docs expected. ~1–5 hrs depending on role.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Technical<br>Deep Dive</div>
+      <div class="step-detail">~1 hr. Walk through your take-home, live extend it, discuss design decisions.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Recruiter<br>Screen</div>
+      <div class="step-detail">~30 min. Role overview, compensation, timeline, and what to expect in the Super Day.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">5</div>
+      <div class="step-title">"Super Day"<br>Panel (~5 hrs)</div>
+      <div class="step-detail">Intro HM → Coding → OOP/Data Modeling → System Design → Behavioral → HM wrap-up.</div>
+    </div>
+  </div>
+
+  <div class="warn-box">
+    <h3>⚠️ Critical Take-Home Warning (from Glassdoor candidates)</h3>
+    <ul>
+      <li><strong>Do not underestimate the take-home.</strong> Multiple candidates note failing to progress because they didn't treat it as production-level code.</li>
+      <li><strong>Hidden prompt traps:</strong> The instructions contain subtle rules designed to trip up AI-generated solutions. Read every word carefully.</li>
+      <li><strong>Always include:</strong> a README, code comments, proper configuration, and clear architecture choices. They expect what you'd ship to production.</li>
+      <li><strong>Common take-home theme:</strong> Processing receipt/transaction data, grouping and filtering items from a JSON endpoint (confirmed across mobile, backend, and data roles).</li>
+    </ul>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎁</span><span class="card-title">About Fetch Rewards</span></div>
+      <p>Founded in 2013 in Madison, Wisconsin, Fetch is America's #1 rewards app. Users earn points by scanning grocery and retail receipts (in-store or digital), shopping online through the app, playing mobile games, and spinning daily wheels. Points redeem for gift cards from hundreds of brands. Fetch has raised $772M and serves tens of millions of active users. Their engineering teams build the receipt scanning pipeline, rewards recommendation engine, brand partnership data layer, and mobile apps (iOS/Android).</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">What Fetch Looks For</span></div>
+      <ul>
+        <li>Ownership mentality — you ship it, you own it</li>
+        <li>Production-quality code instincts from the start</li>
+        <li>Comfort with ambiguity and fast-moving startup pace</li>
+        <li>Strong data instincts (SQL, pipelines, structured data)</li>
+        <li>Genuine interest in consumer products and rewards</li>
+        <li>Trust, accountability, and transparent communication</li>
+        <li>Willingness to bring and advocate for ideas</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">Candidate Notes (Glassdoor / Blind)</span></div>
+      <ul>
+        <li>Super Day is ~5 hours straight — pace yourself and stay sharp</li>
+        <li>Interviewers are generally described as friendly and collaborative</li>
+        <li>Some negative feedback about org structure and communication speed — ask about this in your interviews</li>
+        <li>Fetch uses AWS "for everything" — be fluent in cloud-native patterns</li>
+        <li>Process can span 3–8 weeks total; follow up politely after 5–7 days</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="purple-box">
+    <h3>💡 Recruiter Call — What to Expect Today</h3>
+    <p>Your recruiter call will be ~30 minutes. Expect: a brief pitch on Fetch's mission and growth, a quick background check on your experience, an explanation of the full interview process (take-home → tech review → Super Day), and an opportunity for you to ask questions. <strong>Come prepared with 2–3 sharp questions about the role and the tech org.</strong> The recruiter is evaluating genuine interest and communication clarity — not technical depth.</p>
+  </div>
+</div>
+
+<!-- BEHAVIORAL PANEL -->
+<div class="panel" id="panel-behavioral">
+  <div class="section-title">💬 Behavioral Round <span class="priority">Also: Recruiter Call Prep</span></div>
+  <p class="section-desc">Behavioral questions appear at two stages: the recruiter call (light culture/background fit) and the dedicated behavioral block in the Super Day (conducted by a non-technical interviewer). Fetch values <strong>trust, accountability, and ownership</strong> above all else.</p>
+
+  <div class="star-box">
+    <h3>📐 Use the STAR Method — structured answers signal ownership and clarity</h3>
+    <div class="star-grid">
+      <div class="star-cell">
+        <div class="star-letter">S</div>
+        <div class="star-word">SITUATION</div>
+        <div class="star-desc">Set context briefly. What was the environment, team, and challenge?</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">T</div>
+        <div class="star-word">TASK</div>
+        <div class="star-desc">What was your specific role or responsibility in this?</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">A</div>
+        <div class="star-word">ACTION</div>
+        <div class="star-desc">What did YOU do? Be specific — "I decided…" not "we…"</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">R</div>
+        <div class="star-word">RESULT</div>
+        <div class="star-desc">What was the outcome? Numbers, speed, user impact — be concrete.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor + Blind reports)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🤝 Ownership & Accountability</div>
+      <div class="q-text">Tell me about a time you took ownership of a project that was failing or unclear. What did you do, and what was the outcome?</div>
+      <div class="q-tip">💡 Fetch's core values are Trust and Action. Show you don't wait to be told — you identify the gap and move. Mention any cross-team coordination you drove.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">⚡ Moving Fast with Ambiguity</div>
+      <div class="q-text">Describe a time you had to make a significant technical decision with incomplete information. How did you decide, and what happened?</div>
+      <div class="q-tip">💡 Fetch is a fast-moving startup. They value people who can move with incomplete info. Show your reasoning process, not just the happy-path outcome.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">📖 Why Fetch?</div>
+      <div class="q-text">Why Fetch specifically? What draws you to a consumer rewards app versus other companies you may be interviewing with?</div>
+      <div class="q-tip">💡 This is almost guaranteed on the recruiter call. Tie it to something real — maybe you use the app, you're interested in consumer data at scale, or the brand partnership model excites you. Authenticity matters at Fetch.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">💡 Innovation & Ideas</div>
+      <div class="q-text">Tell me about a time you proposed or drove a change that wasn't your assigned job. How did you get buy-in?</div>
+      <div class="q-tip">💡 Fetch has a "yes culture" where ideas are encouraged and heard. Show you're the kind of engineer who brings solutions, not just executes tickets.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🌱 Growth Under Pressure</div>
+      <div class="q-text">Tell me about a time you had to learn a new technology or codebase very quickly to meet a deadline. What was your approach?</div>
+      <div class="q-tip">💡 Fetch is scaling fast — they value engineers who can onboard and contribute quickly. Show intellectual curiosity, not just technical depth.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:12px;">🎯 How to Prepare</div>
+
+  <div class="tips">
+    <h3>🔑 Fetch-Specific Preparation Tips</h3>
+    <ul>
+      <li><strong>Download and use the Fetch app:</strong> Multiple Glassdoor candidates note interviewers expect familiarity with the product. Know the receipt scanning flow, offer discovery, and rewards redemption UX.</li>
+      <li><strong>Know Fetch's values:</strong> Trust, Action, Accountability, Freedom, and Growth. Weave these naturally into your stories.</li>
+      <li><strong>Prepare a Story Bank:</strong> Have 5–6 STAR stories ready covering: ownership, conflict, moving fast, learning, leadership, and product thinking.</li>
+      <li><strong>Be ready for "Why Fetch":</strong> This is asked on every recruiter call. Connect to the consumer product mission and data-at-scale challenge.</li>
+      <li><strong>Tone:</strong> Fetch is a collaborative, "yes culture" startup. Be direct, confident, and enthusiastic — not robotic or overly formal.</li>
+    </ul>
+  </div>
+
+  <div class="info-box">
+    <h3>📌 The Super Day Behavioral Block</h3>
+    <p>In the Super Day, the behavioral interview is conducted by a <strong>non-technical interviewer</strong> (often from People Ops or a business team). They're evaluating culture fit, communication, and values alignment — not technical depth. Keep answers concise, human, and grounded in real examples. This block follows 3 technical rounds so energy management matters — arrive sharp.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title">Do</span></div>
+      <ul>
+        <li>Show genuine product curiosity — mention using the app</li>
+        <li>Demonstrate ownership ("I led…" not "the team…")</li>
+        <li>Connect your values to Fetch's startup culture</li>
+        <li>Be specific with outcomes — numbers, speed, impact</li>
+        <li>Ask smart, engaged questions during the recruiter call</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">❌</span><span class="card-title">Avoid</span></div>
+      <ul>
+        <li>Vague stories with no quantifiable outcome</li>
+        <li>Answers heavy on "we" with no personal ownership</li>
+        <li>Criticizing past employers — especially about pace or ambiguity</li>
+        <li>Saying you've never heard of or used the app</li>
+        <li>Over-formal or rehearsed delivery — Fetch culture is relaxed</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Recruiter / Behavioral Round</div>
+  <p class="section-desc">These questions signal product curiosity, cultural awareness, and career intentionality — the right signals for a Fetch recruiter call or behavioral block.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Growth & Trajectory</div>
+      <div class="q-text">"Fetch has grown to ~1,000 employees and raised $772M — how has that growth changed engineering culture, and how does Fetch preserve the startup speed and 'yes culture' as it scales?"</div>
+      <div class="q-tip">💡 Shows you've researched Fetch's growth stage and care about culture sustainability. Also surfaces honest info about what it's actually like working there today.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 2 · Impact of this Role</div>
+      <div class="q-text">"What does success look like for this role in the first 90 days — and how does the team define meaningful impact for an engineer in this position?"</div>
+      <div class="q-tip">💡 Directly aligns with Fetch's "Action" core value — shows you want to deliver, not just onboard. Also helps you calibrate what "good" looks like from day one.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">Question 3 · Team Structure</div>
+      <div class="q-text">"How are engineering teams structured at Fetch — are they product-aligned squads, platform teams, or something else — and how does this role interact with product and data science?"</div>
+      <div class="q-tip">💡 Fetch's product depends heavily on data, brand partnerships, and consumer behavior. Understanding the cross-functional structure shows you're thinking about collaboration, not just code.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Ownership & Autonomy</div>
+      <div class="q-text">"Fetch's culture values accountability and autonomy — how much ownership do individual engineers have over technical decisions vs. how much is directed top-down?"</div>
+      <div class="q-tip">💡 Directly references Fetch's stated values. The answer tells you if you'll have genuine engineering autonomy or be executing a fixed roadmap.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 5 · Product Roadmap</div>
+      <div class="q-text">"The Fetch app recently expanded beyond receipts into games, browser extensions, and eReceipts — are there engineering challenges you can share around unifying these different data sources into a single rewards platform?"</div>
+      <div class="q-tip">💡 Shows you've used and researched the product, not just applied. Invites the recruiter to share real product direction. Very few candidates ask this — it stands out.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODING PANEL -->
+<div class="panel" id="panel-coding">
+  <div class="section-title">💻 Coding Round</div>
+  <p class="section-desc">Fetch's coding interviews happen at two stages: the <strong>take-home project</strong> (assessed async) and a <strong>live coding round during Super Day</strong>. The live round is LeetCode easy-to-medium difficulty, plus an OOP/data modeling block. Communication and code quality matter as much as correctness.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor backend & frontend candidates)</h3>
+    <ul>
+      <li><strong>Take-Home:</strong> Build a small production-ready application (receipt processing, API endpoint, or data pipeline). Submit with README and docs. Time: 1–5 hours.</li>
+      <li><strong>Take-Home Review (1 hr):</strong> Walk through your solution live, make real-time modifications, explain all design choices.</li>
+      <li><strong>Super Day — Live Coding (1 hr):</strong> LeetCode easy/medium equivalent. Focus on arrays, hashmaps, and data manipulation.</li>
+      <li><strong>Super Day — OOP/Data Modeling (1 hr):</strong> Design classes, interfaces, or data schemas. Think receipt structure, user loyalty models, brand partner schemas.</li>
+      <li><strong>Language:</strong> Role-dependent. Backend: Go or Python. Mobile: Kotlin (Android) or Swift (iOS). Full-stack: TypeScript/React.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor + Blind + DEV community)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🧾 Take-Home — Receipt Processing (Most Common)</div>
+      <div class="q-text">Build an API or function that processes a JSON list of receipt items. Group by a field (e.g., "listId"), sort items within groups, and filter out items with blank or null names.</div>
+      <div class="q-tip">💡 Confirmed across Android, backend, and data roles. The core challenge is clean data handling + production-level code quality. Add error handling, config management, and a solid README — they expect "shippable" work.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🔢 Live Coding — Data Manipulation</div>
+      <div class="q-text">Given a list of transactions or shopping events, compute aggregate summaries (totals, counts, group-by brand). Expect variations with filtering conditions and edge cases.</div>
+      <div class="q-tip">💡 Directly tied to Fetch's domain. Practice hashmap-based aggregation patterns — they map naturally to receipt/offer data. Think: "count purchases per brand", "total points per user per week".</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">🏗️ OOP / Interface Design</div>
+      <div class="q-text">Design a class hierarchy or set of interfaces for a loyalty points system. Consider: PointsAccount, RewardTier, Offer, Receipt, BrandPartner. What are the relationships and behaviors?</div>
+      <div class="q-tip">💡 Glassdoor confirms an "OOP class design" block in the Super Day. Focus on SOLID principles, clear abstractions, and extensibility. Don't over-engineer — Fetch values pragmatic design.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🔄 Code Refactoring / Extension</div>
+      <div class="q-text">During the take-home review, you may be asked to live-extend your project: e.g., "now add support for a user token to associate receipt scans with a specific user account and track their points."</div>
+      <div class="q-tip">💡 Candidate reports confirm this pattern. Practice modifying your own take-home code live. Write it cleanly the first time so extensions are easy — messy initial code becomes a trap.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">📊 SQL & Data Pipeline (Data Roles)</div>
+      <div class="q-text">Write a SQL query to find the top 5 brands by total points awarded last week. Join user receipt scans with brand offer tables, filter by date range, aggregate, and rank.</div>
+      <div class="q-tip">💡 Confirmed for data engineer and analyst roles via InterviewQuery. Fetch's brand partnership model means SQL skills are core. Practice window functions, CTEs, and GROUP BY aggregations on transactional data.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Treat the take-home like a production PR:</strong> Add a README explaining architecture decisions, edge cases handled, and what you'd improve with more time.</li>
+      <li><strong>Practice receipt/transaction data problems:</strong> Grouping, sorting, filtering, aggregating — these directly match Fetch's domain. Use LeetCode 49 (Group Anagrams), 347 (Top K Frequent), and 560 (Subarray Sum).</li>
+      <li><strong>Know your chosen language deeply:</strong> Error handling, config patterns, and idiomatic style in Go, Kotlin, or Python are evaluated.</li>
+      <li><strong>Read the take-home instructions literally:</strong> Glassdoor reports confirm hidden edge cases in the problem spec designed to catch shortcuts. Read every sentence twice.</li>
+      <li><strong>Talk through your reasoning:</strong> In the live review, narrate your design decisions. "I chose a hashmap here because…" is what they're evaluating.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Coding Round</div>
+  <p class="section-desc">The coding round interviewers are your future direct peers. These questions show engineering craft awareness and signal you're thinking beyond the exercise.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Code Quality Standards</div>
+      <div class="q-text">"What does high-quality production code look like at Fetch — how does the team approach code review, test coverage expectations, and documentation standards?"</div>
+      <div class="q-tip">💡 Shows you care about the craft beyond passing this interview. Also gives you real signal on whether the codebase is one you'd want to work in.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 2 · Receipt Pipeline Scale</div>
+      <div class="q-text">"Fetch processes millions of receipts per day — what are the most interesting engineering challenges at that scale, and are there any major infrastructure investments happening to handle it?"</div>
+      <div class="q-tip">💡 Directly relevant to the domain you'd work in. Shows you've thought about the real technical context beyond toy problems in interviews.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">Question 3 · Tech Debt & Modernization</div>
+      <div class="q-text">"How does the team balance feature delivery with paying down tech debt — is there allocated sprint time for refactoring, or does it get squeezed by product timelines?"</div>
+      <div class="q-tip">💡 Honest answer reveals engineering culture. A startup at Fetch's growth stage likely has real debt — knowing how they address it tells you a lot about working conditions.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Developer Tooling & DX</div>
+      <div class="q-text">"What does local development setup look like — how fast is the CI/CD pipeline, and are there any initiatives to improve developer productivity or reduce toil?"</div>
+      <div class="q-tip">💡 Practical question that signals you value shipping efficiency, not just individual heroics. Also tells you what onboarding will actually be like.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 5 · On-Call & Reliability</div>
+      <div class="q-text">"With a consumer app like Fetch, reliability during peak times (holidays, Super Bowl) is critical — how does the team manage on-call rotations, and what does incident response look like?"</div>
+      <div class="q-tip">💡 Shows operational maturity. Fetch's Super Bowl and holiday campaigns create real traffic spikes — understanding the reliability story tells you what engineering life is actually like at 2am.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN PANEL -->
+<div class="panel" id="panel-design">
+  <div class="section-title">🏗️ System Design Round</div>
+  <p class="section-desc">The system design block is a dedicated 1-hour round in the Super Day. Interviewers evaluate your ability to design scalable, real-world systems — with particular emphasis on <strong>data modeling, API design, and distributed system tradeoffs</strong> relevant to a high-volume consumer rewards platform.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor backend candidates)</h3>
+    <ul>
+      <li>1 hour, typically one interviewer (senior or staff engineer)</li>
+      <li>Often starts with: "Design the Fetch receipt scanning and points system" or a scaled variant</li>
+      <li>May also revisit architectural aspects of your take-home project</li>
+      <li>Interviewer evaluates: approach, tradeoffs, scalability reasoning, data modeling depth</li>
+      <li>AWS familiarity is a plus — Fetch is an AWS shop. Know S3, SQS, Lambda, and RDS/Aurora patterns.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor + InterviewQuery)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🧾 Receipt Processing Pipeline</div>
+      <div class="q-text">Design a system to ingest millions of receipt photos per day, extract structured data (store, items, prices), match items to brand offers, and award loyalty points to the correct user account.</div>
+      <div class="q-tip">💡 This is the core Fetch engineering problem. Cover: async job queue (SQS), OCR/parsing service, offer matching service, idempotency (no double-points), and a points ledger DB. Discuss eventual consistency tradeoffs.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">📈 Scalability — Peak Traffic</div>
+      <div class="q-text">How would you ensure the Fetch platform handles a 20x traffic spike during Super Bowl Sunday (when millions of users scan snack receipts simultaneously)?</div>
+      <div class="q-tip">💡 Cover: horizontal scaling, queue-based decoupling (SQS/Kafka), read replicas for PostgreSQL, Redis caching for offer lookups, graceful degradation, and pre-scaling via Lambda reserved concurrency.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">🗄️ Data Model Design</div>
+      <div class="q-text">Design the database schema for the Fetch rewards system: users, receipts, receipt line items, brand offers, offer matches, points transactions, and gift card redemptions.</div>
+      <div class="q-tip">💡 PostgreSQL is likely their primary DB. Show normalized relationships, use of foreign keys, indexing strategy for high-frequency receipt scans, and how you'd handle the audit trail of a points ledger (append-only events vs. mutable balance).</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🔌 Offer Matching API</div>
+      <div class="q-text">Design an API for matching scanned receipt items to active brand offers. A receipt has 30 line items; Fetch has 10,000+ active brand offers. How do you make matching fast, accurate, and maintainable?</div>
+      <div class="q-tip">💡 Think about: inverted index or trie for product lookup, fuzzy matching for OCR errors, caching active offer catalog in Redis, and batch vs. real-time matching tradeoffs. This is core Fetch IP.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🔔 Notification & Personalization System</div>
+      <div class="q-text">How would you design a system to deliver personalized offer notifications to 17M users — showing each user the most relevant brand offers based on their purchase history?</div>
+      <div class="q-tip">💡 Cover: user segmentation, offline batch scoring (Lambda + S3), delivery via push notification (FCM/APNs), frequency capping, and A/B testing infrastructure. Fetch's business model depends on offer relevance.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Think in receipts and offers:</strong> Every system design at Fetch ultimately relates to: ingest receipt → parse items → match to offers → award points → redeem rewards. Keep this pipeline in mind.</li>
+      <li><strong>Know AWS fundamentals cold:</strong> S3 (image storage), SQS (async queuing), Lambda (serverless processing), RDS/Aurora (relational data), ElastiCache (Redis), CloudFront (CDN). Fetch is an AWS shop.</li>
+      <li><strong>Points ledger is tricky:</strong> Loyalty points require ACID guarantees. Be ready to discuss: event sourcing, idempotency keys, double-entry bookkeeping patterns, and why a mutable balance field is dangerous.</li>
+      <li><strong>Talk through your tradeoffs:</strong> SQL vs. NoSQL for receipts, sync vs. async processing, eventual vs. strong consistency. Fetch interviewers care about your reasoning, not a single "right" answer.</li>
+      <li><strong>Defend your take-home architecture:</strong> The Super Day may include questions about architectural decisions in your take-home. Know why you made every choice.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — System Design Round</div>
+  <p class="section-desc">The system design interviewer is a senior engineer who deeply understands Fetch's architecture. These questions show strategic depth and genuine curiosity about real systems — not just textbook answers.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Architecture Today</div>
+      <div class="q-text">"Where is Fetch's backend architecture today — more monolith, microservices, or event-driven? What's been the biggest architectural evolution as you've scaled past 10M users?"</div>
+      <div class="q-tip">💡 Shows you understand that architecture evolves. The answer tells you what you'd actually be working on and whether there are major migrations underway that you'd be part of.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 2 · Receipt Parsing Complexity</div>
+      <div class="q-text">"Receipt OCR and item matching is notoriously hard — especially with brand name variations, regional store formats, and handwritten receipts. What's the most unsolved or hardest technical problem in the parsing pipeline?"</div>
+      <div class="q-tip">💡 Demonstrates you've thought deeply about Fetch's core technical challenge beyond the surface level. Very few candidates ask this — it's memorable and shows genuine engineering curiosity.</div>
+    </div>
+    <div class="q-item teal">
+      <div class="q-label">Question 3 · Data & ML Infrastructure</div>
+      <div class="q-text">"Fetch has a rich dataset of purchase behavior across millions of users. How mature is the ML/data infrastructure supporting offer personalization and brand analytics — and how closely does platform engineering collaborate with data science?"</div>
+      <div class="q-tip">💡 Signals you understand the data flywheel that makes Fetch's business defensible. Also surfaces how integrated the data science and engineering orgs actually are.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Points Ledger & Financial Integrity</div>
+      <div class="q-text">"Points ledgers are effectively financial systems — any double-award or silent loss of points damages user trust. How does Fetch's architecture ensure correctness and auditability of the points system at scale?"</div>
+      <div class="q-tip">💡 Shows systems maturity and domain knowledge. The answer reveals how much engineering rigor is applied to Fetch's core trust mechanism. A great follow-up question if the interviewer designs the points system with you.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">Question 5 · Platform vs. Product Engineering</div>
+      <div class="q-text">"Is there a distinction between platform/infrastructure teams and product feature teams at Fetch — and where does this role sit? How does the team avoid duplicating work or creating data silos across those boundaries?"</div>
+      <div class="q-tip">💡 Org structure dictates your day-to-day impact. Understanding how engineering is organized tells you whether you'd own end-to-end systems or focus on specific layers.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const names = ['overview','coderpad','behavioral','coding','design'];
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + name);
+    });
+  }
+</script>
+</body>
+</html>

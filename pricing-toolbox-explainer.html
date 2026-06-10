@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing Toolbox — Agentic Architecture Explained</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --panel2: #1f2330;
+    --border: #2c3140;
+    --text: #e7eaf0;
+    --muted: #9aa3b5;
+    --blue: #5b9dff;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --purple: #c084fc;
+    --pink: #f472b6;
+    --yellow: #fde047;
+    --teal: #2dd4bf;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 2rem; font-weight: 700; }
+  h1 .accent { color: var(--orange); }
+  .subtitle { color: var(--muted); margin-top: 8px; max-width: 680px; }
+  section { margin-top: 64px; }
+  h2 { font-size: 1.4rem; margin-bottom: 4px; }
+  h2 .num { color: var(--orange); font-family: var(--mono); font-size: 1rem; margin-right: 8px; }
+  h3.sub { font-size: 1.05rem; margin-bottom: 4px; }
+  .lede { color: var(--muted); margin-bottom: 24px; max-width: 760px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  code, .mono { font-family: var(--mono); font-size: 0.85em; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-family: var(--mono); border: 1px solid; }
+  .pill.blue { color: var(--blue); border-color: var(--blue); background: rgba(91,157,255,.08); }
+  .pill.green { color: var(--green); border-color: var(--green); background: rgba(74,222,128,.08); }
+  .pill.orange { color: var(--orange); border-color: var(--orange); background: rgba(251,146,60,.08); }
+  .pill.purple { color: var(--purple); border-color: var(--purple); background: rgba(192,132,252,.08); }
+
+  .c-purple { color: var(--purple); } .c-blue { color: var(--blue); } .c-green { color: var(--green); }
+  .c-orange { color: var(--orange); } .c-pink { color: var(--pink); } .c-teal { color: var(--teal); } .c-yellow { color: var(--yellow); }
+
+  /* component cards */
+  .comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .comp { background: var(--panel2); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 10px; padding: 16px; }
+  .comp h3 { font-size: 0.95rem; }
+  .comp .role { font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; display: block; }
+  .comp p { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  .comp .iv { margin-top: 10px; font-size: 0.74rem; color: var(--yellow); background: rgba(253,224,71,.06); border: 1px solid rgba(253,224,71,.25); border-radius: 6px; padding: 6px 10px; }
+  .comp .iv::before { content: "🎤 Interview line: "; color: var(--yellow); font-weight: 600; }
+  .b-green { border-left-color: var(--green) !important; } .b-green .role { color: var(--green); }
+  .b-purple { border-left-color: var(--purple) !important; } .b-purple .role { color: var(--purple); }
+  .b-yellow { border-left-color: var(--yellow) !important; } .b-yellow .role { color: var(--yellow); }
+  .b-orange { border-left-color: var(--orange) !important; } .b-orange .role { color: var(--orange); }
+  .b-pink { border-left-color: var(--pink) !important; } .b-pink .role { color: var(--pink); }
+  .b-blue { border-left-color: var(--blue) !important; } .b-blue .role { color: var(--blue); }
+  .b-teal { border-left-color: var(--teal) !important; } .b-teal .role { color: var(--teal); }
+
+  /* translator diagram */
+  .translator { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; }
+  @media (max-width: 860px) { .translator { grid-template-columns: 1fr; } .translator .mid { transform: rotate(90deg); margin: 10px auto; } }
+  .world { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .world h3 { font-size: 0.9rem; margin-bottom: 2px; }
+  .world .proto { font-family: var(--mono); font-size: 0.7rem; margin-bottom: 12px; display: block; }
+  .world pre { background: #12141c; border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: var(--mono); font-size: 0.7rem; line-height: 1.55; overflow-x: auto; color: #c5ccda; }
+  .mid { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 14px; }
+  .mid .te-box { background: rgba(251,146,60,.12); border: 2px solid var(--orange); border-radius: 12px; padding: 14px 16px; text-align: center; }
+  .mid .te-box b { color: var(--orange); font-size: 0.85rem; display: block; }
+  .mid .te-box small { color: var(--muted); font-size: 0.68rem; }
+  .mid svg { margin: 8px 0; }
+  .k { color: var(--blue); } .s { color: var(--green); } .n { color: var(--orange); } .cm { color: #5b657a; }
+
+  /* big flow */
+  .flow { display: flex; flex-direction: column; max-width: 800px; margin: 0 auto; }
+  .flow-step { display: flex; gap: 16px; align-items: flex-start; }
+  .flow-rail { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
+  .flow-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--mono); font-size: 0.8rem; border: 2px solid var(--orange); color: var(--orange); background: var(--panel); z-index: 1; flex-shrink: 0; }
+  .flow-line { width: 2px; flex: 1; background: var(--border); min-height: 24px; }
+  .flow-card { flex: 1; background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; }
+  .flow-card b { font-size: 0.9rem; }
+  .flow-card .who { font-family: var(--mono); font-size: 0.7rem; display: block; margin-top: 2px; }
+  .flow-card p { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  .flow-card .payload { margin-top: 8px; background: #12141c; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-family: var(--mono); font-size: 0.7rem; color: #c5ccda; overflow-x: auto; white-space: pre; }
+  .loop-band { border: 2px dashed rgba(251,146,60,.5); border-radius: 14px; padding: 16px 16px 2px; margin-bottom: 14px; position: relative; }
+  .loop-band .loop-label { position: absolute; top: -12px; left: 18px; background: var(--bg); color: var(--orange); font-family: var(--mono); font-size: 0.72rem; padding: 0 10px; }
+
+  /* agentic loop circle */
+  .loop-wrap { display: flex; justify-content: center; }
+  .qa { display: grid; gap: 14px; }
+  .qa-item { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .qa-item .q { font-weight: 600; color: var(--teal); font-size: 0.9rem; }
+  .qa-item .a { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
+  .qa-item .a b { color: var(--text); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; }
+
+  .callout { background: rgba(45,212,191,.06); border: 1px solid rgba(45,212,191,.35); border-radius: 12px; padding: 18px 20px; margin-top: 20px; }
+  .callout b { color: var(--teal); }
+  .callout p { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+
+  footer { margin-top: 72px; color: var(--muted); font-size: 0.75rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Inside the <span class="accent">Pricing Toolbox</span> Agentic Architecture</h1>
+  <p class="subtitle">How a Slack message becomes an MCP tool call and back — with <code>hotel-tax-mcp</code> standing in as the <b>Hollow MCP</b> server. Built for explaining out loud in interviews.</p>
+  <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+    <span class="pill orange">Tool Executor = MCP client</span>
+    <span class="pill purple">LLM never speaks MCP</span>
+    <span class="pill blue">JSON-RPC ↔ function calling</span>
+  </div>
+
+  <!-- ============ 1. THE ONE-SENTENCE MODEL ============ -->
+  <section>
+    <h2><span class="num">01</span>The Mental Model</h2>
+    <div class="card">
+      <p style="font-size:1.05rem; max-width:760px;">
+        The system is a <b class="c-purple">brain</b> (the LLM, which can only read and write text), a pair of
+        <b class="c-orange">hands</b> (the Tool Executor, which actually touches external systems), and a
+        <b class="c-blue">nervous system</b> (the Orchestrator + Agentic Loop, which carries messages between them until the job is done).
+      </p>
+      <p style="color:var(--muted); margin-top:14px; max-width:760px; font-size:0.9rem;">
+        The single most important fact: <b>the LLM never makes a network call.</b> It only ever <em>asks</em> for a tool to be run by emitting structured JSON. Everything that actually executes — MCP calls, SQL, API hits — happens in the Tool Executor.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 2. COMPONENT GLOSSARY ============ -->
+  <section>
+    <h2><span class="num">02</span>What Each Component Does</h2>
+    <p class="lede">Color-coded to match the diagram's groupings.</p>
+    <div class="comp-grid">
+      <div class="comp b-green">
+        <span class="role">Entry points</span>
+        <h3>Slack App · Pricing Toolbox UI · API User</h3>
+        <p>Three front doors, one brain. Each channel just delivers a user message + identity to the Orchestrator. Keeping them thin means new channels (email, CLI) can be added without touching agent logic.</p>
+        <div class="iv">"We decoupled channels from the agent — the Orchestrator is channel-agnostic."</div>
+      </div>
+      <div class="comp b-blue">
+        <span class="role">Control plane</span>
+        <h3>Orchestrator</h3>
+        <p>The traffic controller. Receives the user message, pulls in team-specific skills/context, asks the Tool Executor what tools exist right now, assembles <em>message + context + tool definitions</em>, and hands that to the LLM Service. It also owns the session and returns the final answer.</p>
+        <div class="iv">"The Orchestrator owns the conversation; the LLM is stateless between calls."</div>
+      </div>
+      <div class="comp b-yellow">
+        <span class="role">Knowledge injection</span>
+        <h3>Team-specific Skills / Context</h3>
+        <p>Prompt assets per team — Taskforce, On-Call, Price Mismatch playbooks. Injected into the system prompt so the same infrastructure behaves like a specialist for each team. This is config, not code.</p>
+        <div class="iv">"Skills let us ship new team behaviors as prompt/context changes, no deploy."</div>
+      </div>
+      <div class="comp b-orange">
+        <span class="role">Execution plane</span>
+        <h3>Tool Executor</h3>
+        <p><b>The MCP client of the whole system.</b> Two jobs: (1) <b>discovery</b> — at session start it calls <code>tools/list</code> on every registered MCP server and aggregates the catalog into one tool menu; (2) <b>invocation</b> — when the LLM asks for a tool, it routes the call to the right server, speaks the right protocol (MCP JSON-RPC for Hollow/Trino/Github…, plain REST for LPAS), enforces timeouts/auth/retries, and normalizes the result.</p>
+        <div class="iv">"The Tool Executor is a protocol adapter + router: LLM function-call JSON in, MCP JSON-RPC out, and back."</div>
+      </div>
+      <div class="comp b-orange">
+        <span class="role">Execution plane</span>
+        <h3>Agentic Loop</h3>
+        <p>The while-loop around the LLM: call model → if it requested tools, execute them → append results to the conversation → call model again. Repeats until the model answers in plain text (or hits a max-iteration guard).</p>
+        <div class="iv">"It's literally: while (response.has_tool_calls) { execute; append; re-prompt; }"</div>
+      </div>
+      <div class="comp b-pink">
+        <span class="role">LLM service</span>
+        <h3>Context Manager</h3>
+        <p>Builds the exact prompt payload: system prompt + skills, conversation history, tool results so far, and the tool schemas — trimmed to fit the context window (truncation/summarization policies live here).</p>
+        <div class="iv">"Context Manager decides what the model sees; it's our token budget owner."</div>
+      </div>
+      <div class="comp b-pink">
+        <span class="role">LLM service</span>
+        <h3>LLM Gateway → GenAI Proxy</h3>
+        <p>Gateway picks a model and normalizes to one internal API. The GenAI Proxy is the enterprise chokepoint to Claude / GPT / Gemini: auth, rate limits, cost tracking, logging, failover. Cursor Agent reuses the same gateway from the IDE.</p>
+        <div class="iv">"One proxy means model swaps and cost controls happen in one place."</div>
+      </div>
+      <div class="comp b-teal">
+        <span class="role">Tool layer</span>
+        <h3>MCP Servers (Trino, Github, Atlassian, Slack/Glean, Hollow)</h3>
+        <p>Each wraps one domain behind the standard MCP contract: <code>tools/list</code> + <code>tools/call</code> over Streamable HTTP (<code>POST /mcp</code>). Hollow MCP here = your <code>hotel-tax-mcp</code>: a Spring AI server exposing <code>@Tool</code> methods. The executor doesn't know or care what's behind it.</p>
+        <div class="iv">"MCP gives every tool the same shape — adding a server is registration, not integration."</div>
+      </div>
+      <div class="comp b-teal">
+        <span class="role">Tool layer</span>
+        <h3>LPAS Troubleshooter (Non-MCP)</h3>
+        <p>The exception that proves the design: a legacy REST/RPC service. The Tool Executor wraps it in a tool definition by hand, so the LLM sees it identically to MCP tools. Adapters hide heterogeneity.</p>
+        <div class="iv">"Non-MCP services get hand-written adapters; to the model everything is just a tool."</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. TWO DIALECTS ============ -->
+  <section>
+    <h2><span class="num">03</span>The Two JSON Dialects — and Who Translates</h2>
+    <p class="lede">"Will the LLM receive the MCP response as JSON?" — <b>Almost.</b> The model never sees MCP's JSON-RPC envelope. The Tool Executor strips it and the result re-enters the conversation as a <b>tool-result message whose content is text — usually JSON-stringified data</b>. The model reads it like any other text in its context.</p>
+    <div class="card">
+      <div class="translator">
+        <div class="world">
+          <h3 class="c-purple">LLM World — "function calling"</h3>
+          <span class="proto c-purple">model API format (Anthropic/OpenAI/Gemini)</span>
+          <pre><span class="cm">// model OUTPUT: "please run this"</span>
+{
+  <span class="k">"type"</span>: <span class="s">"tool_use"</span>,
+  <span class="k">"id"</span>: <span class="s">"toolu_01A"</span>,
+  <span class="k">"name"</span>: <span class="s">"calculate_total_cost"</span>,
+  <span class="k">"input"</span>: {
+    <span class="k">"hotelId"</span>: <span class="s">"H001"</span>,
+    <span class="k">"nightlyRate"</span>: <span class="n">200</span>,
+    <span class="k">"nights"</span>: <span class="n">3</span>
+  }
+}
+
+<span class="cm">// model INPUT next turn: the result</span>
+{
+  <span class="k">"type"</span>: <span class="s">"tool_result"</span>,
+  <span class="k">"tool_use_id"</span>: <span class="s">"toolu_01A"</span>,
+  <span class="k">"content"</span>: <span class="s">"{\"subtotal\":600.0,
+    \"taxes\":78.0,\"fees\":45.0,
+    \"grandTotal\":723.0,
+    \"currency\":\"USD\"}"</span>
+}</pre>
+        </div>
+        <div class="mid">
+          <svg width="46" height="16"><line x1="0" y1="8" x2="36" y2="8" stroke="#fb923c" stroke-width="2"/><polygon points="36,2 46,8 36,14" fill="#fb923c"/></svg>
+          <div class="te-box"><b>Tool Executor</b><small>translates &amp; routes<br>both directions</small></div>
+          <svg width="46" height="16"><line x1="46" y1="8" x2="10" y2="8" stroke="#2dd4bf" stroke-width="2"/><polygon points="10,2 0,8 10,14" fill="#2dd4bf"/></svg>
+        </div>
+        <div class="world">
+          <h3 class="c-teal">MCP World — JSON-RPC 2.0</h3>
+          <span class="proto c-teal">POST /mcp on Hollow (hotel-tax-mcp:8080)</span>
+          <pre><span class="cm">// executor → MCP server</span>
+{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>, <span class="k">"id"</span>: <span class="n">7</span>,
+  <span class="k">"method"</span>: <span class="s">"tools/call"</span>,
+  <span class="k">"params"</span>: {
+    <span class="k">"name"</span>: <span class="s">"calculate_total_cost"</span>,
+    <span class="k">"arguments"</span>: {
+      <span class="k">"hotelId"</span>: <span class="s">"H001"</span>,
+      <span class="k">"nightlyRate"</span>: <span class="n">200</span>,
+      <span class="k">"nights"</span>: <span class="n">3</span> }
+  }
+}
+
+<span class="cm">// MCP server → executor</span>
+{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>, <span class="k">"id"</span>: <span class="n">7</span>,
+  <span class="k">"result"</span>: {
+    <span class="k">"content"</span>: [{ <span class="k">"type"</span>: <span class="s">"text"</span>,
+      <span class="k">"text"</span>: <span class="s">"{\"subtotal\":600.0,…}"</span> }],
+    <span class="k">"isError"</span>: <span class="n">false</span>
+  }
+}</pre>
+        </div>
+      </div>
+      <div class="callout">
+        <b>The precise interview answer:</b>
+        <p>"The MCP server returns a JSON-RPC envelope with a <code>result.content</code> array. The Tool Executor unwraps it and the orchestration layer appends it to the conversation as a <code>tool_result</code> message. The LLM consumes that as <b>plain text tokens that happen to contain JSON</b> — there's no special JSON channel into the model. That's also why concise, well-shaped tool output matters: the model has to <em>read</em> it, and every byte costs context tokens."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. END-TO-END FLOW ============ -->
+  <section>
+    <h2><span class="num">04</span>End-to-End: One Question Through the System</h2>
+    <p class="lede">User asks in Slack: <i>"What would 3 nights at hotel H001 cost at $200/night, all-in?"</i></p>
+    <div class="card">
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">1</div><div class="flow-line"></div></div>
+          <div class="flow-card"><b>Message arrives</b><span class="who c-green">Slack App → Orchestrator</span>
+            <p>Channel adapter forwards the text + user/team identity.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">2</div><div class="flow-line"></div></div>
+          <div class="flow-card"><b>Context assembly</b><span class="who c-blue">Orchestrator ← Skills/Context</span>
+            <p>Loads the team's skill pack (e.g. Price Mismatch playbook) into the system prompt.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">3</div><div class="flow-line"></div></div>
+          <div class="flow-card"><b>Tool discovery — "Get Tools Available"</b><span class="who c-orange">Orchestrator → Tool Executor → all MCP servers</span>
+            <p>Executor fans out <code>tools/list</code> to Trino, Github, Atlassian, Slack/Glean, <b>Hollow</b> MCPs (+ static defs for LPAS), and merges everything into one catalog of name + description + JSON Schema.</p>
+            <div class="payload">Hollow contributes: list_hotels · get_hotel · get_tax_rules · get_fee_rules · calculate_total_cost · search_by_tax_type</div></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">4</div><div class="flow-line"></div></div>
+          <div class="flow-card"><b>Prompt construction</b><span class="who c-pink">Orchestrator → Context Manager → LLM Gateway</span>
+            <p>"Message + Context + tools available" becomes one structured request: system prompt, history, and the tool schema list, fitted to the token budget.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">5</div><div class="flow-line"></div></div>
+          <div class="flow-card"><b>Model call</b><span class="who c-pink">LLM Gateway → GenAI Proxy → Claude / GPT / Gemini</span>
+            <p>Proxy enforces auth, quotas, logging; the chosen model reads the prompt + tool menu.</p></div>
+        </div>
+
+        <div class="loop-band">
+          <span class="loop-label">AGENTIC LOOP — repeats until no more tool calls</span>
+          <div class="flow-step">
+            <div class="flow-rail"><div class="flow-dot">6</div><div class="flow-line"></div></div>
+            <div class="flow-card"><b>Model requests a tool — "Tools list from LLM"</b><span class="who c-purple">LLM → Agentic Loop → Tool Executor</span>
+              <p>Instead of answering, the model emits a <code>tool_use</code> block (the dashed orange arrow in the diagram).</p>
+              <div class="payload">{"name":"calculate_total_cost","input":{"hotelId":"H001","nightlyRate":200,"nights":3}}</div></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-rail"><div class="flow-dot">7</div><div class="flow-line"></div></div>
+            <div class="flow-card"><b>Executor invokes Hollow MCP</b><span class="who c-orange">Tool Executor → POST /mcp (JSON-RPC tools/call)</span>
+              <p>Routes by tool name → Hollow server. Inside Hollow (your Spring AI app): transport → <code>ToolCallbackProvider</code> → <code>@Tool calculateTotalCost()</code> → service → JSON result.</p></div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-rail"><div class="flow-dot">8</div><div class="flow-line"></div></div>
+            <div class="flow-card"><b>Tool Response flows back</b><span class="who c-orange">Hollow → Tool Executor → Context Manager</span>
+              <p>Executor unwraps <code>result.content[0].text</code>, tags it with the <code>tool_use_id</code>, appends it to the conversation, and the loop re-calls the model (dashed "Tool Response" arrow).</p>
+              <div class="payload">{"subtotal":600.0,"taxes":78.0,"fees":45.0,"grandTotal":723.0,"currency":"USD"}</div></div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">9</div></div>
+          <div class="flow-card"><b>Final answer</b><span class="who c-green">LLM → Orchestrator → Slack</span>
+            <p>With the numbers now in context, the model answers in prose: <i>"3 nights at H001 comes to <b>$723.00</b> — $600 room, $78 taxes, $45 mandatory fees."</i> The Orchestrator posts it back to the originating channel.</p></div>
+        </div>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:0.8rem; margin-top:14px;">A harder question ("find hotels with VAT and compare 3-night totals") just means more loop iterations — <code>search_by_tax_type</code> first, then several <code>calculate_total_cost</code> calls, possibly in parallel — before the final prose answer.</p>
+  </section>
+
+  <!-- ============ 5. PROTOCOL MAP ============ -->
+  <section>
+    <h2><span class="num">05</span>Protocol Map — What's on Each Wire</h2>
+    <div class="card" style="padding:0; overflow-x:auto;">
+      <table>
+        <thead><tr><th>Hop</th><th>Protocol / Format</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Slack / UI / API → Orchestrator</td><td class="mono">HTTPS + webhooks / REST</td><td>Channel-specific; normalized immediately</td></tr>
+          <tr><td>Orchestrator → LLM Service</td><td class="mono">internal API (structured message + context)</td><td>In-process or RPC</td></tr>
+          <tr><td>Gateway → GenAI Proxy → models</td><td class="mono">provider APIs (Anthropic / OpenAI / Gemini) over HTTPS</td><td>Tool schemas travel as part of the request body</td></tr>
+          <tr><td>LLM → Executor (tool request)</td><td class="mono">tool_use JSON in model response</td><td>Not a network call by the model — it's text output</td></tr>
+          <tr style="background:rgba(45,212,191,.05);"><td><b>Executor → MCP servers</b></td><td class="mono"><b>MCP: JSON-RPC 2.0 over Streamable HTTP (POST /mcp)</b></td><td>Same wire format you tested on hotel-tax-mcp</td></tr>
+          <tr><td>Executor → LPAS</td><td class="mono">plain REST / custom RPC</td><td>Hand-written adapter, no MCP</td></tr>
+          <tr><td>Trino MCP → data lake</td><td class="mono">EGDL/SQL behind the MCP server</td><td>MCP hides the query engine entirely</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 6. INTERVIEW Q&A ============ -->
+  <section>
+    <h2><span class="num">06</span>Likely Interview Questions</h2>
+    <div class="qa">
+      <div class="qa-item">
+        <div class="q">Q: Why does the Tool Executor exist — why not let the LLM call MCP servers directly?</div>
+        <div class="a">LLMs can't make network calls; they only emit text. Beyond that, centralizing execution gives you <b>one place for auth, rate limiting, timeouts, retries, audit logging, and allow-listing</b> — you never want a model output to translate into an unmediated network call. It also decouples protocols: models speak function-calling, tools speak MCP or REST, and neither needs to know about the other.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q">Q: How does the LLM know which tools exist?</div>
+        <div class="a">At session start the executor aggregates <code>tools/list</code> from every MCP server. Each tool's <b>name, description, and JSON Schema</b> are placed into the model request. The model "knows" tools the same way it knows anything else in its prompt — the descriptions you wrote in <code>@Tool(description=…)</code> are literally what the model reads to decide when to call it.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q">Q: Is the tool response JSON when it reaches the model?</div>
+        <div class="a">The wire response is JSON-RPC; the executor unwraps it to the inner payload; the model receives it as a <b>tool_result message containing text</b> — typically stringified JSON. The model parses it "by reading," not with a JSON parser. Implication: tool outputs should be compact and well-labeled, because they consume context tokens and the model must interpret them reliably.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q">Q: What happens when a tool fails?</div>
+        <div class="a">MCP distinguishes <b>protocol errors</b> (JSON-RPC <code>error</code>) from <b>tool-level failures</b> (<code>result.isError: true</code> with an explanatory message). The executor passes tool failures back into the conversation so the model can recover — retry with different arguments, pick another tool, or tell the user. In hotel-tax-mcp, throwing <code>IllegalArgumentException("Unknown hotel")</code> becomes exactly such an isError result.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q">Q: Why MCP at all, instead of hand-wiring each integration?</div>
+        <div class="a">Without MCP every tool×agent pairing is custom glue (M×N problem). MCP standardizes discovery (<code>tools/list</code>), invocation (<code>tools/call</code>), schemas, and transports — so adding the 7th server to this diagram is <b>registration, not integration</b>. The LPAS box shows the counterfactual: non-MCP services need bespoke adapter code in the executor.</div>
+      </div>
+      <div class="qa-item">
+        <div class="q">Q: How would you scale / harden this?</div>
+        <div class="a">Streamable HTTP MCP servers are stateless-friendly → horizontal scale behind a load balancer. Add per-tool timeouts and circuit breakers in the executor, parallel tool execution where calls are independent, max-iteration caps on the agentic loop, schema validation before dispatch, and an allow-list per team so the On-Call skill can't invoke pricing-mutation tools.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Pricing Toolbox architecture · Hollow MCP modeled on hotel-tax-mcp (Spring AI, Streamable HTTP) · companion to mcp-explainer.html</footer>
+</div>
+</body>
+</html>

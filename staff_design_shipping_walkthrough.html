@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff-Level Design Walkthrough — Shipping Rate &amp; Label Service</title>
+<style>
+  :root {
+    --indigo: #4f46e5;
+    --indigo-deep: #3730a3;
+    --indigo-light: #eef2ff;
+    --violet: #6d28d9;
+    --violet-light: #f3f0ff;
+    --teal: #0f766e;
+    --teal-light: #e0f2f1;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --red: #b91c1c;
+    --red-light: #fef2f2;
+    --blue: #2c6fad;
+    --blue-light: #e8f0fa;
+    --code-bg: #1e293b;
+    --code-bg2: #0f172a;
+    --code-text: #e2e8f0;
+    --code-dim: #94a3b8;
+    --code-kw: #c084fc;
+    --code-str: #86efac;
+    --code-acc: #fbbf24;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); line-height: 1.5; padding-bottom: 48px; }
+  code, pre { font-family: 'SF Mono', Monaco, Consolas, monospace; }
+
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #3730a3 55%, #0f766e 130%); color: white; padding: 32px 40px 26px; position: relative; }
+  .header::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #6d28d9 0%, #0f766e 100%); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .icon { font-size: 2rem; }
+  .header h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+  .header-sub { font-size: 0.9rem; opacity: 0.9; max-width: 720px; margin-top: 6px; }
+  .prompt-quote { margin-top: 14px; background: rgba(255,255,255,0.12); border-left: 3px solid rgba(255,255,255,0.5); border-radius: 4px; padding: 10px 14px; font-size: 0.83rem; font-style: italic; max-width: 760px; }
+
+  .section { background: white; margin: 18px 32px 0; border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow); }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+  .section-header h2 { font-size: 1.18rem; font-weight: 700; }
+  .section-header .se { font-size: 1.35rem; }
+  .section-header .num { margin-left: auto; font-size: 0.72rem; font-weight: 700; color: var(--muted); background: var(--gray); border-radius: 20px; padding: 3px 11px; align-self: center; }
+  .section-desc { font-size: 0.86rem; color: var(--muted); margin: 10px 0 18px; line-height: 1.6; }
+
+  .lead { background: var(--violet-light); border: 1px solid #c4b5fd; border-radius: 10px; padding: 16px 20px; margin: 18px 32px 0; }
+  .lead h3 { font-size: 0.92rem; font-weight: 700; color: var(--violet); margin-bottom: 6px; }
+  .lead p { font-size: 0.87rem; color: #374151; line-height: 1.6; }
+  .lead strong { color: var(--text); }
+
+  /* talk track */
+  .track { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 12px; }
+  .tstep { border: 1px solid var(--border); border-radius: 10px; border-top: 4px solid var(--indigo); padding: 13px 15px; }
+  .tstep .th { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+  .tstep .tn { width: 26px; height: 26px; border-radius: 50%; background: var(--indigo); color: white; font-size: 0.82rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tstep .tt { font-size: 0.85rem; font-weight: 700; line-height: 1.2; }
+  .tstep .tw { font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .tstep p { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+  .tstep.s2 { border-top-color: var(--teal); } .tstep.s2 .tn { background: var(--teal); }
+  .tstep.s3 { border-top-color: var(--amber); } .tstep.s3 .tn { background: var(--amber); }
+  .tstep.s4 { border-top-color: var(--violet); } .tstep.s4 .tn { background: var(--violet); }
+  .tstep.s5 { border-top-color: var(--green); } .tstep.s5 .tn { background: var(--green); }
+  .tstep.s6 { border-top-color: var(--red); } .tstep.s6 .tn { background: var(--red); }
+
+  /* code/ascii */
+  pre.ascii { background: var(--code-bg2); color: var(--code-text); padding: 18px 20px; border-radius: 10px; overflow-x: auto; font-size: 0.73rem; line-height: 1.45; white-space: pre; }
+  pre.ascii .dim { color: var(--code-dim); }
+  pre.ascii .acc { color: var(--code-acc); }
+  pre.ascii .kw { color: var(--code-kw); }
+  pre.ascii .str { color: var(--code-str); }
+  .caption { font-size: 0.75rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  /* capacity */
+  .calc { background: var(--code-bg); color: var(--code-text); padding: 14px 18px; border-radius: 10px; font-size: 0.78rem; line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .calc .acc { color: var(--code-acc); font-weight: 600; }
+  .calc .dim { color: var(--code-dim); }
+  .calc .str { color: var(--code-str); }
+
+  /* fork cards */
+  .fork { border: 1px solid var(--border); border-radius: 12px; padding: 0; margin-bottom: 18px; overflow: hidden; }
+  .fork-head { background: var(--gray); padding: 13px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .fork-num { font-size: 0.72rem; font-weight: 800; color: white; background: var(--indigo); border-radius: 6px; padding: 3px 9px; }
+  .fork-q { font-size: 0.95rem; font-weight: 700; }
+  .fork-body { padding: 16px 18px; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 10px; margin-bottom: 14px; }
+  .opt { border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; background: var(--gray); }
+  .opt .ol { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 5px; }
+  .opt p { font-size: 0.79rem; color: #4b5563; line-height: 1.5; }
+  .opt.rejected { opacity: 0.78; }
+  .opt.rejected .ol { color: var(--red); }
+  .opt.chosen { background: var(--green-light); border-color: #b2dfc4; }
+  .opt.chosen .ol { color: var(--green); }
+  .decision { background: var(--indigo-light); border-left: 4px solid var(--indigo); border-radius: 6px; padding: 11px 14px; font-size: 0.83rem; color: var(--indigo-deep); line-height: 1.6; }
+  .decision strong { color: var(--indigo-deep); }
+  .say { background: var(--violet-light); border-radius: 6px; padding: 10px 13px; font-size: 0.81rem; color: #3b1f7a; margin-top: 10px; font-style: italic; line-height: 1.55; }
+  .say strong { font-style: normal; color: var(--violet); }
+
+  /* boundary diagram */
+  .boundary { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; margin-top: 6px; }
+  .bcol { padding: 16px 18px; border-radius: 10px; }
+  .bcol.eventual { background: var(--amber-light); border: 1px solid #f5d99e; }
+  .bcol.strong { background: var(--green-light); border: 1px solid #b2dfc4; }
+  .bcol h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+  .bcol.eventual h4 { color: var(--amber); }
+  .bcol.strong h4 { color: var(--green); }
+  .bcol ul { padding-left: 17px; }
+  .bcol li { font-size: 0.8rem; color: #4b5563; line-height: 1.55; margin-bottom: 4px; }
+  .bwall { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 14px; }
+  .bwall-line { width: 3px; flex: 1; background: repeating-linear-gradient(180deg, var(--red) 0 8px, transparent 8px 14px); }
+  .bwall-label { writing-mode: vertical-rl; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); padding: 10px 0; }
+
+  /* generic cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 14px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--indigo); }
+  .card.r { border-left-color: var(--red); } .card.t { border-left-color: var(--teal); }
+  .card.a { border-left-color: var(--amber); } .card.g { border-left-color: var(--green); }
+  .card.b { border-left-color: var(--blue); } .card.v { border-left-color: var(--violet); }
+  .card-h { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .card-h .ci { font-size: 1.2rem; } .card-h .ct { font-size: 0.88rem; font-weight: 700; }
+  .card ul { padding-left: 16px; } .card li { font-size: 0.8rem; line-height: 1.55; color: #374151; margin-bottom: 4px; }
+  .card li strong { color: var(--text); } .card code { background: var(--gray); padding: 1px 5px; border-radius: 4px; font-size: 0.75rem; color: var(--indigo-deep); }
+
+  .snippet { background: var(--code-bg); color: var(--code-text); padding: 13px 15px; border-radius: 8px; overflow-x: auto; font-size: 0.74rem; line-height: 1.5; margin-top: 10px; white-space: pre; }
+  .snippet .kw { color: var(--code-kw); } .snippet .str { color: var(--code-str); } .snippet .cmt { color: var(--code-dim); font-style: italic; } .snippet .acc { color: var(--code-acc); }
+
+  .tips { background: var(--amber-light); border: 1px solid #f5d99e; border-radius: 10px; padding: 14px 18px; }
+  .tips h4 { font-size: 0.85rem; font-weight: 700; color: var(--amber); margin-bottom: 8px; }
+  .tips ul { padding-left: 18px; } .tips li { font-size: 0.82rem; color: #4b5563; line-height: 1.6; margin-bottom: 5px; } .tips strong { color: var(--text); }
+
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.78rem; }
+
+  @media (max-width: 740px) {
+    .header { padding: 24px 16px 18px; }
+    .section, .lead { margin-left: 12px; margin-right: 12px; }
+    .boundary { grid-template-columns: 1fr; }
+    .bwall { flex-direction: row; padding: 10px 0; }
+    .bwall-line { width: 100%; height: 3px; flex: none; background: repeating-linear-gradient(90deg, var(--red) 0 8px, transparent 8px 14px); }
+    .bwall-label { writing-mode: horizontal-tb; }
+    .track, .cards, .opts { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="icon">🏗️</span>
+    <h1>Staff-Level Design Walkthrough</h1>
+  </div>
+  <p class="header-sub">Shipping rate-quote &amp; label service · what the <em>same boxes</em> look like once you add the decision layer · CodeSignal / system-design round</p>
+  <div class="prompt-quote">"eBay needs a service that lets sellers get shipping rate quotes and generate labels across multiple carriers — USPS, FedEx, UPS, DHL, and regional carriers. Design this system. Focus on backend. Walk me through how you'd build it."</div>
+</div>
+
+<div class="lead">
+  <h3>⚡ The one idea this whole doc is built on</h3>
+  <p>A senior diagram and a staff diagram can have <strong>identical boxes</strong>. The difference is that the senior presents each choice as inevitable, while the staff candidate makes the <strong>forks visible</strong> — names the alternative considered and rejected, ties it to a number or a requirement, and states what they'd revisit at 10× scale. The artifact barely changes; the <em>reasoning around it</em> is the entire level difference. Everything below is that reasoning layer, slotted onto the components you already drew.</p>
+</div>
+
+<!-- TALK TRACK -->
+<div class="section">
+  <div class="section-header"><span class="se">🗺️</span><h2>The talk-track order</h2><span class="num">~45 min</span></div>
+  <p class="section-desc">Don't narrate "here's service A, here's service B." Run this arc and let the diagram emerge at step 4. Points are won in 2, 5, and 6 — the deliberation steps, not the drawing.</p>
+  <div class="track">
+    <div class="tstep"><div class="th"><div class="tn">1</div><div><div class="tt">Clarify &amp; scope</div><div class="tw">~5 min</div></div></div><p>Functional + non-functional. Lock what's in/out. Call out the two subsystems: quotes (read, cacheable) vs labels (write, money). They differ — say so.</p></div>
+    <div class="tstep s2"><div class="th"><div class="tn">2</div><div><div class="tt">Capacity math</div><div class="tw">~3 min</div></div></div><p>Turn the QPS into downstream-call counts. This number is what <em>forces</em> caching — make it do work, don't let it decorate.</p></div>
+    <div class="tstep s3"><div class="th"><div class="tn">3</div><div><div class="tt">APIs / contracts</div><div class="tw">~5 min</div></div></div><p>Two endpoints. The label POST carries an idempotency key and a quoteId. State both now.</p></div>
+    <div class="tstep s4"><div class="th"><div class="tn">4</div><div><div class="tt">Draw it (ASCII)</div><div class="tw">~5 min</div></div></div><p>Cheap box-and-arrow in a comment block. Narrate each box as you type. The diagram is a scaffold, not the deliverable.</p></div>
+    <div class="tstep s5"><div class="th"><div class="tn">5</div><div><div class="tt">Deep dive + forks</div><div class="tw">~15 min</div></div></div><p>Caching key, the consistency boundary, the label saga. At each box, voice the option you rejected. This is the staff core.</p></div>
+    <div class="tstep s6"><div class="th"><div class="tn">6</div><div><div class="tt">Failure &amp; scale curve</div><div class="tw">~7 min</div></div></div><p>Blast radius per carrier/region, observability, and what changes at 10×. Owning the trajectory is the staff finish.</p></div>
+  </div>
+</div>
+
+<!-- CAPACITY -->
+<div class="section">
+  <div class="section-header"><span class="se">📊</span><h2>Step 2 — Capacity math that drives the architecture</h2></div>
+  <p class="section-desc">The senior move is to write "10K quotes/sec" and move on. The staff move is to derive the consequence and let it justify every later decision.</p>
+<pre class="calc"><span class="dim"># Quotes</span>
+10,000 quotes/sec  ×  ~4 carriers per quote   = <span class="acc">40,000 downstream carrier calls/sec</span>  (uncached)
+   <span class="dim">→ no carrier API tolerates that; they'd rate-limit us instantly. Caching is MANDATORY, not nice-to-have.</span>
+With ~80% cache hit (traffic is lane-skewed)   = <span class="acc">~8,000 live calls/sec</span> ≈ 2,000 / carrier
+   <span class="dim">→ still high for the big carriers → this is the seed of "ingest rate cards" (Fork 1, option C).</span>
+
+<span class="dim"># Labels</span>
+1,000 labels/sec  =  1 carrier call + 1 charge + 1 durable write each
+   <span class="dim">→ Postgres at ~1K writes/sec is fine with the right indexes; the hard part is correctness, not throughput.</span>
+
+<span class="dim"># Storage</span>
+labels ≈ 1 KB/row.  Peak 1K/sec, but daily AVERAGE far lower.
+   <span class="dim">→ archive to cold storage (S3) after N months; keep hot rows in Postgres for void/refund window.</span></pre>
+  <p class="caption">Saying "40K/sec, which is why caching isn't optional" out loud is worth more than any box. You derived a constraint from your own number.</p>
+</div>
+
+<!-- ASCII DIAGRAM -->
+<div class="section">
+  <div class="section-header"><span class="se">🖼️</span><h2>Step 4 — The diagram (what you'd type in CodeSignal)</h2></div>
+  <p class="section-desc">Same components you already had — now annotated with the things that carry the decisions: cache on the rate-basis key, circuit-breaker/timeout per connector, the consistency boundary, and the label saga with payment. The annotations <em>are</em> the staff signal.</p>
+<pre class="ascii"><span class="dim">                          ┌─────────────────────────────────────────────────────────────┐</span>
+<span class="dim">                          │</span>  <span class="acc">QUOTES  (read-mostly · cacheable · eventual consistency OK)</span>  <span class="dim">│</span>
+<span class="dim">                          └─────────────────────────────────────────────────────────────┘</span>
+
+  Client ──▶ QuotesController ──▶ QuotesService ──▶ <span class="kw">RateCache (Redis)</span>  <span class="dim">cache-aside, ~1h TTL</span>
+                                       │                  <span class="dim">key = (origZIP3, destZIP3, wtBucket,</span>
+                                       │                  <span class="dim">       dimBucket, carrier, service)</span>
+                                       │  <span class="dim">on miss ▼</span>
+                                       ▼
+                              CarrierRegistry        <span class="dim">"which carriers serve this region?"  (config)</span>
+                                       │
+                                       ▼
+                              CarrierRouter ─────────▶ fan-out  <span class="acc">[CB + 200ms timeout + bulkhead / carrier]</span>
+                                       │                  ├──▶ FedExConnector ──▶ FedEx
+                                       │                  ├──▶ UPSConnector   ──▶ UPS
+                                       │                  └──▶ RegionalConn.  ──▶ DHL / local
+                                       <span class="dim">└─ drop slow carriers, return partial rather than block on slowest</span>
+
+<span class="dim">      ╔══════════════════════════ CONSISTENCY BOUNDARY ══════════════════════════╗</span>
+<span class="dim">      ║  quote = cached estimate (shown while browsing)   |   purchase = fresh, authoritative   ║</span>
+<span class="dim">      ╚═══════════════════════════════════════════════════════════════════════════╝</span>
+
+<span class="dim">                          ┌─────────────────────────────────────────────────────────────┐</span>
+<span class="dim">                          │</span>  <span class="acc">LABELS  (write · money · strong consistency · idempotent)</span>     <span class="dim">│</span>
+<span class="dim">                          └─────────────────────────────────────────────────────────────┘</span>
+
+  Client ──▶ LabelController ──▶ LabelService  <span class="acc">[idempotencyKey → return existing if seen]</span>
+                                     │
+                  <span class="dim">1. write label row PENDING (Postgres, same txn as idem record)</span>
+                                     │
+                  <span class="dim">2. authorize payment</span> ──▶ <span class="kw">Payments svc</span>   <span class="dim">(compensate: release auth)</span>
+                                     │
+                  <span class="dim">3. call carrier (SYNC happy path, ≤5s)</span> ──▶ CarrierRouter ──▶ FedEx/UPS/...
+                                     │
+                  <span class="dim">4. capture payment + label GENERATED</span>     <span class="dim">(compensate: void label)</span>
+                                     │
+                                     ▼
+                              Postgres <span class="kw">labels</span>     <span class="dim">label_id PK · idem_key UNIQUE · status · quote_id</span>
+                                     │                <span class="dim">· charge_id · carrier_id · tracking · shipper_id</span>
+                  <span class="dim">timeout/in-doubt ▼</span>
+                              Reconciler job  <span class="dim">(async backbone) — polls carrier, completes or refunds</span></pre>
+  <p class="caption">Notice nothing exotic was added — it's your diagram plus: the cache key, the CB/timeout annotation, the boundary banner, and the numbered label saga. That's the lift from senior to staff.</p>
+</div>
+
+<!-- FORKS -->
+<div class="section">
+  <div class="section-header"><span class="se">🔀</span><h2>Step 5 — The fork points (the actual staff signal)</h2></div>
+  <p class="section-desc">At each of these, a senior states the answer; you state the <em>menu</em>, then choose and justify. Seven forks this prompt naturally contains.</p>
+
+  <!-- Fork 1 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 1</span><span class="fork-q">How do we get rates at all?</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt rejected"><div class="ol">A · Live every time</div><p>Call all carriers on every request. Dies at 40K/sec, carriers rate-limit, p99 is hostage to the slowest carrier.</p></div>
+        <div class="opt chosen"><div class="ol">B · Cache quote responses ✓ start here</div><p>Cache-aside on the rate-basis key. ~80% hit on hot lanes. Stale up to TTL — fine, a quote is an estimate.</p></div>
+        <div class="opt"><div class="ol">C · Ingest rate cards</div><p>Pull carrier rate tables nightly, compute locally. Most robust, no live dep. Cost: a daily pipeline + replicating dim-weight/surcharge logic.</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> Start with B for time-to-market; it survives the stated 10K/sec. Move toward C for the high-volume carriers as cost/scale grows — likely a <strong>hybrid</strong>: rate-card ingestion for the big 4, live+cache for the long-tail regionals whose cards we don't want to replicate.</div>
+      <div class="say"><strong>Say:</strong> "Full addresses look uncacheable, but carriers price on ZIP3-derived zones, not street addresses — so I cache on the rate basis, not the address. Traffic is lane-skewed, so hot lanes give the hit rate; the tail misses and falls through, which is fine."</div>
+    </div>
+  </div>
+
+  <!-- Fork 2 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 2</span><span class="fork-q">Is a stale cached quote a correctness problem?</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt rejected"><div class="ol">A · Cache everything incl. price charged</div><p>Simple, fast — but you can charge a seller a stale/wrong price. Unacceptable for a money flow.</p></div>
+        <div class="opt chosen"><div class="ol">B · Cache the quote, never the charge ✓</div><p>The browse-time number is cached; the purchase does a fresh authoritative call and re-validates via quoteId.</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> The cache lives entirely on the <strong>quote (estimate) side</strong> of the consistency boundary. The label purchase is never cached — it re-prices fresh and binds to the quoteId so the seller is charged what they were shown, even if the cache was stale. This <em>is</em> the system's core correctness invariant.</div>
+    </div>
+  </div>
+
+  <!-- Fork 3 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 3</span><span class="fork-q">Sync or async label generation?</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt chosen"><div class="ol">A · Sync happy path ✓</div><p>Carrier label APIs are typically sub-2s and the seller is waiting. Best UX. Make them wait on the common case.</p></div>
+        <div class="opt"><div class="ol">B · Async + durable backbone</div><p>Not the default — the <em>fallback</em>. For timeouts after charge, you need a durable record + reconciliation so a charged label is never lost.</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> <strong>Sync happy path, async/durable backbone.</strong> The driver for async isn't latency — it's that this is a <em>charged</em> operation that can't be left in an unknown state. Persist PENDING before the carrier call; hard-timeout the sync wait at ~5s; past that the client gets "processing, we'll notify you" and the reconciler resolves it.</div>
+      <div class="say"><strong>Say:</strong> "Sync because the seller's waiting and the API is fast — but I back it with a durable PENDING record and a reconciliation job, because if the carrier call times out after I've authorized payment, I can't leave that ambiguous. That'd be a double-charge or a charged-but-no-label bug."</div>
+    </div>
+  </div>
+
+  <!-- Fork 4 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 4</span><span class="fork-q">Charge before or after the carrier confirms? (the saga)</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt rejected"><div class="ol">A · Capture charge, then generate</div><p>If generate fails you owe a <em>refund</em> — slower, more visible to the seller, reconciliation-heavy.</p></div>
+        <div class="opt chosen"><div class="ol">B · Authorize → generate → capture ✓</div><p>Reserve funds first, generate the label (the irreversible carrier-side cost), then capture. If generate fails, just <em>release the auth</em> — cheaper than a refund.</p></div>
+        <div class="opt rejected"><div class="ol">2PC across services</div><p>Distributed transaction across Payments + Carrier doesn't scale and most carriers can't participate. Don't.</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> A <strong>saga</strong> with compensators, ordered auth → generate → capture. Each step has an undo: release the payment auth, or void the label via the carrier's void API. The carrier-side label generation is the expensive irreversible step, so payment brackets it (reserve before, capture after).</div>
+    </div>
+  </div>
+
+  <!-- Fork 5 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 5</span><span class="fork-q">Direct carrier integration or an aggregator?</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt"><div class="ol">A · Direct to every carrier</div><p>Full control, no per-label middleman fee. Cost: N integrations to build + maintain, each with its own SOAP/XML/auth quirks.</p></div>
+        <div class="opt"><div class="ol">B · Aggregator (EasyPost/Shippo)</div><p>One integration, they absorb carrier quirks. Cost: per-label fee, you inherit their downtime, less control.</p></div>
+        <div class="opt chosen"><div class="ol">C · Split by volume ✓</div><p>Direct for the big 4 (volume justifies the build; aggregator fees would be enormous at our scale). Aggregator for the long-tail regionals (not worth N bespoke integrations).</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> Hybrid by volume. The connector interface is identical either way, so an "aggregator connector" slots in behind the same <code>Carrier</code> port as the direct ones — the routing layer doesn't care. That's the Adapter pattern earning its keep.</div>
+    </div>
+  </div>
+
+  <!-- Fork 6 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 6</span><span class="fork-q">What's the failure blast radius?</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt rejected"><div class="ol">A · One pool, shared fate</div><p>A slow FedEx exhausts shared threads → every carrier's quotes hang. One dependency sinks the whole service.</p></div>
+        <div class="opt chosen"><div class="ol">B · Isolate per carrier + per region ✓</div><p>Bulkhead (own pool) + circuit breaker per carrier; partition by region. DHL down → only EU degrades, and only to "fewer options."</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> The failure <em>domain is the carrier-within-region</em>, not the service. Degrade gracefully: a quote with 3 of 4 carriers is still a useful quote. The circuit breaker is just the mechanism — the <em>decision</em> is "I'd rather return partial results than fail the request."</div>
+      <div class="say"><strong>Say:</strong> "If DHL's API is down, EU sellers see fewer carrier options for a few minutes; US sellers are completely unaffected because I isolate per region. I'd rather degrade to fewer options than fail the whole quote."</div>
+    </div>
+  </div>
+
+  <!-- Fork 7 -->
+  <div class="fork">
+    <div class="fork-head"><span class="fork-num">FORK 7</span><span class="fork-q">Which data store for which job?</span></div>
+    <div class="fork-body">
+      <div class="opts">
+        <div class="opt chosen"><div class="ol">Labels → Postgres ✓</div><p>Money + state machine + void/refund window need transactions and strong consistency. Relational, indexed on idem_key + shipper.</p></div>
+        <div class="opt chosen"><div class="ol">Quote cache → Redis ✓</div><p>Ephemeral, fast, TTL'd. Losing it is harmless — it just repopulates.</p></div>
+        <div class="opt chosen"><div class="ol">Rate cards → read-optimized store ✓</div><p>If/when Fork 1-C lands: bulk-loaded daily, read-heavy, no transactions needed.</p></div>
+      </div>
+      <div class="decision"><strong>Decision:</strong> Store choice follows <strong>access pattern</strong>, not a single house DB. Strong-consistency money data is relational; the disposable hot cache is Redis; the daily bulk rate data is a read store. (Tracking-event ingestion, if it were in scope, would be a 4th: high write volume → Cassandra.)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MUST-HAVES -->
+<div class="section">
+  <div class="section-header"><span class="se">🔑</span><h2>The label must-haves (don't ship without these)</h2></div>
+  <p class="section-desc">These aren't "staff vs senior" — they're correctness table-stakes for a money flow. Get them on the page early so the interviewer doesn't have to fish for them.</p>
+  <div class="cards">
+    <div class="card r">
+      <div class="card-h"><span class="ci">🔁</span><span class="ct">Idempotency key</span></div>
+      <ul>
+        <li>Client sends a key per logical purchase; LabelService checks it first</li>
+        <li>Seen before → return the existing label, don't regenerate or re-charge</li>
+        <li>Stored in the same txn as the label row so the check is atomic</li>
+        <li>Survives double-click, retry, network blip — the #1 money-bug guard</li>
+      </ul>
+    </div>
+    <div class="card v">
+      <div class="card-h"><span class="ci">🚦</span><span class="ct">Label state machine</span></div>
+<pre class="snippet"><span class="kw">enum</span> LabelStatus {
+  REQUESTED,          <span class="cmt">// row created</span>
+  PAYMENT_AUTHORIZED, <span class="cmt">// funds reserved</span>
+  GENERATED,          <span class="cmt">// carrier returned label</span>
+  USED, VOIDED, REFUNDED
+}
+<span class="cmt">// transitions guarded — can't void a USED label,</span>
+<span class="cmt">// can't refund twice, can't generate from REFUNDED</span></pre>
+    </div>
+    <div class="card b">
+      <div class="card-h"><span class="ci">🗄️</span><span class="ct">The schema (with the bits you were missing)</span></div>
+<pre class="snippet">labels (
+  label_id      PK,
+  <span class="acc">idem_key      UNIQUE,</span>   <span class="cmt">← was missing</span>
+  <span class="acc">status        enum,</span>     <span class="cmt">← was missing</span>
+  quote_id      FK,        <span class="cmt">← binds charged price</span>
+  charge_id     FK,
+  carrier_id    FK,
+  shipper_id    FK,
+  tracking_no,
+  label_url,
+  created_at, updated_at
+)</pre>
+    </div>
+  </div>
+</div>
+
+<!-- SCALE CURVE -->
+<div class="section">
+  <div class="section-header"><span class="se">📈</span><h2>Step 6 — The scale curve (owning the trajectory)</h2></div>
+  <p class="section-desc">Senior designs for a point. Staff designs for a curve and says what changes at the next order of magnitude — even if you don't build it now.</p>
+  <div class="cards">
+    <div class="card g">
+      <div class="card-h"><span class="ci">📍</span><span class="ct">Today · 10K quotes/sec</span></div>
+      <ul>
+        <li>Cache-aside in Redis (Fork 1-B)</li>
+        <li>Direct connectors for big 4, aggregator for tail (Fork 5-C)</li>
+        <li>Sync label happy path + reconciler (Fork 3)</li>
+        <li>Postgres for labels, single region per data residency</li>
+      </ul>
+    </div>
+    <div class="card a">
+      <div class="card-h"><span class="ci">🚀</span><span class="ct">10× · 100K quotes/sec — what changes</span></div>
+      <ul>
+        <li><strong>Rate-card ingestion becomes mandatory</strong> (Fork 1-C) — can't live-call even with caching</li>
+        <li><strong>Two-tier cache:</strong> in-process L1 near-cache + Redis L2 to cut round-trips</li>
+        <li><strong>Connectors become per-carrier services</strong> so teams own them independently — the multiplier move</li>
+        <li>Label workers scale horizontally off the queue; Postgres shards by shipper or region</li>
+      </ul>
+    </div>
+    <div class="card t">
+      <div class="card-h"><span class="ci">🔭</span><span class="ct">Observability (the sentence most skip)</span></div>
+      <ul>
+        <li>Latency p50/p95/<strong>p99 per carrier</strong>, tagged by carrier name</li>
+        <li>Carrier error rate; alert &gt;5%. Cache hit rate; alert &lt;60%</li>
+        <li>Circuit-breaker state transitions logged + alerted on flap</li>
+        <li>Label success rate per carrier; nightly reconciliation for orphans</li>
+        <li>Correlation ID propagated quote → label → carrier call</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- THE LITMUS TEST -->
+<div class="section">
+  <div class="section-header"><span class="se">✅</span><h2>The litmus test before you call it done</h2></div>
+  <div class="tips">
+    <h4>Ask yourself these — they're how the interviewer is scoring you</h4>
+    <ul>
+      <li><strong>Could a competent senior have drawn this exact diagram?</strong> Probably yes. So the boxes aren't the signal.</li>
+      <li><strong>Did I name an alternative I rejected at every major box?</strong> If no fork was visible, it read as senior.</li>
+      <li><strong>Did my scale number do work?</strong> "10K/sec" must <em>cause</em> a decision (caching), not just sit there.</li>
+      <li><strong>Did I draw the consistency boundary?</strong> Where eventual is fine vs. where strong is mandatory is the core correctness story.</li>
+      <li><strong>Did I reason about blast radius?</strong> "What breaks, who's affected, how do I degrade" — not just "add a circuit breaker."</li>
+      <li><strong>Did I say what changes at 10×?</strong> Owning the multi-year trajectory is the multiplier signal.</li>
+      <li><strong>Is it still concrete?</strong> Staff is senior <em>plus</em> the tradeoff layer — keep the connectors and the schema; don't retreat into hand-waving abstraction.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  🏗️ Staff-level design walkthrough · eBay shipping rate &amp; label service · Same boxes + visible forks + scale curve = the level lift
+</div>
+
+</body>
+</html>

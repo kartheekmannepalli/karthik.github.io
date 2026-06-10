@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracking Event Ingestion — High-Level Design</title>
+<style>
+  :root {
+    --indigo: #4f46e5; --indigo-deep: #3730a3; --indigo-light: #eef2ff;
+    --violet: #6d28d9; --violet-light: #f3f0ff;
+    --teal: #0f766e; --teal-light: #e0f2f1;
+    --amber: #d97706; --amber-light: #fef3c7;
+    --green: #2d7a4f; --green-light: #e8f5ee;
+    --red: #b91c1c; --red-light: #fef2f2;
+    --blue: #2c6fad; --blue-light: #e8f0fa;
+    --code-bg: #1e293b; --code-bg2: #0f172a; --code-text: #e2e8f0;
+    --code-dim: #94a3b8; --code-kw: #c084fc; --code-str: #86efac; --code-acc: #fbbf24;
+    --gray: #f7f8fa; --text: #1a1a2e; --muted: #6b7280; --border: #e5e7eb;
+    --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); line-height: 1.5; padding-bottom: 48px; }
+  code, pre { font-family: 'SF Mono', Monaco, Consolas, monospace; }
+
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #3730a3 55%, #0f766e 130%); color: white; padding: 32px 40px 26px; position: relative; }
+  .header::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #6d28d9 0%, #0f766e 100%); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .icon { font-size: 2rem; }
+  .header h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+  .header-sub { font-size: 0.9rem; opacity: 0.9; max-width: 720px; margin-top: 6px; }
+  .prompt-quote { margin-top: 14px; background: rgba(255,255,255,0.12); border-left: 3px solid rgba(255,255,255,0.5); border-radius: 4px; padding: 10px 14px; font-size: 0.83rem; font-style: italic; max-width: 780px; }
+
+  .toc { background: white; margin: 22px 32px 0; border-radius: var(--radius); padding: 16px 22px; box-shadow: var(--shadow); }
+  .toc h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; margin-bottom: 11px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  .toc a { display: flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; color: var(--text); text-decoration: none; font-weight: 500; transition: all 0.15s; }
+  .toc a:hover { background: var(--indigo-light); border-color: var(--indigo); transform: translateY(-1px); }
+
+  .section { background: white; margin: 18px 32px 0; border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow); }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+  .section-header h2 { font-size: 1.18rem; font-weight: 700; }
+  .section-header .se { font-size: 1.35rem; }
+  .section-desc { font-size: 0.86rem; color: var(--muted); margin: 10px 0 18px; line-height: 1.6; }
+
+  .lead { background: var(--indigo-light); border: 1px solid #c7d2fe; border-radius: 10px; padding: 16px 20px; margin: 18px 32px 0; }
+  .lead h3 { font-size: 0.92rem; font-weight: 700; color: var(--indigo-deep); margin-bottom: 6px; }
+  .lead p { font-size: 0.87rem; color: #374151; line-height: 1.6; }
+  .lead strong { color: var(--text); }
+
+  pre.ascii { background: var(--code-bg2); color: var(--code-text); padding: 18px 20px; border-radius: 10px; overflow-x: auto; font-size: 0.71rem; line-height: 1.5; white-space: pre; }
+  pre.ascii .dim { color: var(--code-dim); } pre.ascii .acc { color: var(--code-acc); } pre.ascii .kw { color: var(--code-kw); } pre.ascii .str { color: var(--code-str); }
+  .caption { font-size: 0.75rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  .calc { background: var(--code-bg); color: var(--code-text); padding: 14px 18px; border-radius: 10px; font-size: 0.78rem; line-height: 1.7; overflow-x: auto; white-space: pre; }
+  .calc .acc { color: var(--code-acc); font-weight: 600; } .calc .dim { color: var(--code-dim); }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 14px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--indigo); }
+  .card.r { border-left-color: var(--red); } .card.t { border-left-color: var(--teal); }
+  .card.a { border-left-color: var(--amber); } .card.g { border-left-color: var(--green); }
+  .card.b { border-left-color: var(--blue); } .card.v { border-left-color: var(--violet); }
+  .card-h { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .card-h .ci { font-size: 1.2rem; } .card-h .ct { font-size: 0.88rem; font-weight: 700; }
+  .card ul { padding-left: 16px; } .card li { font-size: 0.8rem; line-height: 1.55; color: #374151; margin-bottom: 4px; }
+  .card li strong { color: var(--text); } .card code { background: var(--gray); padding: 1px 5px; border-radius: 4px; font-size: 0.75rem; color: var(--indigo-deep); }
+  .card p { font-size: 0.81rem; color: #374151; line-height: 1.55; }
+  .pillrow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .pill { font-size: 0.68rem; font-weight: 600; background: var(--gray); border: 1px solid var(--border); color: var(--muted); padding: 2px 9px; border-radius: 20px; }
+
+  /* read-path split */
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .splitcol { border-radius: 10px; padding: 16px 18px; }
+  .splitcol.hot { background: var(--red-light); border: 1px solid #f3b6b6; }
+  .splitcol.hist { background: var(--blue-light); border: 1px solid #b9d3ee; }
+  .splitcol h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 8px; }
+  .splitcol.hot h4 { color: var(--red); } .splitcol.hist h4 { color: var(--blue); }
+  .splitcol ul { padding-left: 17px; } .splitcol li { font-size: 0.8rem; color: #4b5563; line-height: 1.55; margin-bottom: 4px; } .splitcol li strong { color: var(--text); }
+
+  /* DB tables */
+  .dbtable { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  .dbtable-head { background: var(--code-bg2); color: white; padding: 11px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .dbtable-head .tname { font-family: 'SF Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--code-acc); }
+  .dbtable-head .tstore { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(255,255,255,0.16); padding: 2px 9px; border-radius: 20px; }
+  .dbtable-head .tdesc { font-size: 0.76rem; color: var(--code-dim); margin-left: auto; }
+  table.cols { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  table.cols th { text-align: left; padding: 8px 16px; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; background: var(--gray); color: var(--muted); }
+  table.cols td { padding: 8px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.45; }
+  table.cols tr:last-child td { border-bottom: none; }
+  table.cols .col { font-family: 'SF Mono', monospace; font-weight: 600; color: var(--text); white-space: nowrap; }
+  table.cols .typ { font-family: 'SF Mono', monospace; font-size: 0.74rem; color: var(--teal); white-space: nowrap; }
+  table.cols .desc { color: #4b5563; }
+  .keytag { font-size: 0.58rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle; }
+  .pk { background: var(--amber-light); color: var(--amber); }
+  .ck { background: var(--violet-light); color: var(--violet); }
+  .idx { background: var(--green-light); color: var(--green); }
+  .nn { background: var(--red-light); color: var(--red); }
+
+  .snippet { background: var(--code-bg); color: var(--code-text); padding: 13px 15px; border-radius: 8px; overflow-x: auto; font-size: 0.74rem; line-height: 1.5; margin-top: 10px; white-space: pre; }
+  .snippet .kw { color: var(--code-kw); } .snippet .str { color: var(--code-str); } .snippet .cmt { color: var(--code-dim); font-style: italic; } .snippet .acc { color: var(--code-acc); } .snippet .typ { color: var(--teal); }
+
+  .tips { background: var(--amber-light); border: 1px solid #f5d99e; border-radius: 10px; padding: 14px 18px; }
+  .tips h4 { font-size: 0.85rem; font-weight: 700; color: var(--amber); margin-bottom: 8px; }
+  .tips ul { padding-left: 18px; } .tips li { font-size: 0.82rem; color: #4b5563; line-height: 1.6; margin-bottom: 5px; } .tips strong { color: var(--text); }
+
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.78rem; }
+
+  @media (max-width: 740px) {
+    .header { padding: 24px 16px 18px; }
+    .section, .lead, .toc { margin-left: 12px; margin-right: 12px; }
+    .cards, .split { grid-template-columns: 1fr; }
+    .dbtable-head .tdesc { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="icon">📡</span>
+    <h1>Tracking Event Ingestion — High-Level Design</h1>
+  </div>
+  <p class="header-sub">High-throughput webhook ingestion pipeline + live buyer-facing tracking reads. Hundreds of millions of events/day across all carriers.</p>
+  <div class="prompt-quote">"Carriers send us tracking events via webhook — package picked up, in transit, out for delivery, delivered, etc. We get hundreds of millions of events per day across all carriers. Design the ingestion pipeline. Users see live tracking on the buyer-facing page."</div>
+</div>
+
+<div class="toc">
+  <h3>📋 Sections</h3>
+  <div class="toc-grid">
+    <a href="#scope">🎯 Scope</a>
+    <a href="#capacity">📊 Capacity</a>
+    <a href="#hld">🏗️ Architecture</a>
+    <a href="#components">🧩 Components</a>
+    <a href="#reads">👁️ Read paths</a>
+    <a href="#decisions">🔀 Key decisions</a>
+    <a href="#entities">🗄️ DB entities</a>
+    <a href="#failure">⚠️ Failure &amp; ops</a>
+  </div>
+</div>
+
+<div class="lead">
+  <h3>The shape of this problem in one line</h3>
+  <p>This is a <strong>write-heavy ingestion pipeline</strong> with a <strong>latency-sensitive read path</strong> bolted on. The whole design turns on four moves: <strong>(1)</strong> a tiny receiver that acks in milliseconds and does nothing else, <strong>(2)</strong> a durable log (Kafka) that decouples ingest from processing and absorbs spikes, <strong>(3)</strong> handling that events arrive <em>out of order and duplicated</em>, and <strong>(4)</strong> splitting reads into a hot "latest status" path and a cold "full history" path. Get those right and the scale takes care of itself.</p>
+</div>
+
+<!-- SCOPE -->
+<div class="section" id="scope">
+  <div class="section-header"><span class="se">🎯</span><h2>Scope &amp; assumptions (clarify first)</h2></div>
+  <p class="section-desc">Things I'd confirm with the interviewer before drawing — each one changes the design.</p>
+  <div class="cards">
+    <div class="card b"><div class="card-h"><span class="ci">✅</span><span class="ct">In scope</span></div><ul>
+      <li>Ingest tracking webhooks from many carriers</li>
+      <li>Normalize carrier-specific statuses to one canonical vocabulary</li>
+      <li>Serve <strong>latest status</strong> + <strong>full timeline</strong> to the buyer page</li>
+      <li>Survive duplicates, out-of-order delivery, carrier retries</li>
+    </ul></div>
+    <div class="card a"><div class="card-h"><span class="ci">❓</span><span class="ct">Assumptions to confirm</span></div><ul>
+      <li>~300M events/day (mid of "hundreds of millions")</li>
+      <li>"Live" = seconds-fresh, not hard real-time</li>
+      <li>Carriers push (webhook); we may also poll as a backstop</li>
+      <li>tracking_number → shipment/buyer mapping exists upstream</li>
+    </ul></div>
+    <div class="card v"><div class="card-h"><span class="ci">🚫</span><span class="ct">Out of scope (v1)</span></div><ul>
+      <li>Generating labels / creating shipments (separate service)</li>
+      <li>Notifications engine (we just emit terminal events)</li>
+      <li>Carrier onboarding UI / analytics warehouse</li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- CAPACITY -->
+<div class="section" id="capacity">
+  <div class="section-header"><span class="se">📊</span><h2>Capacity math (drives every choice)</h2></div>
+  <p class="section-desc">Turning "hundreds of millions" into numbers that justify the architecture — fast ack, a log buffer, and a wide-column store.</p>
+<pre class="calc"><span class="dim"># Write side (ingest)</span>
+300,000,000 events/day ÷ 86,400 s   ≈  <span class="acc">3,500 events/sec average</span>
+peak burst (morning scan dumps, holidays) ~10×  ≈  <span class="acc">35,000 events/sec peak</span>
+   <span class="dim">→ receiver must be tiny + horizontally scaled; a log (Kafka) absorbs the burst so</span>
+   <span class="dim">  downstream processors aren't sized for peak, only for sustainable drain rate.</span>
+
+<span class="dim"># Storage</span>
+~0.5 KB/event × 300M/day      ≈  <span class="acc">150 GB/day raw</span>  (×3 replication ≈ 450 GB/day)
+   <span class="dim">→ append-only, time-ordered, keyed by tracking number → wide-column store (Cassandra).</span>
+   <span class="dim">  Tier to cold storage (S3) after delivery + retention window.</span>
+
+<span class="dim"># Read side (buyer page)</span>
+mostly "where is my package NOW" (1 row) >> full timeline reads
+   <span class="dim">→ serve latest status from Redis (hot), full history from the event store (cold-ish).</span></pre>
+  <p class="caption">The peak/average gap is the entire argument for putting a durable log between the receiver and the processors — you size the processors for ~sustained load and let Kafka soak the spikes.</p>
+</div>
+
+<!-- HLD -->
+<div class="section" id="hld">
+  <div class="section-header"><span class="se">🏗️</span><h2>Architecture</h2></div>
+  <p class="section-desc">Ingest path flows left-to-right; the read path is served independently off the materialized stores. The receiver and the processors scale separately because Kafka decouples them.</p>
+<pre class="ascii">  Carriers                                                          Buyer page
+  (FedEx, UPS,                                                      (live tracking)
+   USPS, DHL…)                                                            │
+      │  webhook POST                                                     │ GET /tracking
+      ▼                                                                   ▼
+  <span class="dim">┌──────────────────┐</span>                                          <span class="dim">┌──────────────────┐</span>
+  <span class="dim">│</span> <span class="acc">Webhook Receiver</span> <span class="dim">│</span>  verify HMAC, minimal validate,           <span class="dim">│</span>  <span class="acc">Tracking Read API</span><span class="dim">│</span>
+  <span class="dim">│</span> (stateless, LB,  <span class="dim">│</span>  publish to log, <span class="str">ACK &lt;50ms</span>                   <span class="dim">│</span> (latest + history)<span class="dim">│</span>
+  <span class="dim">│</span>  autoscaled)     <span class="dim">│</span>  ── bad/unverified → DLQ                  <span class="dim">└────────┬─────────┘</span>
+  <span class="dim">└────────┬─────────┘</span>                                       latest <span class="dim">│</span>      <span class="dim">│</span> history
+           │ produce                                                <span class="dim">│</span>      <span class="dim">│</span>
+           ▼                                                         ▼      ▼
+  <span class="dim">┌─────────────────────────────────┐</span>                    <span class="dim">┌────────┐  ┌──────────────┐</span>
+  <span class="dim">│</span>  <span class="acc">Kafka</span>  topic: tracking-raw      <span class="dim">│</span>                    <span class="dim">│</span> <span class="kw">Redis</span>  <span class="dim">│</span>  <span class="dim">│</span>  <span class="kw">Cassandra</span>   <span class="dim">│</span>
+  <span class="dim">│</span>  <span class="str">partition by tracking_number</span>     <span class="dim">│</span>                    <span class="dim">│</span> latest <span class="dim">│</span>  <span class="dim">│</span> tracking_event<span class="dim">│</span>
+  <span class="dim">│</span>  (per-shipment order, 7d retain) <span class="dim">│</span>                    <span class="dim">│</span> status <span class="dim">│</span>  <span class="dim">│</span> (full history)<span class="dim">│</span>
+  <span class="dim">└────────┬────────────────────────┘</span>                    <span class="dim">└───▲────┘  └──────▲───────┘</span>
+           │ consume                                              │           │
+           ▼                                                writes│     writes│
+  <span class="dim">┌─────────────────────────────────┐</span>  ── dedupe ───────────┘           │
+  <span class="dim">│</span>  <span class="acc">Stream Processor</span> (consumers /  <span class="dim">│</span>  ── normalize status ─────────────┘
+  <span class="dim">│</span>  Kafka Streams / Flink)          <span class="dim">│</span>  ── upsert event_store
+  <span class="dim">│</span>  partition-parallel, lag-tracked <span class="dim">│</span>  ── conditional-update current (only if newer)
+  <span class="dim">└────────┬────────────────────────┘</span>  ── emit terminal events ──▶ <span class="kw">notifications topic</span>
+           │
+           ▼ (cold tier after delivery + window)
+       <span class="dim">┌──────────┐</span>
+       <span class="dim">│</span> <span class="kw">S3</span> cold  <span class="dim">│</span>  archive / compliance
+       <span class="dim">└──────────┘</span></pre>
+</div>
+
+<!-- COMPONENTS -->
+<div class="section" id="components">
+  <div class="section-header"><span class="se">🧩</span><h2>Components</h2></div>
+  <div class="cards">
+    <div class="card r">
+      <div class="card-h"><span class="ci">📥</span><span class="ct">Webhook Receiver</span></div>
+      <p>The most important latency constraint in the system. Does the bare minimum and returns 200 fast — if it's slow, carriers treat it as failed and <strong>retry-storm</strong> you, multiplying load.</p>
+      <ul>
+        <li>Verify per-carrier HMAC signature</li>
+        <li>Light shape validation only</li>
+        <li>Publish raw event to Kafka, then ack</li>
+        <li>Unverifiable / malformed → DLQ, still ack 200</li>
+      </ul>
+      <div class="pillrow"><span class="pill">stateless</span><span class="pill">autoscaled</span><span class="pill">ack &lt;50ms</span></div>
+    </div>
+    <div class="card a">
+      <div class="card-h"><span class="ci">🪵</span><span class="ct">Kafka (the buffer)</span></div>
+      <p>Decouples ingest from processing and absorbs the 10× peak burst. Replayable, so a downstream outage doesn't lose data.</p>
+      <ul>
+        <li><strong>Partition by tracking_number</strong> → all events for one shipment land on one partition, in order</li>
+        <li>Retain ~7 days for replay/reprocessing</li>
+        <li>Processors scale by adding consumers up to partition count</li>
+      </ul>
+    </div>
+    <div class="card v">
+      <div class="card-h"><span class="ci">⚙️</span><span class="ct">Stream Processor</span></div>
+      <p>The brain. Consumes partitions in parallel and does the real work, idempotently.</p>
+      <ul>
+        <li><strong>Dedupe</strong> resent events (same carrier+tracking+status+time)</li>
+        <li><strong>Normalize</strong> each carrier's status codes → one canonical enum</li>
+        <li>Upsert into the event store; <strong>conditionally</strong> advance current-status</li>
+        <li>Write-through the Redis latest-status cache</li>
+        <li>Emit terminal events (DELIVERED / EXCEPTION) to a notifications topic</li>
+      </ul>
+    </div>
+    <div class="card t">
+      <div class="card-h"><span class="ci">🗄️</span><span class="ct">Event store — Cassandra</span></div>
+      <p>Full append-only history. Wide-column fits the access pattern: massive writes, partitioned by tracking_number, read back time-ordered.</p>
+      <ul>
+        <li>Partition = (carrier, tracking_number); clustered by occurred_at</li>
+        <li>Dedup built into the primary key — resends upsert the same row</li>
+        <li>No joins, no transactions needed — pure key-driven</li>
+      </ul>
+    </div>
+    <div class="card b">
+      <div class="card-h"><span class="ci">⚡</span><span class="ct">Latest-status store + Redis</span></div>
+      <p>The buyer page mostly asks "where is it now" — one row. Served from a small current-status table fronted by Redis for the hot path.</p>
+      <ul>
+        <li>One row per shipment, overwritten on each newer event</li>
+        <li>Redis keyed by tracking_number, write-through on update</li>
+        <li>Cache miss → read current table → repopulate</li>
+      </ul>
+    </div>
+    <div class="card g">
+      <div class="card-h"><span class="ci">👁️</span><span class="ct">Tracking Read API</span></div>
+      <p>Buyer-facing reads. Two endpoints, two backends — latest from Redis, timeline from Cassandra.</p>
+      <ul>
+        <li><code>GET /tracking/{id}</code> → latest status (Redis)</li>
+        <li><code>GET /tracking/{id}/events</code> → full timeline (event store)</li>
+        <li>Read path is fully decoupled from ingest — independent scaling</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- READ PATHS -->
+<div class="section" id="reads">
+  <div class="section-header"><span class="se">👁️</span><h2>The two read paths (key insight)</h2></div>
+  <p class="section-desc">"Users see live tracking" is really two different reads with opposite cost profiles. Serving both from one store would either be slow (scan the event partition every page load) or wasteful. Split them.</p>
+  <div class="split">
+    <div class="splitcol hot">
+      <h4>🔥 Latest status — the hot path</h4>
+      <ul>
+        <li>What the buyer page shows 95% of the time: "Out for delivery"</li>
+        <li>A single row per shipment, read constantly</li>
+        <li><strong>Redis</strong> keyed by tracking_number → latest status JSON, write-through from the processor</li>
+        <li>Fallback to the <code>tracking_current</code> table on cache miss</li>
+        <li>O(1), milliseconds, survives most of the read load</li>
+      </ul>
+    </div>
+    <div class="splitcol hist">
+      <h4>🧊 Full timeline — the cold-ish path</h4>
+      <ul>
+        <li>The expandable "show all events" view — read far less often</li>
+        <li>All events for the shipment, in chronological order</li>
+        <li><strong>Cassandra</strong> partition = tracking_number, clustered by occurred_at → one efficient partition scan</li>
+        <li>No cache needed; it's a bounded, infrequent query</li>
+        <li>Out-of-order arrivals sort correctly because the clustering key is the <em>event</em> time</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- DECISIONS -->
+<div class="section" id="decisions">
+  <div class="section-header"><span class="se">🔀</span><h2>Key design decisions</h2></div>
+  <p class="section-desc">The non-obvious calls that separate a working pipeline from a correct one.</p>
+  <div class="cards">
+    <div class="card v">
+      <div class="card-h"><span class="ci">🔀</span><span class="ct">Events arrive out of order</span></div>
+      <p>Carrier infra is messy — a late "in transit" can land after "delivered." <strong>Order by event time, never arrival time.</strong></p>
+      <ul>
+        <li>Event store clusters on <code>occurred_at</code>, so history sorts itself</li>
+        <li>Current-status updates are <strong>conditional</strong>: advance only if the new event's <code>occurred_at &gt; last_event_at</code></li>
+        <li>Prevents a stale late event from overwriting "Delivered" with "In transit"</li>
+      </ul>
+    </div>
+    <div class="card t">
+      <div class="card-h"><span class="ci">🔑</span><span class="ct">Dedup via the primary key</span></div>
+      <p>Carriers resend; at-least-once delivery from Kafka means we'll see duplicates. Instead of a separate dedup table, make the <strong>PK itself idempotent.</strong></p>
+      <ul>
+        <li>PK = <code>((carrier, tracking_number), occurred_at, status)</code></li>
+        <li>A resend of the same event upserts the same row — a no-op</li>
+        <li>No extra lookup, no race; the store enforces it</li>
+      </ul>
+    </div>
+    <div class="card a">
+      <div class="card-h"><span class="ci">🧮</span><span class="ct">Partition by tracking_number</span></div>
+      <p>One choice solves two problems: ordering and load spread.</p>
+      <ul>
+        <li>All events for a shipment hit one Kafka partition → in-order processing per shipment</li>
+        <li>Millions of tracking numbers → load spreads evenly across partitions and Cassandra nodes</li>
+        <li>Watch for hot keys (a viral package) — mitigation below</li>
+      </ul>
+    </div>
+    <div class="card r">
+      <div class="card-h"><span class="ci">⏱️</span><span class="ct">Ack fast, process later</span></div>
+      <p>The receiver must never call Cassandra or do heavy work inline. Validate → enqueue → ack.</p>
+      <ul>
+        <li>Sub-50ms response keeps carriers from retry-storming</li>
+        <li>All real work happens async in the processor</li>
+        <li>Durability comes from Kafka, not from finishing the work before acking</li>
+      </ul>
+    </div>
+    <div class="card b">
+      <div class="card-h"><span class="ci">🔁</span><span class="ct">Push primary, pull backstop</span></div>
+      <p>Webhooks are the main feed, but they drop/lag. A periodic poll for shipments with no recent events reconciles gaps.</p>
+      <ul>
+        <li>Push = fresh, low latency</li>
+        <li>Pull = catches missed webhooks for in-flight shipments</li>
+        <li>Both feed the same pipeline through the receiver</li>
+      </ul>
+    </div>
+    <div class="card g">
+      <div class="card-h"><span class="ci">🏷️</span><span class="ct">Normalize to a canonical status</span></div>
+      <p>Every carrier names statuses differently. Map them once, in the processor, to a single enum the buyer page understands.</p>
+      <ul>
+        <li>Keep the raw status too (audit / re-mapping later)</li>
+        <li>Canonical set: LABEL_CREATED · PICKED_UP · IN_TRANSIT · OUT_FOR_DELIVERY · DELIVERED · EXCEPTION · RETURNED</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ENTITIES -->
+<div class="section" id="entities">
+  <div class="section-header"><span class="se">🗄️</span><h2>DB entities / data model</h2></div>
+  <p class="section-desc">Three persistent stores, each picked by access pattern: a wide-column event log, a tiny current-status table, and a Redis cache. <span class="keytag pk">PK</span> partition key · <span class="keytag ck">CK</span> clustering key · <span class="keytag idx">IDX</span> indexed · <span class="keytag nn">NN</span> not-null.</p>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">tracking_event</span><span class="tstore">Cassandra</span><span class="tdesc">append-only full history · PK dedupes</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">carrier<span class="keytag pk">PK</span></td><td class="typ">text</td><td class="desc">Part of partition key — tracking numbers can collide across carriers.</td></tr>
+      <tr><td class="col">tracking_number<span class="keytag pk">PK</span></td><td class="typ">text</td><td class="desc">Partition key — all events for a shipment colocated &amp; ordered.</td></tr>
+      <tr><td class="col">occurred_at<span class="keytag ck">CK</span></td><td class="typ">timestamp</td><td class="desc">Clustering key (DESC) — the carrier's event time. History sorts by this, not arrival.</td></tr>
+      <tr><td class="col">status<span class="keytag ck">CK</span><span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">Canonical status; also part of the key so (time,status) dedups resends.</td></tr>
+      <tr><td class="col">raw_status</td><td class="typ">text</td><td class="desc">Original carrier status string, kept for audit / re-mapping.</td></tr>
+      <tr><td class="col">description</td><td class="typ">text</td><td class="desc">Human-readable event text.</td></tr>
+      <tr><td class="col">location</td><td class="typ">text</td><td class="desc">City/state/facility where the scan happened.</td></tr>
+      <tr><td class="col">received_at</td><td class="typ">timestamp</td><td class="desc">When we ingested it (vs occurred_at) — measures carrier lag.</td></tr>
+      <tr><td class="col">raw</td><td class="typ">blob/json</td><td class="desc">Original webhook payload for debugging / replay.</td></tr>
+    </table>
+  </div>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">tracking_current</span><span class="tstore">Cassandra / KV</span><span class="tdesc">1 row per shipment · the hot read</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">carrier<span class="keytag pk">PK</span></td><td class="typ">text</td><td class="desc">Partition key (with tracking_number).</td></tr>
+      <tr><td class="col">tracking_number<span class="keytag pk">PK</span></td><td class="typ">text</td><td class="desc">One row per shipment — O(1) "where is it now".</td></tr>
+      <tr><td class="col">current_status<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">Latest canonical status shown on the buyer page.</td></tr>
+      <tr><td class="col">last_event_at<span class="keytag nn">NN</span></td><td class="typ">timestamp</td><td class="desc">occurred_at of the current status. <strong>Guard for conditional update:</strong> only advance if a new event is newer.</td></tr>
+      <tr><td class="col">last_location</td><td class="typ">text</td><td class="desc">Most recent scan location.</td></tr>
+      <tr><td class="col">shipment_id</td><td class="typ">uuid</td><td class="desc">Denormalized link to the shipment — avoids a join on the read path.</td></tr>
+      <tr><td class="col">buyer_id</td><td class="typ">uuid</td><td class="desc">Denormalized so the buyer page / notifications need no extra lookup.</td></tr>
+      <tr><td class="col">updated_at</td><td class="typ">timestamp</td><td class="desc">Wall-clock of last write.</td></tr>
+    </table>
+  </div>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">track:{carrier}:{tracking_number}</span><span class="tstore">Redis</span><span class="tdesc">cache, not source of truth</span></div>
+    <table class="cols">
+      <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">key</td><td class="typ">string</td><td class="desc"><code>track:fedex:794644746986</code> — write-through from the processor on each newer event.</td></tr>
+      <tr><td class="col">value</td><td class="typ">json</td><td class="desc">{ current_status, last_event_at, last_location } — exactly what the page header needs.</td></tr>
+      <tr><td class="col">TTL</td><td class="typ">ttl</td><td class="desc">Modest TTL; miss falls back to <code>tracking_current</code> and repopulates.</td></tr>
+    </table>
+  </div>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">dead_letter</span><span class="tstore">Kafka topic / table</span><span class="tdesc">unverifiable or unparseable events</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">id<span class="keytag pk">PK</span></td><td class="typ">uuid</td><td class="desc">Dead-letter record id.</td></tr>
+      <tr><td class="col">carrier / source</td><td class="typ">text</td><td class="desc">Where it came from.</td></tr>
+      <tr><td class="col">reason<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">BAD_SIGNATURE · PARSE_ERROR · UNKNOWN_TRACKING.</td></tr>
+      <tr><td class="col">raw<span class="keytag nn">NN</span></td><td class="typ">json</td><td class="desc">Original payload + headers for inspection / manual replay.</td></tr>
+      <tr><td class="col">received_at</td><td class="typ">timestamp</td><td class="desc">When it failed.</td></tr>
+    </table>
+  </div>
+
+  <div class="card v">
+    <div class="card-h"><span class="ci">🧩</span><span class="ct">Why these stores (access-pattern driven)</span></div>
+<pre class="snippet"><span class="cmt">tracking_event   →</span> massive append, time-ordered reads, key-driven, no joins
+                   = <span class="acc">wide-column (Cassandra / Scylla / Bigtable / DynamoDB)</span>
+<span class="cmt">tracking_current →</span> tiny, one row per shipment, read-very-often
+                   = same store keyed for O(1), <span class="acc">fronted by Redis</span>
+<span class="cmt">cache            →</span> the buyer-page header read path
+                   = <span class="acc">Redis, write-through, TTL'd</span>
+<span class="cmt">dead_letter      →</span> low volume, inspected by humans
+                   = a topic or a small relational table</pre>
+    <p style="margin-top:8px;">No relational DB on the hot path — there are no joins, no multi-row transactions, just key-by-tracking-number access at very high write volume. That's the textbook wide-column case.</p>
+  </div>
+</div>
+
+<!-- FAILURE -->
+<div class="section" id="failure">
+  <div class="section-header"><span class="se">⚠️</span><h2>Failure modes &amp; operability</h2></div>
+  <div class="tips">
+    <h4>What breaks at 35K/sec — and the mitigation</h4>
+    <ul>
+      <li><strong>Receiver too slow → carrier retry storm.</strong> Keep it to verify-publish-ack; never touch the DB inline. Autoscale on request rate.</li>
+      <li><strong>Hot tracking number</strong> (a viral / heavily-watched package). Redis hot key → use a local in-process cache layer or read replicas for that key.</li>
+      <li><strong>Consumer lag</strong> → buyer page goes stale. Alert when lag &gt; ~30s; scale consumers up to partition count; that's why the page is "seconds-fresh," not real-time.</li>
+      <li><strong>Downstream store outage.</strong> Kafka's 7-day retention means we replay once it recovers — nothing is lost.</li>
+      <li><strong>Carrier signature secret rotation.</strong> Per-carrier secret store with overlap windows so rotation doesn't reject valid events.</li>
+      <li><strong>Poison events.</strong> Route to the DLQ and keep going — one bad payload never blocks a partition.</li>
+    </ul>
+  </div>
+  <div class="cards" style="margin-top:14px;">
+    <div class="card g"><div class="card-h"><span class="ci">🔭</span><span class="ct">Observability</span></div><ul>
+      <li>Receiver ack-latency p99 (the carrier-storm guard)</li>
+      <li>Ingest rate &amp; error rate <strong>per carrier</strong></li>
+      <li>Kafka consumer lag (alert &gt; 30s)</li>
+      <li>Dedup rate &amp; DLQ rate</li>
+      <li>Redis hit rate; terminal-event → notification latency</li>
+    </ul></div>
+    <div class="card t"><div class="card-h"><span class="ci">📈</span><span class="ct">Scaling levers</span></div><ul>
+      <li>Receivers scale on request rate (stateless)</li>
+      <li>Throughput bounded by Kafka partition count → over-partition early</li>
+      <li>Cassandra scales by adding nodes; tracking_number spreads load</li>
+      <li>Read API scales independently of ingest</li>
+    </ul></div>
+    <div class="card a"><div class="card-h"><span class="ci">🧊</span><span class="ct">Retention &amp; cost</span></div><ul>
+      <li>Hot event data in Cassandra for the active + recent window</li>
+      <li>Archive to S3 after delivery + N months (compliance)</li>
+      <li>Kafka retains 7 days for replay, then ages out</li>
+      <li>Redis holds only active shipments via TTL</li>
+    </ul></div>
+  </div>
+</div>
+
+<div class="footer">
+  📡 Tracking Event Ingestion · fast-ack receiver → Kafka buffer → idempotent processor → split read path · wide-column event store + cached latest status
+</div>
+
+</body>
+</html>

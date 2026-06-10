@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-Assisted Interview Cheat Sheet — Coding &amp; Design Rounds</title>
+<style>
+  :root {
+    --indigo: #4f46e5;
+    --indigo-deep: #3730a3;
+    --indigo-light: #eef2ff;
+    --violet: #6d28d9;
+    --violet-light: #f3f0ff;
+    --teal: #0f766e;
+    --teal-light: #e0f2f1;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --red: #b91c1c;
+    --red-light: #fef2f2;
+    --blue: #2c6fad;
+    --blue-light: #e8f0fa;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --code-kw: #c084fc;
+    --code-str: #86efac;
+    --code-cmt: #94a3b8;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); line-height: 1.5; }
+  code, pre { font-family: 'SF Mono', Monaco, Consolas, monospace; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #3730a3 55%, #0f766e 130%);
+    color: white; padding: 32px 40px 26px; position: relative;
+  }
+  .header::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #6d28d9 0%, #0f766e 100%); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .icon { font-size: 2rem; }
+  .header h1 { font-size: 1.6rem; font-weight: 700; }
+  .header-sub { font-size: 0.92rem; opacity: 0.9; margin-bottom: 14px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  /* Mode banner */
+  .modebar { display: flex; gap: 14px; margin: 22px 32px 0; flex-wrap: wrap; }
+  .mode { flex: 1; min-width: 240px; background: white; border-radius: var(--radius); padding: 14px 18px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px; }
+  .mode-badge { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+  .mode.coding .mode-badge { background: var(--violet-light); }
+  .mode.design .mode-badge { background: var(--teal-light); }
+  .mode h3 { font-size: 0.9rem; font-weight: 700; }
+  .mode.coding h3 { color: var(--violet); }
+  .mode.design h3 { color: var(--teal); }
+  .mode p { font-size: 0.78rem; color: var(--muted); }
+
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 14px 32px 0; }
+  .rule { background: white; border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); border-top: 4px solid var(--indigo); }
+  .rule h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; color: var(--indigo-deep); display: flex; align-items: center; gap: 7px; }
+  .rule p { font-size: 0.82rem; color: #374151; line-height: 1.55; }
+
+  .section { background: white; margin: 18px 32px 0; border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow); }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+  .section-header h2 { font-size: 1.18rem; font-weight: 700; }
+  .section-header .se { font-size: 1.4rem; }
+  .section-header .kicker { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; padding: 3px 10px; border-radius: 20px; margin-left: auto; align-self: center; }
+  .kicker.coding { background: var(--violet-light); color: var(--violet); }
+  .kicker.design { background: var(--teal-light); color: var(--teal); }
+  .section-desc { font-size: 0.86rem; color: var(--muted); margin: 10px 0 18px; line-height: 1.6; }
+
+  /* Step cards */
+  .steps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .step { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-top: 4px solid var(--violet); display: flex; flex-direction: column; }
+  .step.t { border-top-color: var(--teal); }
+  .step.a { border-top-color: var(--amber); }
+  .step.g { border-top-color: var(--green); }
+  .step.b { border-top-color: var(--blue); }
+  .step-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .step-num { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--violet); color: white; font-size: 0.9rem; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .step.t .step-num { background: var(--teal); }
+  .step.a .step-num { background: var(--amber); }
+  .step.g .step-num { background: var(--green); }
+  .step.b .step-num { background: var(--blue); }
+  .step-title { font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
+  .step-when { display: inline-block; font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--gray); border-radius: 10px; padding: 2px 8px; margin-top: 4px; }
+  .step-body { flex: 1; }
+  .step-body ul { padding-left: 17px; margin-top: 2px; }
+  .step-body li { font-size: 0.81rem; color: #374151; line-height: 1.5; margin-bottom: 4px; }
+  .step-body .say { background: var(--violet-light); border-radius: 6px; padding: 7px 10px; font-size: 0.78rem; color: #3b1f7a; margin-top: 8px; font-style: italic; }
+  .step-body .say strong { font-style: normal; color: var(--violet); }
+  .flag { background: var(--red-light); border-radius: 6px; padding: 7px 10px; font-size: 0.78rem; color: #4b1414; margin-top: 8px; }
+  .flag strong { color: var(--red); }
+
+  /* Chunk table */
+  .chunk-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem; }
+  .chunk-table th { text-align: left; padding: 9px 12px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; background: var(--gray); color: var(--muted); }
+  .chunk-table th:first-child { width: 52%; }
+  .chunk-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .chunk-table td:first-child { color: #3b1f7a; }
+  .chunk-table tr:last-child td { border-bottom: none; }
+  .chunk-table code { background: var(--violet-light); padding: 1px 5px; border-radius: 4px; font-size: 0.78rem; color: #3b1f7a; }
+
+  /* Checklist cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--indigo); }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .card-icon { font-size: 1.25rem; }
+  .card-title { font-size: 0.9rem; font-weight: 700; }
+  .card ul { padding-left: 16px; }
+  .card li { font-size: 0.81rem; line-height: 1.55; color: #374151; margin-bottom: 4px; }
+  .card li strong { color: var(--text); }
+  .card code { background: var(--gray); padding: 1px 5px; border-radius: 4px; font-size: 0.76rem; color: var(--indigo-deep); }
+  .card.x1 { border-left-color: var(--blue); }   .card.x2 { border-left-color: var(--teal); }
+  .card.x3 { border-left-color: var(--red); }    .card.x4 { border-left-color: var(--green); }
+  .card.x5 { border-left-color: var(--violet); } .card.x6 { border-left-color: var(--amber); }
+  .card.x7 { border-left-color: var(--red); }    .card.x8 { border-left-color: var(--teal); }
+  .card.x9 { border-left-color: var(--blue); }   .card.x10 { border-left-color: var(--green); }
+
+  /* Fork cards */
+  .card .fork-when { font-size: 0.79rem; color: #4b5563; line-height: 1.5; margin-bottom: 10px; }
+  .card .fork-opts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .fork-opt { display: flex; gap: 8px; align-items: baseline; font-size: 0.79rem; line-height: 1.45; padding: 6px 9px; border-radius: 6px; background: var(--gray); }
+  .fork-opt .vs { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); flex-shrink: 0; padding-top: 2px; min-width: 16px; }
+  .fork-opt strong { color: var(--text); }
+  .fork-ask { background: var(--violet-light); border-radius: 6px; padding: 8px 11px; font-size: 0.78rem; color: #3b1f7a; font-style: italic; line-height: 1.5; }
+  .fork-ask strong { font-style: normal; color: var(--violet); }
+
+  .snippet { background: var(--code-bg); color: var(--code-text); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 0.74rem; line-height: 1.5; margin-top: 10px; white-space: pre; }
+  .snippet .kw { color: var(--code-kw); } .snippet .str { color: var(--code-str); } .snippet .cmt { color: var(--code-cmt); font-style: italic; }
+  .snippet-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 8px; display: block; }
+
+  .tips { background: var(--amber-light); border: 1px solid #f5d99e; border-radius: 10px; padding: 14px 18px; }
+  .tips h4 { font-size: 0.85rem; font-weight: 700; color: var(--amber); margin-bottom: 8px; }
+  .tips ul { padding-left: 18px; }
+  .tips li { font-size: 0.82rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+  .tips strong { color: var(--text); }
+
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.78rem; }
+
+  @media (max-width: 720px) {
+    .rules { grid-template-columns: 1fr; }
+    .section, .header, .rules, .modebar { margin-left: 12px; margin-right: 12px; }
+    .cards, .steps-grid { grid-template-columns: 1fr; }
+    .chunk-table th:first-child { width: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="icon">🤖</span>
+    <h1>AI-Assisted Interview Cheat Sheet</h1>
+  </div>
+  <p class="header-sub">Coding &amp; system-design rounds · CoderPad · CodeSignal · any language/stack · drive the AI, don't follow it</p>
+  <div class="tags">
+    <span class="tag">💻 Coding / Build Round</span>
+    <span class="tag">🏗️ System Design Round</span>
+    <span class="tag">⚡ Chunked prompting</span>
+    <span class="tag">✅ Things to consider</span>
+    <span class="tag">⏱️ ~45–60 min</span>
+  </div>
+</div>
+
+<!-- MODE BANNER -->
+<div class="modebar">
+  <div class="mode coding">
+    <div class="mode-badge">💻</div>
+    <div>
+      <h3>Coding / Build Round</h3>
+      <p>Build a working feature or small app with AI assist. Use the workflow + implementation checklist below.</p>
+    </div>
+  </div>
+  <div class="mode design">
+    <div class="mode-badge">🏗️</div>
+    <div>
+      <h3>System Design Round</h3>
+      <p>Design an architecture or data model. Use the design workflow + design checklist further down.</p>
+    </div>
+  </div>
+</div>
+
+<!-- GOLDEN RULES -->
+<div class="rules">
+  <div class="rule">
+    <h3>🧑 Human first, AI second</h3>
+    <p>Clarify requirements <strong>with the interviewer</strong> before you touch the AI. That conversation is your ambiguity-handling signal — the single thing they're watching for. Leading with a pre-baked prompt reads as a script.</p>
+  </div>
+  <div class="rule">
+    <h3>🔁 AI = junior engineer</h3>
+    <p>Don't hand it a full spec and wait. Keep a tight loop: ask for one small unit → review in 30s → ask for the next. Review time should roughly equal generation time.</p>
+  </div>
+  <div class="rule">
+    <h3>📝 AI output is a draft</h3>
+    <p>Read every line. AI commonly misses null checks, skips error handling, hallucinates API methods, and over-engineers. Saying <em>"let me review this before I run it"</em> out loud signals maturity.</p>
+  </div>
+</div>
+
+<!-- =============== CODING WORKFLOW =============== -->
+<div class="section" id="coding-workflow">
+  <div class="section-header">
+    <span class="se">🗂️</span>
+    <h2>AI-Assisted Session Workflow</h2>
+    <span class="kicker coding">Coding Round</span>
+  </div>
+  <p class="section-desc">Follow this order every time. Skipping the clarify step, or letting the AI build everything in one shot, is the most common reason candidates build the wrong thing confidently. Times assume a ~60-min session — scale down proportionally for shorter ones.</p>
+
+  <div class="steps-grid">
+
+    <div class="step">
+      <div class="step-head"><div class="step-num">1</div><div><div class="step-title">Listen &amp; clarify — with the interviewer</div><span class="step-when">0–5 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Hear the <strong>full problem</strong> before touching the editor</li>
+          <li>Ask: input source &amp; shape (API / file / stdin), nullable or optional fields + defaults</li>
+          <li>Ask: output format, sort/filter rules, whether order must be deterministic</li>
+          <li>Ask: which error cases matter vs. can be ignored; what scale (100 items or 10M?)</li>
+          <li>Write a 3–5 line summary and read it back</li>
+        </ul>
+        <div class="say"><strong>Say:</strong> "So to confirm — I'm reading from X, transforming by Y, filtering out blanks, returning JSON sorted by Z. Anything I'm missing?"</div>
+      </div>
+    </div>
+
+    <div class="step a">
+      <div class="step-head"><div class="step-num">2</div><div><div class="step-title">Bring in the AI — paste your instructions</div><span class="step-when">&lt; 2 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Have an <strong>instructions block (AGENT.md)</strong> pre-written — never write it live</li>
+          <li>Paste it as a comment at the top of the editor, or as your first message to the AI panel</li>
+          <li>End it with: <em>"Acknowledge with 'Ready' and wait for requirements."</em></li>
+          <li>Then send your clarified requirements as the second message</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step t">
+      <div class="step-head"><div class="step-num">3</div><div><div class="step-title">Ask for the plan only — no code</div><span class="step-when">~3 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Constrain the format hard so it's reviewable in 30 seconds, not 3 minutes</li>
+          <li>If it ignores the constraint and writes paragraphs, interrupt mid-generation</li>
+        </ul>
+        <div class="say"><strong>Prompt:</strong> "Don't write code yet. Give me the plan as 1 ASCII flow diagram + max 8 bullets. No prose, no headers."</div>
+        <div class="flag"><strong>If it rambles:</strong> send a new message immediately — "Stop. Shorter. Just the diagram and bullets."</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><div class="step-num">4</div><div><div class="step-title">Review the plan out loud</div><span class="step-when">~3 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Go line by line <strong>against your own mental model</strong>, narrating to the interviewer</li>
+          <li>Flag what the AI missed — this narration is worth more points than the plan itself</li>
+        </ul>
+        <div class="say"><strong>Say:</strong> "Data flow looks right. I'd split the external client into its own class instead of the service. And it missed the empty-string case, not just null. Let me add that."</div>
+      </div>
+    </div>
+
+    <div class="step a">
+      <div class="step-head"><div class="step-num">5</div><div><div class="step-title">Build chunk by chunk</div><span class="step-when">~25 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>One unit per prompt: models → one service method → error handling → controller/handler → tests</li>
+          <li><strong>No single prompt should produce more than ~30 lines.</strong> Review each chunk before the next</li>
+          <li>Narrate the architecture decision while the AI generates (see "Drive the AI" below)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step g">
+      <div class="step-head"><div class="step-num">6</div><div><div class="step-title">Edge-case walkthrough — before running</div><span class="step-when">~5 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Name the cases out loud even if you can't code them all: empty input, null fields, zero/negative, max boundary, duplicate/retry</li>
+          <li>Naming them demonstrates mature engineering instincts and earns signal</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step t">
+      <div class="step-head"><div class="step-num">7</div><div><div class="step-title">Tests → demo</div><span class="step-when">final ~7 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Unit tests first (mock externals), then integration tests where logical</li>
+          <li>Run it live; clear the output panel and read the freshest output before deciding the next step</li>
+          <li>Wrap up: state known gaps + what you'd do with more time</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DRIVE THE AI -->
+<div class="section" id="drive">
+  <div class="section-header">
+    <span class="se">⚡</span>
+    <h2>Drive the AI — Chunked Prompting</h2>
+    <span class="kicker coding">Both Rounds</span>
+  </div>
+  <p class="section-desc">The core fix for slow, hard-to-review AI output: flip from "big prompt → big answer" to one small unit at a time. Each chunk generates in 10–15 seconds instead of 60–90, so you stay engaged and catch problems immediately. The wait is <strong>narration time</strong>, not dead time. Works the same whether you're generating code or drafting a design.</p>
+
+  <table class="chunk-table">
+    <thead><tr><th>Prompt the AI</th><th>What you do / say while it responds</th></tr></thead>
+    <tbody>
+      <tr><td><code>"Define only the data models / DTOs. Nothing else."</code></td><td>Verbally describe the shape to the interviewer</td></tr>
+      <tr><td><code>"Now the service interface + just the core method."</code></td><td>Review &amp; narrate the core logic</td></tr>
+      <tr><td><code>"Add error handling to that method using a typed result."</code></td><td>Check the error model is correct</td></tr>
+      <tr><td><code>"Now the handler — thin layer only, no business logic."</code></td><td>Verify it just delegates to the service</td></tr>
+      <tr><td><code>"Unit tests for the core method — happy path + 3 edge cases."</code></td><td>Name the edge cases you expect before they appear</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tips" style="margin-top:18px;">
+    <h4>🔑 Rules of thumb for the live session</h4>
+    <ul>
+      <li><strong>While it builds:</strong> narrate what you <em>expect</em> before it appears — "my guess is it'll propose a service + handler + a separate util; let me see if it agrees." You then review against your own model, not cold.</li>
+      <li><strong>If you're waiting 3× longer than you're reviewing, your prompts are too big.</strong> Break them down.</li>
+      <li><strong>Pre-read headers as code streams in</strong> and flag what you'll review first.</li>
+      <li><strong>Treat every chunk as a draft</strong> — read it line by line out loud before accepting it.</li>
+      <li><strong>Know the platform cold:</strong> practice in the CoderPad or CodeSignal sandbox beforehand. Output panels, the AI chat location, and run shortcuts differ — don't learn them live.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- IMPLEMENTATION CHECKLIST -->
+<div class="section" id="checklist">
+  <div class="section-header">
+    <span class="se">✅</span>
+    <h2>Implementation Checklist — Things to Consider</h2>
+    <span class="kicker coding">Coding Round</span>
+  </div>
+  <p class="section-desc">The dimensions to think through before and during the build. You won't hit all of them in an hour — but naming the ones you're consciously deferring (and why) is itself a strong signal. Code snippets are illustrative — adapt to your language/stack.</p>
+
+  <div class="cards">
+
+    <div class="card x1">
+      <div class="card-header"><span class="card-icon">🔁</span><span class="card-title">1 · Input / Output Models</span></div>
+      <ul>
+        <li>Exact input shape: JSON, CSV, query params, headers, body?</li>
+        <li>Nullable / optional fields — what's the default when missing?</li>
+        <li>Define the valid-vs-invalid boundary <strong>before</strong> coding</li>
+        <li>Output format: raw JSON, structured object, paginated?</li>
+        <li>Field naming convention — camelCase vs snake_case</li>
+        <li>Must output be deterministic (same input → same order)?</li>
+        <li>Max payload size to handle</li>
+      </ul>
+    </div>
+
+    <div class="card x2">
+      <div class="card-header"><span class="card-icon">🛠️</span><span class="card-title">2 · Language &amp; Framework</span></div>
+      <ul>
+        <li>Pick what you <strong>debug fastest live</strong> — not the theoretically "best"</li>
+        <li>Fast to scaffold: Python+FastAPI, Go+Gin, Node+Express, Java/Kotlin+Spring</li>
+        <li>Avoid heavy frameworks for a 60-min build — stdlib is often enough</li>
+        <li>Ask the interviewer: "Preferred language, or flexible?"</li>
+        <li>Check what's available in the CoderPad/CodeSignal environment before importing exotic libs</li>
+      </ul>
+    </div>
+
+    <div class="card x3">
+      <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">3 · Error Handling</span></div>
+      <ul>
+        <li>External dependency down → timeout, retry, or fail fast?</li>
+        <li>Prefer a <strong>typed result/error model</strong> over scattered exceptions</li>
+        <li>Distinct error types: NotFound, Validation, Upstream, Parse</li>
+        <li>Map errors to responses in one place (global handler / middleware)</li>
+        <li>Handle 4xx → validation/not-found, 5xx → upstream, network → upstream</li>
+        <li>Never expose internal stack traces in responses</li>
+      </ul>
+      <span class="snippet-label">Illustrative (typed result)</span>
+<pre class="snippet"><span class="cmt">// One return type that's either success or a typed error</span>
+Result = Success(data) | Failure(AppError)
+AppError = NotFound | Validation | Upstream | Parse</pre>
+    </div>
+
+    <div class="card x4">
+      <div class="card-header"><span class="card-icon">🧪</span><span class="card-title">4 · Testing</span></div>
+      <ul>
+        <li><strong>Unit (always):</strong> core logic in isolation, mock external deps</li>
+        <li>Cover: happy path, empty input, null fields, invalid input, each error branch</li>
+        <li>Descriptive names: <code>returnsEmpty_whenAllNamesNull</code></li>
+        <li>Keep unit tests framework-free where possible — fast feedback</li>
+        <li><strong>Integration (where logical):</strong> full request→response; stub external HTTP (e.g. WireMock / nock / responses)</li>
+        <li><strong>Don't test:</strong> getters/setters, framework wiring, log statements</li>
+      </ul>
+    </div>
+
+    <div class="card x5">
+      <div class="card-header"><span class="card-icon">📋</span><span class="card-title">5 · Logging &amp; Observability</span></div>
+      <ul>
+        <li>Structured (JSON) logs, not <code>print</code> debugging</li>
+        <li>Levels: DEBUG (state) · INFO (requests, key events, external call + latency) · WARN (retries, fallbacks) · ERROR (unhandled, upstream fail)</li>
+        <li>Log every inbound request via middleware — not by hand per handler</li>
+        <li>Log every outbound call: target, status, latency</li>
+        <li>Correlation ID propagated through all logs of a request</li>
+        <li>Never log secrets, tokens, PII, or payment data</li>
+      </ul>
+    </div>
+
+    <div class="card x6">
+      <div class="card-header"><span class="card-icon">⚡</span><span class="card-title">6 · Performance &amp; Latency</span></div>
+      <ul>
+        <li>Set explicit connect + read timeouts on every external call</li>
+        <li>Write clear code first — don't optimize prematurely</li>
+        <li>Use the right structure: map for O(1) lookup vs O(n) scan</li>
+        <li>Pagination / streaming for large result sets</li>
+        <li>Async / parallel calls only where it genuinely helps</li>
+      </ul>
+    </div>
+
+    <div class="card x7">
+      <div class="card-header"><span class="card-icon">🔐</span><span class="card-title">7 · Security</span></div>
+      <ul>
+        <li>Validate &amp; sanitize all inputs; validate headers</li>
+        <li>Secrets / API keys from environment variables only — never committed</li>
+        <li>No secrets in source or logs</li>
+        <li>No stack traces or internal details leaked in responses</li>
+        <li>Auth/token check on endpoints if the prompt implies users</li>
+      </ul>
+    </div>
+
+    <div class="card x8">
+      <div class="card-header"><span class="card-icon">🔧</span><span class="card-title">8 · Configuration</span></div>
+      <ul>
+        <li>All external values in config — nothing hardcoded</li>
+        <li>Typed config object rather than scattered string lookups</li>
+        <li>Separate config per environment (local / prod)</li>
+        <li>Secrets come from env vars, not committed files</li>
+      </ul>
+      <span class="snippet-label">Illustrative</span>
+<pre class="snippet"><span class="cmt">// One typed config object, loaded once</span>
+AppConfig { apiUrl, timeoutMs, maxRetries }
+<span class="cmt">// values from env / config file, never inline literals</span></pre>
+    </div>
+
+    <div class="card x9">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title">9 · Code Structure</span></div>
+      <ul>
+        <li>Separate layers: <strong>handler/controller → service → repository / util</strong></li>
+        <li>Interfaces only where they earn their keep (services, repositories) — not everywhere</li>
+        <li>Max function length ~20 lines — extract if longer</li>
+        <li>Prefer immutable data + copies over mutation; composition over inheritance</li>
+        <li>One responsibility per class — if you can't name it, split it</li>
+        <li>No business logic in handlers or data classes</li>
+      </ul>
+    </div>
+
+    <div class="card x10">
+      <div class="card-header"><span class="card-icon">📝</span><span class="card-title">10 · Documentation</span></div>
+      <ul>
+        <li>README: what it does, how to run, config values, known gaps</li>
+        <li>Inline comments only for non-obvious logic or workarounds — never for self-explanatory code</li>
+        <li>Document the API contract: endpoints, request/response shape, error codes</li>
+        <li>TODO comments to flag intentionally deferred work</li>
+        <li><strong>Many companies grade take-homes on README quality</strong> — treat docs as part of the deliverable</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- =============== DESIGN WORKFLOW =============== -->
+<div class="section" id="design-workflow">
+  <div class="section-header">
+    <span class="se">🏗️</span>
+    <h2>System Design Session Workflow</h2>
+    <span class="kicker design">Design Round</span>
+  </div>
+  <p class="section-desc">A repeatable structure for any design prompt. If AI assist is allowed, use it to enumerate options, draft API specs/schemas, and sanity-check capacity math — but <strong>you</strong> own the architecture and must voice the tradeoffs. Don't let the AI's first answer become your design; interrogate it the same way you'd interrogate a junior's proposal.</p>
+
+  <div class="steps-grid">
+
+    <div class="step b">
+      <div class="step-head"><div class="step-num">1</div><div><div class="step-title">Clarify requirements</div><span class="step-when">~5 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li><strong>Functional:</strong> core use cases, who the users are, what's in / out of scope</li>
+          <li><strong>Non-functional:</strong> latency target, availability, consistency needs, scale</li>
+          <li>Lock scope explicitly before drawing anything — Staff candidates set scope, juniors accept it</li>
+        </ul>
+        <div class="say"><strong>Say:</strong> "Before I design — is this read-heavy or write-heavy? Do we need strong consistency anywhere, or is eventual fine? Global or single-region?"</div>
+      </div>
+    </div>
+
+    <div class="step t">
+      <div class="step-head"><div class="step-num">2</div><div><div class="step-title">Scale &amp; capacity estimates</div><span class="step-when">~3 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Back-of-envelope: QPS (peak vs average), DAU, read:write ratio</li>
+          <li>Storage growth/year, bandwidth, payload sizes</li>
+          <li>These numbers justify every later decision (cache? shard? replicas?)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><div class="step-num">3</div><div><div class="step-title">API / contracts</div><span class="step-when">~5 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Define the key endpoints / interfaces: method, inputs, outputs</li>
+          <li>REST vs gRPC vs GraphQL — and why</li>
+          <li>Pagination, idempotency keys, versioning where relevant</li>
+        </ul>
+        <div class="say"><strong>AI assist:</strong> "Draft the REST contract for these 3 operations as a table." Then you review &amp; correct.</div>
+      </div>
+    </div>
+
+    <div class="step a">
+      <div class="step-head"><div class="step-num">4</div><div><div class="step-title">High-level architecture</div><span class="step-when">~8 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Draw the boxes: clients → gateway/LB → services → data stores → queues</li>
+          <li>Justify each component — don't add boxes you can't defend</li>
+          <li>Mark sync vs async paths</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step g">
+      <div class="step-head"><div class="step-num">5</div><div><div class="step-title">Deep dive — 1–2 components</div><span class="step-when">~10 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>Data model / schema: entities, relationships, indexes, partition key</li>
+          <li>The hard part: hot path, consistency boundary, the bottleneck</li>
+          <li>SQL vs NoSQL decided by <em>access pattern</em>, not by trend</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step b">
+      <div class="step-head"><div class="step-num">6</div><div><div class="step-title">Failure, scale-out, observability</div><span class="step-when">~5 min</span></div></div>
+      <div class="step-body">
+        <ul>
+          <li>What breaks? node loss, network partition, dependency down, hot key</li>
+          <li>Mitigations: replicas, circuit breakers, retries+backoff, bulkheads</li>
+          <li>How you'd detect it: metrics, alerts on SLOs — most candidates skip this, don't</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DESIGN CHECKLIST -->
+<div class="section" id="design-checklist">
+  <div class="section-header">
+    <span class="se">📐</span>
+    <h2>Design — Things to Consider</h2>
+    <span class="kicker design">Design Round</span>
+  </div>
+  <p class="section-desc">The dimensions an interviewer scores. You don't cover all ten exhaustively — you raise them, then go deep where the problem demands it. Voicing the tradeoff you considered and rejected is the senior/staff signal.</p>
+
+  <div class="cards">
+
+    <div class="card x1">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">1 · Requirements</span></div>
+      <ul>
+        <li>Functional: core use cases, explicit in/out of scope</li>
+        <li>Non-functional: latency, availability, consistency, durability</li>
+        <li>Ask 3–4 clarifying questions before drawing — set scope, don't accept it</li>
+      </ul>
+    </div>
+
+    <div class="card x2">
+      <div class="card-header"><span class="card-icon">📊</span><span class="card-title">2 · Scale &amp; Estimates</span></div>
+      <ul>
+        <li>QPS (peak vs average), DAU/MAU, read:write ratio</li>
+        <li>Storage/year, bandwidth, average + max payload size</li>
+        <li>Growth assumptions — design for 10× current, not 1000×</li>
+      </ul>
+    </div>
+
+    <div class="card x3">
+      <div class="card-header"><span class="card-icon">🔌</span><span class="card-title">3 · API &amp; Contracts</span></div>
+      <ul>
+        <li>REST / gRPC / GraphQL — and the reason</li>
+        <li>Endpoints, request/response shapes, status codes</li>
+        <li>Versioning, pagination, idempotency keys for writes</li>
+        <li>Rate limiting &amp; auth at the boundary</li>
+      </ul>
+    </div>
+
+    <div class="card x4">
+      <div class="card-header"><span class="card-icon">🗄️</span><span class="card-title">4 · Data Model</span></div>
+      <ul>
+        <li>Entities, relationships, access patterns first — schema follows</li>
+        <li><strong>SQL vs NoSQL by access pattern</strong>, not trend</li>
+        <li>Indexes, partition/shard key, avoid hot keys</li>
+        <li>Normalization vs denormalization for read speed</li>
+      </ul>
+    </div>
+
+    <div class="card x5">
+      <div class="card-header"><span class="card-icon">📈</span><span class="card-title">5 · Scalability</span></div>
+      <ul>
+        <li>Horizontal scaling + load balancing for stateless services</li>
+        <li>Caching: where, TTL vs event-invalidation, hit-rate target</li>
+        <li>Read replicas, CDN for static assets</li>
+        <li>Async queues to absorb spikes &amp; decouple</li>
+      </ul>
+    </div>
+
+    <div class="card x6">
+      <div class="card-header"><span class="card-icon">🛡️</span><span class="card-title">6 · Reliability &amp; Failure</span></div>
+      <ul>
+        <li>Enumerate failures: node, network partition, dependency down, hot key</li>
+        <li>Circuit breakers, retries + backoff (idempotent only), bulkheads</li>
+        <li>Graceful degradation &amp; fallbacks</li>
+        <li>Idempotency for anything money- or state-changing</li>
+      </ul>
+    </div>
+
+    <div class="card x7">
+      <div class="card-header"><span class="card-icon">⚖️</span><span class="card-title">7 · Consistency</span></div>
+      <ul>
+        <li>Strong vs eventual — name where each applies</li>
+        <li>CAP: pick the tradeoff per data type, not globally</li>
+        <li>Money/inventory → strong; feeds/search/counts → eventual is fine</li>
+        <li>Saga / outbox for cross-service consistency (not 2PC)</li>
+      </ul>
+    </div>
+
+    <div class="card x8">
+      <div class="card-header"><span class="card-icon">🔭</span><span class="card-title">8 · Observability</span></div>
+      <ul>
+        <li>Metrics: latency p50/p95/p99, error rate, throughput per dimension</li>
+        <li>Structured logs with correlation IDs; distributed traces across services</li>
+        <li>Alerts on SLOs, not raw symptoms</li>
+        <li>One sentence here instantly elevates you — most candidates skip it</li>
+      </ul>
+    </div>
+
+    <div class="card x9">
+      <div class="card-header"><span class="card-icon">🔐</span><span class="card-title">9 · Security</span></div>
+      <ul>
+        <li>AuthN / AuthZ at the gateway and between services</li>
+        <li>Input validation, rate limiting, secrets management</li>
+        <li>Encryption in transit + at rest; PII handling</li>
+        <li>Principle of least privilege for service-to-service calls</li>
+      </ul>
+    </div>
+
+    <div class="card x10">
+      <div class="card-header"><span class="card-icon">🔀</span><span class="card-title">10 · Tradeoffs (the signal)</span></div>
+      <ul>
+        <li>Every choice comes with the alternative you rejected and why</li>
+        <li>"Kafka for replayability — tradeoff is ops complexity; at this scale it's worth it"</li>
+        <li>Latency vs throughput · coupling vs cohesion · sync vs async · push vs pull</li>
+        <li>Tie decisions back to the requirements from step 1</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- COMMON FORKS -->
+<div class="section" id="common-forks">
+  <div class="section-header">
+    <span class="se">🔀</span>
+    <h2>Common Forks — Decisions to Think Through in Most Designs</h2>
+    <span class="kicker design">Design Round</span>
+  </div>
+  <p class="section-desc">Almost every system-design prompt hides the same recurring forks. The senior move is to pick one and move on; the staff move is to <strong>name the alternatives, choose, and justify against a requirement or a number</strong>. Walk these as a mental checklist — for each, ask "does this design have to make this choice, and have I voiced why?" Each card lists the choices to weigh and the question that decides it.</p>
+
+  <div class="cards">
+
+    <div class="card x3">
+      <div class="card-header"><span class="card-icon">⚖️</span><span class="card-title">1 · Strong vs Eventual Consistency</span></div>
+      <div class="fork-when">Where must data be correct-right-now vs. correct-eventually? This is usually <strong>the</strong> core correctness decision in the whole design.</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Strong</strong> — reads see the latest write. Needed for money, inventory, auth, anything a user is charged for.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Eventual</strong> — replicas converge over time. Fine for feeds, search, counts, caches, analytics.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Pick per data type, not globally. "What's the cost of a stale read here?" If it's a wrong charge → strong. If it's a slightly-old like count → eventual.</div>
+    </div>
+
+    <div class="card x4">
+      <div class="card-header"><span class="card-icon">🔄</span><span class="card-title">2 · Sync vs Async</span></div>
+      <div class="fork-when">Does the caller wait for the work to finish, or get an ack and a promise it'll happen?</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Sync</strong> — simpler, lower latency to a result, easier client. Ties up a thread/connection for the duration.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Async</strong> — resilient, decoupled, absorbs spikes via a queue. Needs status tracking, polling/webhooks, reconciliation.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> How long is the work, and can it be left in-doubt? Fast + must-confirm → sync happy path. Slow, or a side-effect you can't lose → async/durable backbone behind it.</div>
+    </div>
+
+    <div class="card x6">
+      <div class="card-header"><span class="card-icon">🗄️</span><span class="card-title">3 · SQL vs NoSQL (store per job)</span></div>
+      <div class="fork-when">What store fits this data's access pattern? Resist one-house-DB-for-everything.</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Relational (SQL)</strong> — transactions, joins, strong consistency. Money, state machines, anything needing ACID.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Document/KV/Wide-col (NoSQL)</strong> — massive write scale, flexible schema, denormalized reads. Events, sessions, catalogs.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Access pattern, not trend. "How is this read and written?" High-write firehose → wide-column (Cassandra). Transactional core → relational. Often you use several.</div>
+    </div>
+
+    <div class="card x2">
+      <div class="card-header"><span class="card-icon">🚀</span><span class="card-title">4 · Cache or Not — and Invalidation</span></div>
+      <div class="fork-when">Read-heavy data almost always wants a cache; the hard part is what key and how it goes stale.</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>TTL</strong> — simple, accepts staleness up to the window. Great for data that's OK to be a bit old.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Event invalidation</strong> — fresh, but fragile to dropped events. For data that must reflect writes quickly.</span></div>
+        <div class="fork-opt"><span class="vs">C</span><span><strong>Write-through / refresh-ahead</strong> — write updates cache too / preemptive reload. Stronger freshness, more moving parts.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Pick the cache <em>key</em> at the right granularity (the rate-basis, not the raw input), then "how stale can this be?" Money path → don't cache; browse path → TTL is usually fine.</div>
+    </div>
+
+    <div class="card x5">
+      <div class="card-header"><span class="card-icon">📬</span><span class="card-title">5 · Queue vs Direct Call</span></div>
+      <div class="fork-when">When service A needs B to do something — call it directly, or drop a message?</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Direct (sync RPC)</strong> — immediate result, simple to trace. A's latency/availability now depends on B.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Queue (Kafka/SQS)</strong> — decoupled, buffers spikes, replayable, survives B being down. Adds eventual delivery + ordering concerns.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Does the caller need the answer now, and can B keep up with A's peak? Need-it-now → direct. Fire-and-forget, spiky, or B is slow/flaky → queue. Kafka if you need replay/ordering, SQS if you just need a buffer.</div>
+    </div>
+
+    <div class="card x1">
+      <div class="card-header"><span class="card-icon">🧱</span><span class="card-title">6 · Monolith vs Microservices</span></div>
+      <div class="fork-when">One deployable, or many? Beware reaching for microservices reflexively.</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Monolith / modular monolith</strong> — simpler ops, no network between modules, easy transactions. Scales as one unit.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Microservices</strong> — independent scaling + deploys + team ownership. Cost: network failure modes, distributed data, ops overhead.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Do parts have genuinely different scaling needs or team boundaries (bounded contexts)? If not, a modular monolith is often the right call — and "I'd start monolith and carve out services as seams appear" is a strong answer.</div>
+    </div>
+
+    <div class="card x7">
+      <div class="card-header"><span class="card-icon">⚡</span><span class="card-title">7 · Build vs Buy / 3rd-Party</span></div>
+      <div class="fork-when">Integrate directly with each provider, or use an aggregator / managed service?</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Build / direct</strong> — full control, no per-use fee, but N integrations to build &amp; maintain.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Buy / aggregator</strong> — one integration, they absorb the quirks. Cost: fees, their downtime, less control.</span></div>
+        <div class="fork-opt"><span class="vs">C</span><span><strong>Hybrid by volume</strong> — build for the high-volume few where it pays off; buy for the long tail.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Volume economics + control needs. A clean adapter interface lets either slot in behind the same port — so this can stay a runtime/ops decision, not an architecture one.</div>
+    </div>
+
+    <div class="card x8">
+      <div class="card-header"><span class="card-icon">📨</span><span class="card-title">8 · Push vs Pull</span></div>
+      <div class="fork-when">Does the source push updates to you, or do you poll for them?</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Push (webhooks/stream)</strong> — fresh, low latency, no wasted polls. Messy infra: retries, ordering, signature verification.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Pull (poll)</strong> — deterministic, simple, you control rate. Wasteful and stale between polls.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Freshness need vs. infra tolerance. High-volume real-time → push, often with pull as a reconciliation backstop. Low-volume or you don't trust their delivery → pull.</div>
+    </div>
+
+    <div class="card x9">
+      <div class="card-header"><span class="card-icon">🔑</span><span class="card-title">9 · Idempotency &amp; Retries</span></div>
+      <div class="fork-when">Any side-effectful op that might be retried (network blip, double-click) forces this.</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Client-supplied key</strong> — caller sends a unique key; server dedups. Robust for money flows; needs client discipline.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Server-side dedup</strong> — hash the payload / natural key. Works without client cooperation; trickier to get exactly right.</span></div>
+        <div class="fork-opt"><span class="vs">—</span><span><strong>Only retry idempotent ops</strong>, with backoff + jitter. Never blindly retry a charge.</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Is the op safe to repeat? If not, make it idempotent before you allow any retry. Money/state-changing → client key, always.</div>
+    </div>
+
+    <div class="card x10">
+      <div class="card-header"><span class="card-icon">📈</span><span class="card-title">10 · Scale Now vs Scale Later</span></div>
+      <div class="fork-when">Design for today's load, or the load you might have in 3 years?</div>
+      <div class="fork-opts">
+        <div class="fork-opt"><span class="vs">A</span><span><strong>Simple for current scale</strong> — ship faster, less to operate. Risk of a painful rewrite if growth is real.</span></div>
+        <div class="fork-opt"><span class="vs">B</span><span><strong>Pre-build for 10×/100×</strong> — fewer surprises, but over-engineering you may never need (and that slows you now).</span></div>
+      </div>
+      <div class="fork-ask"><strong>Decide by:</strong> Design for ~10× current, not 1000×. The staff finish: "this works at today's load; <em>here's the specific thing that changes</em> at the next order of magnitude" — own the curve without building it all now.</div>
+    </div>
+
+  </div>
+</div>
+    <span class="kicker coding">Coding Round</span>
+  </div>
+  <p class="section-desc">Run this before telling the interviewer you're finished. Bake it into the end of your instructions block so the AI self-verifies too.</p>
+  <div class="tips">
+    <h4>Before declaring done, verify:</h4>
+    <ul>
+      <li>All acceptance criteria from the plan are met</li>
+      <li>Unit tests written and passing; integration test per endpoint (if applicable)</li>
+      <li>No hardcoded values — URLs, timeouts, secrets all externalized</li>
+      <li>Errors handled centrally and return clean, typed responses</li>
+      <li>Correlation ID propagated through logs</li>
+      <li>README updated: how to run, config values, endpoint contract</li>
+      <li>No business logic leaked into handlers or data classes</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  🤖 AI-Assisted Interview Cheat Sheet · Coding &amp; Design rounds · CoderPad / CodeSignal · Clarify with the human → drive the AI in tight chunks → review every line → voice the tradeoffs
+</div>
+
+</body>
+</html>

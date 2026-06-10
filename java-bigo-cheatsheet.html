@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Collections · Big-O Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0f14;
+    --panel:#11151c;
+    --panel2:#0e1219;
+    --line:#1e2630;
+    --txt:#cdd6e3;
+    --dim:#6b7889;
+    --o1:#3fd68a;      /* O(1)        */
+    --olog:#4cc9f0;    /* O(log n)    */
+    --on:#f4b860;      /* O(n)        */
+    --obad:#ff6b6b;    /* O(n log n)+ */
+    --o1bg:rgba(63,214,138,.10);
+    --ologbg:rgba(76,201,240,.10);
+    --onbg:rgba(244,184,96,.10);
+    --obadbg:rgba(255,107,107,.10);
+    --usebg:rgba(63,214,138,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(76,201,240,.06), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(63,214,138,.05), transparent 60%),
+      var(--bg);
+    color:var(--txt);
+    font-family:"JetBrains Mono", ui-monospace, monospace;
+    display:flex; align-items:center; justify-content:center;
+    padding:clamp(8px,1.4vh,18px);
+  }
+  .card{
+    width:min(1320px,100%);
+    background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);
+    border-radius:16px;
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+    padding:clamp(12px,2vh,24px) clamp(16px,2.2vw,28px);
+    overflow:hidden;
+  }
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:18px; flex-wrap:wrap;
+    padding-bottom:clamp(7px,1.2vh,12px);
+    border-bottom:1px solid var(--line);
+    margin-bottom:clamp(6px,1vh,10px);
+  }
+  h1{
+    font-family:"Syne",sans-serif; font-weight:800;
+    font-size:clamp(20px,2.9vw,30px); letter-spacing:-.5px; color:#fff;
+    line-height:1;
+  }
+  h1 span{color:var(--olog)}
+  .sub{color:var(--dim); font-size:11px; margin-top:6px; letter-spacing:.3px}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11px; font-weight:500}
+  .legend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:6px; vertical-align:middle}
+  table{width:100%; border-collapse:collapse; table-layout:fixed}
+  caption{
+    text-align:left; font-family:"Syne",sans-serif; font-weight:600;
+    color:var(--olog); font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    padding:clamp(6px,1.1vh,10px) 0 4px 2px;
+  }
+  thead th{
+    font-weight:700; font-size:10px; letter-spacing:.5px; text-transform:uppercase;
+    color:var(--dim); text-align:center; padding:4px 6px; border-bottom:1px solid var(--line);
+  }
+  thead th:first-child{text-align:left}
+  thead th:nth-child(6),thead th:nth-child(7){text-align:left}
+
+  /* shared column widths across all 4 tables */
+  col.s{width:13%}
+  col.op{width:8.4%}
+  col.use{width:29%}
+  col.note{width:24%}
+
+  tbody td{
+    padding:clamp(3px,.8vh,7px) 6px; text-align:center;
+    font-size:clamp(11px,1.15vw,13px); font-weight:500;
+    border-bottom:1px solid rgba(30,38,48,.55);
+  }
+  tbody tr:last-child td{border-bottom:none}
+  tbody td:first-child{
+    text-align:left; color:#eaf0f8; font-weight:700;
+  }
+  /* When-to-use column */
+  tbody td:nth-child(6){
+    text-align:left; color:#d6e8dd; font-size:11px; font-weight:500;
+    background:var(--usebg); border-left:2px solid rgba(63,214,138,.35);
+  }
+  /* Note column */
+  tbody td:nth-child(7){text-align:left; color:var(--dim); font-size:10px; font-weight:400}
+  tbody tr:hover td{background:rgba(76,201,240,.04)}
+  tbody tr:hover td:nth-child(6){background:rgba(63,214,138,.10)}
+  .c{border-radius:5px; font-size:clamp(10px,1.05vw,12px)}
+  .o1{color:var(--o1); background:var(--o1bg)}
+  .olog{color:var(--olog); background:var(--ologbg)}
+  .on{color:var(--on); background:var(--onbg)}
+  .obad{color:var(--obad); background:var(--obadbg)}
+  sup{font-size:8px; color:var(--dim); font-weight:700}
+  footer{
+    margin-top:clamp(6px,1.1vh,12px); padding-top:clamp(6px,1vh,10px);
+    border-top:1px solid var(--line);
+    display:flex; gap:22px; flex-wrap:wrap; font-size:10.5px; color:var(--dim); line-height:1.5;
+  }
+  footer b{color:var(--txt); font-weight:700}
+  footer .k{color:var(--o1)}
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <div>
+      <h1>Java Collections <span>·</span> Big-O</h1>
+      <div class="sub">LeetCode-ready complexity + when-to-reach-for-it — average case unless noted</div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--o1)"></i>O(1)</span>
+      <span><i style="background:var(--olog)"></i>O(log n)</span>
+      <span><i style="background:var(--on)"></i>O(n)</span>
+      <span><i style="background:var(--obad)"></i>O(n log n)+</span>
+    </div>
+  </header>
+
+  <table>
+    <caption>Lists · Arrays · Deques</caption>
+    <colgroup><col class="s"><col class="op"><col class="op"><col class="op"><col class="op"><col class="use"><col class="note"></colgroup>
+    <thead>
+      <tr><th>Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th><th>When to use</th><th>Note</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>int[] array</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td class="c on">O(n)</td><td class="c on">O(n)</td><td>Fixed size, index-heavy hot loops</td><td>shifting needed to insert</td></tr>
+      <tr><td>ArrayList</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td class="c o1">O(1)<sup>*</sup></td><td class="c on">O(n)</td><td>Default list; lots of get(i)</td><td>amortized add at end</td></tr>
+      <tr><td>LinkedList</td><td class="c on">O(n)</td><td class="c on">O(n)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td>Splice / add-remove at ends</td><td>O(1) at ends or via iterator</td></tr>
+      <tr><td>ArrayDeque</td><td class="c on">O(n)</td><td class="c on">O(n)</td><td class="c o1">O(1)<sup>*</sup></td><td class="c o1">O(1)</td><td>Stack &amp; queue (the default)</td><td>ends only; no nulls</td></tr>
+    </tbody>
+  </table>
+
+  <table>
+    <caption>Maps</caption>
+    <colgroup><col class="s"><col class="op"><col class="op"><col class="op"><col class="op"><col class="use"><col class="note"></colgroup>
+    <thead>
+      <tr><th>Structure</th><th>get</th><th>containsKey</th><th>put</th><th>remove</th><th>When to use</th><th>Note</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>HashMap</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td>Default lookup / frequency count</td><td>worst O(log n), Java 8+</td></tr>
+      <tr><td>LinkedHashMap</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td>LRU cache, ordered iteration</td><td>keeps insertion order</td></tr>
+      <tr><td>TreeMap</td><td class="c olog">O(log n)</td><td class="c olog">O(log n)</td><td class="c olog">O(log n)</td><td class="c olog">O(log n)</td><td>Sorted keys, range / floor / ceil</td><td>Red-Black tree</td></tr>
+    </tbody>
+  </table>
+
+  <table>
+    <caption>Sets</caption>
+    <colgroup><col class="s"><col class="op"><col class="op"><col class="op"><col class="op"><col class="use"><col class="note"></colgroup>
+    <thead>
+      <tr><th>Structure</th><th>contains</th><th>add</th><th>remove</th><th>iterate</th><th>When to use</th><th>Note</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>HashSet</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td>Dedupe, seen-before checks</td><td>backed by HashMap</td></tr>
+      <tr><td>LinkedHashSet</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td>Dedupe but keep order</td><td>insertion order preserved</td></tr>
+      <tr><td>TreeSet</td><td class="c olog">O(log n)</td><td class="c olog">O(log n)</td><td class="c olog">O(log n)</td><td class="c on">O(n)</td><td>Sorted unique, nearest value</td><td>first / last / subSet</td></tr>
+    </tbody>
+  </table>
+
+  <table>
+    <caption>Heaps · Stacks · Queues · Strings</caption>
+    <colgroup><col class="s"><col class="op"><col class="op"><col class="op"><col class="op"><col class="use"><col class="note"></colgroup>
+    <thead>
+      <tr><th>Structure</th><th>Peek</th><th>Search</th><th>Push / Offer</th><th>Pop / Poll</th><th>When to use</th><th>Note</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>PriorityQueue</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td class="c olog">O(log n)</td><td class="c olog">O(log n)</td><td>Top-K, Dijkstra, merge K lists</td><td>min-heap by default</td></tr>
+      <tr><td>Stack / Deque</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td class="c o1">O(1)</td><td class="c o1">O(1)</td><td>DFS, backtracking, monotonic stack</td><td>use ArrayDeque, not Stack</td></tr>
+      <tr><td>StringBuilder</td><td class="c o1">O(1)</td><td class="c on">O(n)</td><td class="c o1">O(1)<sup>*</sup></td><td class="c on">O(n)</td><td>Building strings inside a loop</td><td>append amortized; insert O(n)</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    <div><b><span class="k">*</span> amortized</b> — occasional O(n) resize/copy averages to O(1) per op.</div>
+    <div><b>HashMap worst case</b> is O(log n): buckets treeify past ~8 collisions (Java 8+).</div>
+    <div><b>Space</b> for all = <b>O(n)</b>. Tree structures add pointer overhead.</div>
+  </footer>
+</div>
+</body>
+</html>

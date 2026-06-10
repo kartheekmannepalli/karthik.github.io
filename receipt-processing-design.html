@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt Processing Pipeline — System Design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0c0f14;
+    --panel:#141922;
+    --panel-2:#1b212c;
+    --line:rgba(255,255,255,0.09);
+    --line-strong:rgba(255,255,255,0.16);
+    --text:#e9e7e1;
+    --muted:#8a94a6;
+    --muted-2:#5b6478;
+    --cyan:#42c9da;
+    --cyan-dim:#2a8d99;
+    --amber:#f5b14c;
+    --amber-dim:#b07e2e;
+    --coral:#ff6f6f;
+    --green:#6bd49a;
+    --violet:#a98bff;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(66,201,218,0.06), transparent 60%),
+      radial-gradient(900px 500px at -5% 20%, rgba(245,177,76,0.05), transparent 55%),
+      var(--ink);
+    color:var(--text);
+    font-family:"Newsreader",Georgia,serif;
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* blueprint grid overlay */
+  body::before{
+    content:"";
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px);
+    background-size:44px 44px;
+    mask-image:linear-gradient(180deg,black,black);
+  }
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:54px 26px 90px}
+
+  .mono{font-family:"JetBrains Mono",monospace}
+  .display{font-family:"Bricolage Grotesque",sans-serif}
+
+  /* ---------- header ---------- */
+  header.head{margin-bottom:18px}
+  .kicker{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--cyan);margin-bottom:14px;
+  }
+  h1{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:800;font-size:clamp(34px,5.4vw,62px);line-height:1.02;
+    margin:0 0 10px;letter-spacing:-.02em;
+  }
+  h1 .thin{color:var(--muted);font-weight:400}
+  .sub{color:var(--muted);font-size:18px;max-width:62ch;margin:0}
+
+  .constraint-bar{
+    display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 8px;
+  }
+  .chip{
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;
+    padding:8px 13px;border-radius:999px;border:1px solid var(--line-strong);
+    background:var(--panel);color:var(--text);display:flex;align-items:center;gap:8px;
+  }
+  .chip b{color:var(--cyan);font-weight:700}
+  .chip.hot{border-color:rgba(245,177,76,.45);background:rgba(245,177,76,.08)}
+  .chip.hot b{color:var(--amber)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan)}
+  .chip.hot .dot{background:var(--amber)}
+
+  /* ---------- section scaffolding ---------- */
+  section{margin-top:54px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+  .sec-num{
+    font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--cyan);
+    border:1px solid var(--line-strong);border-radius:7px;padding:3px 8px;flex:0 0 auto;
+  }
+  h2{
+    font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+    font-size:clamp(22px,3vw,30px);margin:0;letter-spacing:-.01em;
+  }
+  .sec-note{color:var(--muted);font-size:15.5px;margin:-6px 0 22px;max-width:70ch}
+
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:24px;
+  }
+
+  /* ---------- the tension triangle ---------- */
+  .tension{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:center}
+  .tri-card{padding:26px}
+  .pick{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--amber);letter-spacing:.06em;margin-bottom:16px}
+  .tri-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .pill{
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;padding:9px 13px;border-radius:10px;
+    border:1px dashed var(--line-strong);color:var(--text);background:var(--panel-2);
+  }
+  .verdict{font-size:16px;color:var(--text);border-left:2px solid var(--amber);padding-left:16px;margin-top:6px}
+  .verdict b{color:var(--amber)}
+  svg.tri{width:100%;height:auto;display:block}
+
+  /* ---------- architecture diagram ---------- */
+  .diagram-shell{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#10151d,#0e1217);padding:8px}
+  svg.arch{display:block;min-width:1080px;width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .lg-line{width:26px;height:0;border-top:2px solid var(--cyan)}
+  .lg-line.amber{border-top:3px solid var(--amber)}
+  .lg-line.dash{border-top:2px dashed var(--muted)}
+
+  /* ---------- capacity stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .stat .big{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:30px;line-height:1;color:var(--text)}
+  .stat .big.cy{color:var(--cyan)}
+  .stat .big.am{color:var(--amber)}
+  .stat .lbl{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:10px}
+  .stat .det{font-size:14px;color:var(--muted);margin-top:8px}
+
+  /* ---------- sync/async split ---------- */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .lane{border-radius:16px;padding:22px;border:1px solid var(--line)}
+  .lane.sync{background:linear-gradient(180deg,rgba(66,201,218,.07),rgba(66,201,218,.02));border-color:rgba(66,201,218,.28)}
+  .lane.async{background:linear-gradient(180deg,rgba(169,139,255,.07),rgba(169,139,255,.02));border-color:rgba(169,139,255,.28)}
+  .lane-tag{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+  .lane.sync .lane-tag{color:var(--cyan)}
+  .lane.async .lane-tag{color:var(--violet)}
+  .lane h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:20px;margin:0 0 16px}
+  .check{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}
+  .check:first-of-type{border-top:none}
+  .check .ic{flex:0 0 auto;margin-top:3px}
+  .check .t{font-size:15.5px}
+  .check .t small{display:block;color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:11.5px;margin-top:2px}
+
+  /* ---------- defense in depth ---------- */
+  .defense{display:flex;flex-direction:column;gap:12px}
+  .layer{
+    display:grid;grid-template-columns:54px 1fr 1fr;gap:18px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);
+    border-radius:13px;padding:18px 20px;position:relative;
+  }
+  .layer .lnum{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:28px;color:var(--amber-dim)}
+  .layer .lname{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:17.5px}
+  .layer .lname code{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--amber);background:rgba(245,177,76,.1);padding:2px 7px;border-radius:6px;font-weight:500;display:inline-block;margin-top:8px}
+  .layer .catch{font-size:14.5px;color:var(--muted)}
+  .layer .catch b{color:var(--coral);font-weight:500;font-style:italic}
+  .layer.net{border-left-color:var(--green)}
+  .layer.net .lnum{color:var(--green);font-size:20px}
+  .layer.net .lname code{color:var(--green);background:rgba(107,212,154,.1)}
+  .lcatch-tag{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px;color:#5b6478}
+
+  /* ---------- hash anatomy ---------- */
+  .hash-flow{display:flex;flex-direction:column;gap:18px}
+  .hash-build{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .htok{
+    font-family:"JetBrains Mono",monospace;font-size:13px;padding:11px 14px;border-radius:10px;
+    border:1px solid var(--line-strong);background:var(--panel-2);position:relative;
+  }
+  .htok .tag{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .htok.anchor{border-color:rgba(245,177,76,.5);background:rgba(245,177,76,.08)}
+  .htok.anchor .tag{color:var(--amber)}
+  .htok.scope{border-color:rgba(66,201,218,.5);background:rgba(66,201,218,.08)}
+  .htok.scope .tag{color:var(--cyan)}
+  .plus{color:var(--muted);font-family:"JetBrains Mono",monospace;font-size:18px}
+  .arrow-r{color:var(--cyan);font-family:"JetBrains Mono",monospace;font-size:20px;font-weight:700}
+  .result{font-family:"JetBrains Mono",monospace;font-size:13px;padding:11px 16px;border-radius:10px;background:rgba(107,212,154,.1);border:1px solid rgba(107,212,154,.4);color:var(--green)}
+
+  .canon{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:6px}
+  .canon-item{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .canon-item .bad{color:var(--coral);text-decoration:line-through;opacity:.8}
+  .canon-item .good{color:var(--green)}
+  .canon-item .mid{color:var(--muted);padding:0 6px}
+  .canon-item small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:10px;margin-bottom:7px}
+
+  /* ---------- redelivery sequence ---------- */
+  .seq{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .seq-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .seq-card.fail{border-color:rgba(255,111,111,.3)}
+  .seq-card.win{border-color:rgba(107,212,154,.3)}
+  .seq-card h4{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:17px;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+  .step{display:flex;gap:12px;padding:8px 0;font-family:"JetBrains Mono",monospace;font-size:13px;align-items:flex-start}
+  .step .n{flex:0 0 auto;color:#5b6478}
+  .step.noop{color:var(--green)}
+  .step.danger{color:var(--coral)}
+  .step .x{color:var(--muted)}
+  .codeline{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:#0c1016;border:1px solid var(--line);border-radius:8px;padding:11px 13px;margin-top:12px;color:var(--cyan);overflow-x:auto}
+  .codeline .kw{color:var(--amber)}
+  .codeline .cm{color:var(--muted)}
+
+  /* ---------- footer ---------- */
+  .foot{margin-top:60px;padding-top:24px;border-top:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:12px;color:#5b6478;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media(max-width:840px){
+    .tension{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .split{grid-template-columns:1fr}
+    .seq{grid-template-columns:1fr}
+    .layer{grid-template-columns:40px 1fr;row-gap:10px}
+    .layer .catch{grid-column:1/-1}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HEADER ================= -->
+  <header class="head">
+    <div class="kicker">System Design · Backend · Fetch</div>
+    <h1>Receipt Processing <span class="thin">Pipeline</span></h1>
+    <p class="sub">A user uploads a photo → items are extracted → matched to brand offers → points are awarded. The whole design bends around one bolded requirement.</p>
+    <div class="constraint-bar">
+      <div class="chip"><span class="dot"></span>5M receipts / day · <b>~58/sec avg</b></div>
+      <div class="chip"><span class="dot"></span>availability <b>&gt;&gt;</b> consistency</div>
+      <div class="chip"><span class="dot"></span>POST ack <b>&lt; 100ms</b></div>
+      <div class="chip hot"><span class="dot"></span><b>No double-awarding</b> — even under failure</div>
+    </div>
+  </header>
+
+  <!-- ================= THE TENSION ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">00</span><h2>The trap in the prompt</h2></div>
+    <p class="sec-note">Async decomposition is table stakes. The interviewer is separating candidates on points-correctness. And there's a hard product tension hiding in it:</p>
+    <div class="panel tri-card">
+      <div class="tension">
+        <div>
+          <div class="pick">// you can have at most TWO of these three</div>
+          <div class="tri-row">
+            <span class="pill">⚡ fast ack (&lt;100ms)</span>
+            <span class="pill">🔎 content-based dedup</span>
+            <span class="pill">⏱ immediate duplicate rejection</span>
+          </div>
+          <div class="verdict">
+            Content dedup needs the extracted text → needs OCR. OCR is slow → must be async to keep the ack fast.
+            <b>Therefore duplicate detection is necessarily asynchronous.</b> The user learns "this was a duplicate" via status / notification a few seconds later — not at POST time.
+          </div>
+        </div>
+        <svg class="tri" viewBox="0 0 300 240" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="trg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f5b14c" stop-opacity=".18"/>
+              <stop offset="1" stop-color="#f5b14c" stop-opacity=".03"/>
+            </linearGradient>
+          </defs>
+          <polygon points="150,28 268,205 32,205" fill="url(#trg)" stroke="#f5b14c" stroke-opacity=".5" stroke-width="1.5"/>
+          <circle cx="150" cy="28" r="5" fill="#42c9da"/>
+          <circle cx="268" cy="205" r="5" fill="#42c9da"/>
+          <circle cx="32" cy="205" r="5" fill="#42c9da"/>
+          <text x="150" y="16" text-anchor="middle" fill="#e9e7e1" font-family="JetBrains Mono" font-size="11">fast ack</text>
+          <text x="276" y="222" text-anchor="end" fill="#e9e7e1" font-family="JetBrains Mono" font-size="11">content dedup</text>
+          <text x="24" y="222" text-anchor="start" fill="#e9e7e1" font-family="JetBrains Mono" font-size="11">instant reject</text>
+          <text x="150" y="135" text-anchor="middle" fill="#f5b14c" font-family="JetBrains Mono" font-size="11" font-weight="700">pick 2</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ARCHITECTURE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Architecture &amp; data flow</h2></div>
+    <p class="sec-note">Two swim-lanes: a <b style="color:var(--cyan)">synchronous</b> ingest that acks in &lt;100ms, and an <b style="color:var(--violet)">asynchronous</b> processor that does the slow, risky work. The single source of truth (DB) is written by both — once provisionally, once on award.</p>
+    <div class="diagram-shell">
+      <svg class="arch" viewBox="0 0 1120 600" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ac" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#42c9da"/></marker>
+          <marker id="aa" markerWidth="11" markerHeight="11" refX="8" refY="3.2" orient="auto"><path d="M0,0 L9,3.2 L0,6.4 Z" fill="#f5b14c"/></marker>
+          <marker id="am" markerWidth="9" markerHeight="9" refX="7" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 Z" fill="#8a94a6"/></marker>
+          <style>
+            .node{fill:#1b212c;stroke:rgba(255,255,255,.18);stroke-width:1.2;rx:11}
+            .node.store{fill:#161c26;stroke:rgba(255,255,255,.14);stroke-dasharray:4 3}
+            .node.crit{stroke:#f5b14c;stroke-width:1.6;fill:#241d12}
+            .nt{fill:#e9e7e1;font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:14px}
+            .nsub{fill:#8a94a6;font-family:'JetBrains Mono',monospace;font-size:9.5px}
+            .el{stroke:#42c9da;stroke-width:1.6;fill:none;marker-end:url(#ac)}
+            .el.am{stroke:#f5b14c;stroke-width:2.6;marker-end:url(#aa)}
+            .el.mu{stroke:#8a94a6;stroke-width:1.4;marker-end:url(#am)}
+            .el.dash{stroke-dasharray:5 4}
+            .ll{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#aeb6c4}
+            .ll.am{fill:#f5b14c;font-weight:700}
+            .ll.mu{fill:#8a94a6}
+            .lane-l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em}
+          </style>
+        </defs>
+
+        <!-- lane divider -->
+        <line x1="20" y1="300" x2="1100" y2="300" stroke="rgba(255,255,255,.1)" stroke-dasharray="3 6"/>
+        <text x="26" y="50" class="lane-l" fill="#42c9da">SYNC · &lt;100ms</text>
+        <text x="26" y="330" class="lane-l" fill="#a98bff">ASYNC · eventual</text>
+
+        <!-- ===== LANE A nodes ===== -->
+        <g><rect class="node" x="40" y="92" width="120" height="58" rx="11"/><text class="nt" x="100" y="118" text-anchor="middle">Client</text><text class="nsub" x="100" y="135" text-anchor="middle">app / upstream</text></g>
+        <g><rect class="node" x="250" y="86" width="180" height="70" rx="11"/><text class="nt" x="340" y="112" text-anchor="middle">ReceiptService</text><text class="nsub" x="340" y="129" text-anchor="middle">auth · type · size</text><text class="nsub" x="340" y="143" text-anchor="middle">→ 200 + receiptId</text></g>
+        <g><rect class="node store" x="500" y="40" width="150" height="48" rx="11"/><text class="nt" x="575" y="62" text-anchor="middle">S3</text><text class="nsub" x="575" y="78" text-anchor="middle">image blob</text></g>
+
+        <!-- shared DB (right, spans both lanes) -->
+        <g><rect class="node" x="950" y="200" width="150" height="190" rx="11" style="fill:#13202a;stroke:rgba(66,201,218,.4)"/><text class="nt" x="1025" y="232" text-anchor="middle">DB</text><text class="nsub" x="1025" y="250" text-anchor="middle">receipt rows</text><text class="nsub" x="1025" y="264" text-anchor="middle">+ points ledger</text><text class="nsub" x="1025" y="288" text-anchor="middle" style="fill:#42c9da">status state-</text><text class="nsub" x="1025" y="301" text-anchor="middle" style="fill:#42c9da">machine</text><text class="nsub" x="1025" y="325" text-anchor="middle">received→</text><text class="nsub" x="1025" y="338" text-anchor="middle">processed→</text><text class="nsub" x="1025" y="351" text-anchor="middle">completed</text></g>
+
+        <!-- ===== LANE B nodes ===== -->
+        <g><rect class="node" x="250" y="356" width="160" height="54" rx="11" style="fill:#1c2230"/><text class="nt" x="330" y="380" text-anchor="middle">Queue</text><text class="nsub" x="330" y="396" text-anchor="middle">ReceiptCreatedEvent</text></g>
+        <g><rect class="node" x="470" y="348" width="180" height="72" rx="11"/><text class="nt" x="560" y="376" text-anchor="middle">Receipt Processor</text><text class="nsub" x="560" y="393" text-anchor="middle">OCR · match · award</text><text class="nsub" x="560" y="407" text-anchor="middle">at-least-once consumer</text></g>
+        <g><rect class="node store" x="470" y="258" width="160" height="46" rx="11"/><text class="nt" x="550" y="280" text-anchor="middle" style="font-size:13px">OCR engine</text><text class="nsub" x="550" y="295" text-anchor="middle">Textract / DocAI</text></g>
+        <g><rect class="node store" x="448" y="470" width="110" height="44" rx="11"/><text class="nt" x="503" y="491" text-anchor="middle" style="font-size:13px">Redis</text><text class="nsub" x="503" y="505" text-anchor="middle">offers cache</text></g>
+        <g><rect class="node store" x="588" y="470" width="120" height="44" rx="11"/><text class="nt" x="648" y="491" text-anchor="middle" style="font-size:13px">BrandOffers</text><text class="nsub" x="648" y="505" text-anchor="middle">source of truth</text></g>
+        <g><rect class="node store" x="738" y="470" width="130" height="44" rx="11"/><text class="nt" x="803" y="491" text-anchor="middle" style="font-size:12.5px">Brand Dashboard</text></g>
+        <g><rect class="node" x="700" y="356" width="120" height="46" rx="11" style="fill:#1c2230"/><text class="nt" x="760" y="378" text-anchor="middle" style="font-size:13px">Notif Queue</text></g>
+        <g><rect class="node" x="700" y="430" width="150" height="50" rx="11"/><text class="nt" x="775" y="453" text-anchor="middle" style="font-size:13px">Notification Svc</text><text class="nsub" x="775" y="468" text-anchor="middle">push · email · sms</text></g>
+
+        <!-- ===== LANE A arrows ===== -->
+        <path class="el" d="M160,121 L246,121"/><text class="ll" x="160" y="113">POST /receipts</text>
+        <path class="el dash" d="M120,92 C 220,10 420,16 502,52"/><text class="ll" x="300" y="22">image bytes · presigned PUT (bypass API)</text>
+        <!-- provisional write: RS up-and-over to DB -->
+        <path class="el" d="M430,104 L900,104 L900,210 L948,222"/><text class="ll" x="560" y="96">provisional row · status=received</text>
+        <!-- publish event down to queue -->
+        <path class="el" d="M340,156 L340,352"/><text class="ll" x="348" y="260">publish</text>
+
+        <!-- ===== LANE B arrows ===== -->
+        <path class="el" d="M410,383 L466,383"/><text class="ll" x="412" y="375">consume</text>
+        <path class="el mu" d="M548,348 L548,306"/><path class="el mu dash" d="M572,306 L572,346"/><text class="ll mu" x="585" y="330">OCR</text>
+        <path class="el mu" d="M540,420 L518,466"/><text class="ll mu" x="455" y="448">offers</text>
+        <path class="el mu" d="M738,492 L712,492"/><path class="el mu" d="M588,492 L562,492"/>
+        <!-- CRITICAL award arrow to DB -->
+        <path class="el am" d="M650,372 C 800,330 860,300 948,295"/>
+        <text class="ll am" x="690" y="335">⛨ content-hash conditional write</text>
+        <text class="ll am" x="690" y="349">⛨ atomic award + ledger</text>
+        <!-- publish processed -->
+        <path class="el" d="M650,392 L696,386"/><text class="ll" x="640" y="408">processed</text>
+        <path class="el" d="M760,402 L760,426"/>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><span class="lg-line"></span> happy path</span>
+      <span><span class="lg-line amber"></span> idempotency-critical write</span>
+      <span><span class="lg-line dash"></span> bytes / cache feed</span>
+      <span>⛨ guarded &amp; atomic</span>
+    </div>
+  </section>
+
+  <!-- ================= CAPACITY ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Capacity — count the bytes that actually hurt</h2></div>
+    <p class="sec-note">Metadata is trivial. The <b style="color:var(--amber)">images dominate</b> by 3 orders of magnitude — and traffic is spiky, so design for peak, not average.</p>
+    <div class="stats">
+      <div class="stat"><div class="big cy">58/s</div><div class="lbl">average write</div><div class="det">5M ÷ 86,400s. Plan for <b>~3–5×</b> at evening/weekend peaks.</div></div>
+      <div class="stat"><div class="big">2 TB<span style="font-size:16px;color:var(--muted)">/yr</span></div><div class="lbl">DB metadata</div><div class="det">2B records × 1KB. Negligible — fits comfortably.</div></div>
+      <div class="stat"><div class="big am">5–20 TB<span style="font-size:16px;color:var(--muted)">/day</span></div><div class="lbl">image storage</div><div class="det">5M × 1–4MB <b>to S3, every day</b>. This is the real cost.</div></div>
+      <div class="stat"><div class="big">Glacier</div><div class="lbl">lifecycle</div><div class="det">Tier images to IA → Glacier after the offer-dispute window.</div></div>
+    </div>
+  </section>
+
+  <!-- ================= SYNC / ASYNC SPLIT ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>What's validated where</h2></div>
+    <p class="sec-note">The clean rule: synchronous = everything checkable from the <b>request + raw file</b> alone. Anything that depends on <b>what the receipt says</b> needs OCR → async.</p>
+    <div class="split">
+      <div class="lane sync">
+        <div class="lane-tag">Synchronous · ReceiptService · before 200</div>
+        <h3>Cheap, content-independent</h3>
+        <div class="check"><span class="ic" style="color:var(--cyan)">✓</span><span class="t">Authentication &amp; authorization<small>valid token · user in good standing</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--cyan)">✓</span><span class="t">File type — by magic bytes<small>jpeg / png / heic, not the extension</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--cyan)">✓</span><span class="t">File size + image decodes<small>non-empty · within bounds · min resolution</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--cyan)">✓</span><span class="t">Rate limiting / abuse caps<small>1000 receipts/min = abuse, not shopping</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--cyan)">✓</span><span class="t">Request idempotency key<small>network retry of POST ≠ two receipts</small></span></div>
+      </div>
+      <div class="lane async">
+        <div class="lane-tag">Asynchronous · Processor · post-OCR</div>
+        <h3>Needs the extracted text</h3>
+        <div class="check"><span class="ic" style="color:var(--violet)">~</span><span class="t">Is this even a receipt?<small>vs a selfie / blurry / unreadable</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--violet)">~</span><span class="t">Is it a duplicate?<small>content hash — the whole §05 story</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--violet)">~</span><span class="t">Is the merchant a participating brand?</span></div>
+        <div class="check"><span class="ic" style="color:var(--violet)">~</span><span class="t">Offer valid at <b style="color:var(--violet);font-style:italic">purchase</b> date?<small>not processing date — offers expire</small></span></div>
+        <div class="check"><span class="ic" style="color:var(--violet)">~</span><span class="t">Low-confidence OCR → needs_review<small>human-in-the-loop, not silent reject</small></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DEFENSE IN DEPTH ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>No double-awarding — defense in depth</h2></div>
+    <p class="sec-note">There is no single trick. Duplicates arrive in <b>four different shapes</b>, each needing its own guard — plus a safety net that assumes one slipped through anyway.</p>
+    <div class="defense">
+      <div class="layer">
+        <div class="lnum">1</div>
+        <div><div class="lname">Content-derived dedup key<code>canonicalize → hash</code></div></div>
+        <div class="catch"><span class="lcatch-tag">catches</span><b>the same receipt, re-photographed</b> — different bytes, same purchase. Keyed on extracted content, never image bytes.</div>
+      </div>
+      <div class="layer">
+        <div class="lnum">2</div>
+        <div><div class="lname">Atomic conditional write<code>PutItem · attribute_not_exists</code></div></div>
+        <div class="catch"><span class="lcatch-tag">catches</span><b>concurrent identical uploads</b> racing a read-check-write. First writer wins; the second fails the condition.</div>
+      </div>
+      <div class="layer">
+        <div class="lnum">3</div>
+        <div><div class="lname">Atomic status transition<code>UPDATE … WHERE status=received</code></div></div>
+        <div class="catch"><span class="lcatch-tag">catches</span><b>queue redelivery after a crash</b> (at-least-once). Already-processed → the update matches nothing → no-op.</div>
+      </div>
+      <div class="layer">
+        <div class="lnum">4</div>
+        <div><div class="lname">Idempotent points ledger<code>ledger entry keyed by receiptId</code></div></div>
+        <div class="catch"><span class="lcatch-tag">catches</span><b>balance drift on a replayed award</b>. The balance write — not the receipt row — is the non-idempotent op everyone forgets.</div>
+      </div>
+      <div class="layer net">
+        <div class="lnum">⛨</div>
+        <div><div class="lname">Reconciliation job<code>nightly sweep + alert</code></div></div>
+        <div class="catch"><span class="lcatch-tag" style="color:var(--green)">safety net</span>In a points system, <b style="color:var(--green);font-style:normal">detecting</b> drift matters as much as preventing it. Sweep for double/missing awards and alert.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HASH ANATOMY ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Anatomy of the dedup key</h2></div>
+    <p class="sec-note">A raw hash over OCR output is fragile — OCR jitter breaks it. The key must be <b>canonicalized</b>, <b style="color:var(--cyan)">user-scoped</b>, and <b style="color:var(--amber)">anchored on the transaction number</b> when one is printed.</p>
+    <div class="panel hash-flow">
+      <div class="hash-build">
+        <div class="htok scope"><span class="tag">scope</span>userId</div>
+        <span class="plus">+</span>
+        <div class="htok anchor"><span class="tag">anchor · if present</span>transaction #</div>
+        <span class="plus">+</span>
+        <div class="htok"><span class="tag">fallback</span>brand</div>
+        <span class="plus">+</span>
+        <div class="htok"><span class="tag">fallback</span>date</div>
+        <span class="plus">+</span>
+        <div class="htok"><span class="tag">fallback</span>total</div>
+        <span class="plus">+</span>
+        <div class="htok"><span class="tag">fallback</span>sorted items</div>
+        <span class="arrow-r">→ SHA →</span>
+        <div class="result">receiptKey</div>
+      </div>
+      <div>
+        <div class="lcatch-tag" style="color:var(--muted);margin-bottom:10px">// canonicalize BEFORE hashing — or OCR jitter slips a duplicate through</div>
+        <div class="canon">
+          <div class="canon-item"><small>merchant</small><span class="bad">WAL-MART</span><span class="mid">→</span><span class="good">WALMART</span></div>
+          <div class="canon-item"><small>money</small><span class="bad">$12.3O</span><span class="mid">→</span><span class="good">12.30</span></div>
+          <div class="canon-item"><small>date</small><span class="bad">Jan 5 '26</span><span class="mid">→</span><span class="good">2026-01-05</span></div>
+          <div class="canon-item"><small>items</small><span class="bad">unordered</span><span class="mid">→</span><span class="good">sorted</span></div>
+        </div>
+      </div>
+      <div class="verdict" style="border-color:var(--cyan);margin-top:6px">
+        <b style="color:var(--cyan)">Why userId scope?</b> Two strangers with identical carts must not collide. The residual hole — two users farming one physical receipt — closes only with the <b style="color:var(--amber)">transaction #</b>. With four fields alone you cannot tell "same receipt twice" from "two identical carts," so user-scope is the safe default and txn# is the real fix.
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= REDELIVERY ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>A redelivered message is a no-op</h2></div>
+    <p class="sec-note">The headline failure: Processor awards points, then crashes <b>before acking</b>. The queue redelivers. Here's why it doesn't double-award.</p>
+    <div class="seq">
+      <div class="seq-card fail">
+        <h4><span style="color:var(--coral)">✕</span> Without the guard</h4>
+        <div class="step"><span class="n">1</span><span class="x">OCR + match → +500 pts written</span></div>
+        <div class="step"><span class="n">2</span><span class="x">balance updated · ledger += 500</span></div>
+        <div class="step danger"><span class="n">3</span><span>💥 crash before ACK</span></div>
+        <div class="step"><span class="n">4</span><span class="x">queue redelivers same message</span></div>
+        <div class="step danger"><span class="n">5</span><span>balance += 500 again → <b>1000 pts</b></span></div>
+      </div>
+      <div class="seq-card win">
+        <h4><span style="color:var(--green)">✓</span> With atomic transition + ledger</h4>
+        <div class="step"><span class="n">1</span><span class="x">guard flips received → processed</span></div>
+        <div class="step"><span class="n">2</span><span class="x">ledger insert keyed by receiptId</span></div>
+        <div class="step danger"><span class="n">3</span><span>💥 crash before ACK</span></div>
+        <div class="step"><span class="n">4</span><span class="x">queue redelivers same message</span></div>
+        <div class="step noop"><span class="n">5</span><span>status≠received → 0 rows → <b>no-op</b> ✓</span></div>
+        <div class="codeline"><span class="kw">UPDATE</span> receipt <span class="kw">SET</span> status=<span style="color:var(--green)">'processed'</span>, points=:p
+<span class="kw">WHERE</span> receiptId=:id <span class="kw">AND</span> status=<span style="color:var(--green)">'received'</span>; <span class="cm">-- 0 rows on replay</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>RECEIPT-PROCESSING-PIPELINE · v1</span>
+    <span>sync ingest · async processing · idempotent award</span>
+  </div>
+
+</div>
+</body>
+</html>

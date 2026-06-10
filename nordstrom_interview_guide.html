@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nordstrom Interview Guide — Senior Full-Stack Engineer (DSP)</title>
+<style>
+  :root {
+    --navy: #1a1a3a;
+    --navy-dark: #0f0f28;
+    --navy-mid: #2d2d5e;
+    --gold: #b8945f;
+    --gold-light: #f5ecd9;
+    --orange: #e07b39;
+    --blue: #2c6fad;
+    --blue-light: #e8f0fa;
+    --orange-light: #fef3ec;
+    --purple: #6d28d9;
+    --purple-light: #f3f0ff;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0f0f28 0%, #1a1a3a 60%, #2d2d5e 100%);
+    color: white; padding: 36px 40px 30px;
+  }
+  .header-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .logo { font-size: 2.2rem; }
+  .header h1 { font-size: 1.8rem; font-weight: 700; }
+  .header-sub { font-size: 0.95rem; opacity: 0.85; margin-bottom: 16px; }
+  .role-title { font-size: 1.05rem; font-weight: 600; color: var(--gold); margin-bottom: 14px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  /* Company snapshot */
+  .snapshot { background: white; margin: 24px 32px 0; border-radius: var(--radius); padding: 22px 28px; box-shadow: var(--shadow); display: flex; gap: 32px; flex-wrap: wrap; }
+  .snap-item { display: flex; flex-direction: column; gap: 2px; }
+  .snap-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .snap-value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+
+  /* Sources bar */
+  .sources-bar { margin: 16px 32px 0; background: white; border-radius: var(--radius); padding: 14px 22px; box-shadow: var(--shadow); }
+  .sources-bar h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .source-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .source-link { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 13px; font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+  .source-link:hover { background: var(--blue-light); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-navy { background: var(--navy); }
+  .dot-blue { background: var(--blue); }
+  .dot-orange { background: var(--orange); }
+  .dot-gold { background: var(--gold); }
+
+  /* Nav tabs */
+  .tabs { display: flex; gap: 0; margin: 22px 32px 0; background: white; border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); overflow: hidden; border-bottom: 2px solid var(--border); }
+  .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab:hover { background: var(--gray); color: var(--text); }
+  .tab.active { color: var(--navy); border-bottom-color: var(--gold); background: white; }
+  .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+
+  /* Content panels */
+  .panel { display: none; background: white; margin: 0 32px 32px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .panel.active { display: block; }
+
+  /* Section headings */
+  .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .section-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Process flow */
+  .process { display: flex; gap: 0; margin-bottom: 28px; flex-wrap: wrap; }
+  .process-step { flex: 1; min-width: 140px; background: var(--gold-light); border-radius: 10px; padding: 14px; text-align: center; position: relative; }
+  .process-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 1.2rem; font-weight: bold; }
+  .step-num { background: var(--navy); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .step-title { font-size: 0.8rem; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .step-detail { font-size: 0.72rem; color: #5a4a2e; }
+
+  /* Cards grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-icon { font-size: 1.3rem; }
+  .card-title { font-size: 0.9rem; font-weight: 700; }
+  .card p, .card li { font-size: 0.85rem; line-height: 1.6; color: #374151; }
+  .card ul { padding-left: 16px; }
+  .card li { margin-bottom: 4px; }
+
+  /* Example questions */
+  .q-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .q-item { background: var(--gray); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--navy); }
+  .q-item.orange { border-left-color: var(--orange); }
+  .q-item.blue { border-left-color: var(--blue); }
+  .q-item.gold { border-left-color: var(--gold); }
+  .q-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .q-text { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .q-tip { font-size: 0.8rem; color: #4b5563; line-height: 1.5; }
+
+  /* STAR box */
+  .star-box { background: linear-gradient(135deg, #faf5ea, #f5ecd9); border: 1px solid var(--gold); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .star-box h3 { font-size: 0.92rem; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+  .star-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .star-cell { background: white; border-radius: 8px; padding: 10px 14px; }
+  .star-letter { font-size: 1.4rem; font-weight: 800; color: var(--navy); line-height: 1; }
+  .star-word { font-size: 0.75rem; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+  .star-desc { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Tips */
+  .tips { background: var(--orange-light); border: 1px solid #f5c6a0; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .tips h3 { font-size: 0.85rem; font-weight: 700; color: var(--orange); margin-bottom: 10px; }
+  .tips ul { padding-left: 18px; }
+  .tips li { font-size: 0.83rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+
+  .info-box { background: var(--blue-light); border: 1px solid #b3cde8; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .info-box h3 { font-size: 0.85rem; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .info-box p, .info-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .info-box ul { padding-left: 18px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+  /* Priority badge */
+  .priority { display: inline-block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 20px; font-size: 0.72rem; font-weight: 700; padding: 2px 10px; margin-left: 8px; }
+  .priority.med { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+  .priority.gold { background: var(--gold-light); color: #5a4a2e; border-color: var(--gold); }
+
+  /* Values box (Nordstrom-specific) */
+  .values-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .value-card { background: linear-gradient(135deg, #faf5ea 0%, #f5ecd9 100%); border: 1px solid var(--gold); border-radius: 10px; padding: 14px 16px; }
+  .value-card h4 { font-size: 0.85rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+  .value-card p { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Role focus box */
+  .focus-box { background: linear-gradient(135deg, #f3f0ff 0%, #ede4ff 100%); border: 1px solid #c4b5fd; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; }
+  .focus-box h3 { font-size: 0.9rem; font-weight: 700; color: var(--purple); margin-bottom: 10px; }
+  .focus-box p, .focus-box li { font-size: 0.85rem; color: #374151; line-height: 1.6; }
+  .focus-box ul { padding-left: 18px; }
+  .focus-box li { margin-bottom: 4px; }
+
+  @media (max-width: 680px) {
+    .snapshot, .tabs, .panel, .sources-bar { margin-left: 12px; margin-right: 12px; }
+    .header { padding: 24px 18px 20px; }
+    .star-grid { grid-template-columns: 1fr; }
+    .process { flex-direction: column; gap: 8px; }
+    .process-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -14px; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="logo">🛍️</span>
+    <h1>Nordstrom Interview Guide</h1>
+  </div>
+  <div class="role-title">Senior Full-Stack Software Engineer · Digital Servicing Platform (DSP) · Hybrid Seattle</div>
+  <p class="header-sub">Sourced from Glassdoor, Blind, InterviewQuery, Kubernetes.io case study & Nordstrom Careers · Updated May 2026</p>
+  <div class="tags">
+    <span class="tag">👜 Retail & E-commerce</span>
+    <span class="tag">🏙️ HQ: Seattle, WA</span>
+    <span class="tag">💰 $142K–$220.5K + bonus</span>
+    <span class="tag">📅 Avg. Hire: ~19 days</span>
+    <span class="tag">🎯 6+ YOE Required</span>
+  </div>
+</div>
+
+<!-- Sources -->
+<div class="sources-bar">
+  <h3>📚 Reliable Sources Checked</h3>
+  <div class="source-links">
+    <a class="source-link" href="https://www.glassdoor.com/Interview/Nordstrom-Senior-Software-Engineer-Interview-Questions-EI_IE1704.0,9_KO10,34.htm" target="_blank"><span class="dot dot-navy"></span>Glassdoor — Senior SWE</a>
+    <a class="source-link" href="https://www.glassdoor.com/Interview/Nordstrom-Software-Engineer-Interview-Questions-EI_IE1704.0,9_KO10,27.htm" target="_blank"><span class="dot dot-navy"></span>Glassdoor — SWE</a>
+    <a class="source-link" href="https://www.teamblind.com/company/Nordstrom/posts/nordstrom-interview" target="_blank"><span class="dot dot-blue"></span>Blind (TeamBlind)</a>
+    <a class="source-link" href="https://www.interviewquery.com/interview-guides/nordstrom-software-engineer" target="_blank"><span class="dot dot-orange"></span>InterviewQuery</a>
+    <a class="source-link" href="https://kubernetes.io/case-studies/nordstrom/" target="_blank"><span class="dot dot-gold"></span>Kubernetes.io Case Study</a>
+    <a class="source-link" href="https://hw.glich.co/resources/companies/nordstrom/interview-process/senior-software-engineer-i-software-engineer" target="_blank"><span class="dot dot-gold"></span>Hello World by Glich</a>
+  </div>
+</div>
+
+<!-- Company snapshot -->
+<div class="snapshot">
+  <div class="snap-item"><span class="snap-label">What they do</span><span class="snap-value">Fashion retail (founded 1901) + e-commerce platform</span></div>
+  <div class="snap-item"><span class="snap-label">Tech Stack (this role)</span><span class="snap-value">React/Redux/TypeScript, Java, C#/.NET, AWS, K8s, Redis, DynamoDB</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Difficulty</span><span class="snap-value">3.1 / 5 (Glassdoor — Senior SWE)</span></div>
+  <div class="snap-item"><span class="snap-label">Team Focus</span><span class="snap-value">Agent desktop tools, AI-driven self-service, Purchase History & Nordy Club dashboards</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Style</span><span class="snap-value">4–5 round loop: coding, system design, "trendsetter" behavioral, hiring manager</span></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')"><span class="tab-icon">🗺️</span>Process Overview</div>
+  <div class="tab" onclick="showTab('role')"><span class="tab-icon">🎯</span>The Role</div>
+  <div class="tab" onclick="showTab('behavioral')"><span class="tab-icon">💬</span>Behavioral <span class="priority gold">Trendsetter</span></div>
+  <div class="tab" onclick="showTab('coding')"><span class="tab-icon">💻</span>Coding</div>
+  <div class="tab" onclick="showTab('design')"><span class="tab-icon">🏗️</span>System Design</div>
+</div>
+
+<!-- OVERVIEW PANEL -->
+<div class="panel active" id="panel-overview">
+  <div class="section-title">🗺️ Full Interview Process at Nordstrom</div>
+  <p class="section-desc">Based on Glassdoor (130+ SWE interview reports), Blind threads from real Nordstrom candidates, and the structured InterviewQuery guide. The senior loop is consistently 4–5 rounds after initial screens.</p>
+
+  <div class="process">
+    <div class="process-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Recruiter Screen</div>
+      <div class="step-detail">~30–60 min. Resume, role, salary, culture fit.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Hiring Manager + Coding</div>
+      <div class="step-detail">~1 hr. Behavior + medium LC coding Q.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Onsite Loop (4–5 rounds)</div>
+      <div class="step-detail">Architecture · Coding · Trendsetter · Engineering Practices · Quality</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Debrief & Offer</div>
+      <div class="step-detail">Panel debrief; recruiter responds with offer or feedback.</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">🧭 The 5 Onsite Loop Rounds (Senior level)</div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title">Architecture & Design (1 hr)</span></div>
+      <p>System design question. Ask clarifying questions, walk through tradeoffs, draw diagrams. For this DSP role, expect questions tied to agent platforms, event-driven systems, or high-traffic customer dashboards.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">💻</span><span class="card-title">Engineering Practices + Coding (1 hr)</span></div>
+      <p>~15 min on how you handle engineering practices day-to-day (code reviews, testing, CI/CD), then ~45 min coding challenge with an engineer. LeetCode easy–medium difficulty.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🧪</span><span class="card-title">Quality & Instrumentation (1 hr)</span></div>
+      <p>Testing strategy, QA, observability. Discuss past projects: how you tested them, what telemetry you added (New Relic, Splunk are this team's stack). Be ready to talk unit/integration/E2E testing.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✨</span><span class="card-title">Trendsetter / Culture Fit (1 hr)</span></div>
+      <p>Nordstrom's signature behavioral round, named after their internal "Pacesetter/Trendsetter" recognition culture. Can range from pure behavioral to mixed technical-behavioral. Be ready for both.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">👔</span><span class="card-title">Hiring Manager / Bar Raiser</span></div>
+      <p>Leadership, career aspirations, conflict resolution, mentorship. For Senior level, expect probes on cross-team collaboration and how you'd mentor engineers on the DSP team.</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>📌 Reality Check From Candidates (Blind + Glassdoor)</h3>
+    <ul>
+      <li><strong>Pace:</strong> Multiple Blind threads describe Nordstrom as "moves at a slower pace than Amazon/big tech." If you're coming from FAANG, expect a more measured culture — show you value sustainable execution.</li>
+      <li><strong>Recruiter quality varies:</strong> Some candidates report excellent recruiters; others report ghosting or rescheduling. Politely check in if you don't hear back in 5–7 days.</li>
+      <li><strong>Total length:</strong> Average ~19 days for Senior SWE hire; some report 1–2 month total processes.</li>
+      <li><strong>System design is heavily weighted:</strong> "I wasn't very well prepared for system design round" appears repeatedly in Glassdoor reviews as the reason candidates didn't progress.</li>
+      <li><strong>Difficulty rating:</strong> 3.1/5 for Senior — moderate. LC questions are easy-to-medium, not hard. Focus on communication and design depth over algorithmic gymnastics.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">🌟 Nordstrom's Core Values (Memorize These)</div>
+  <div class="values-grid">
+    <div class="value-card">
+      <h4>🎯 Customer Obsessed</h4>
+      <p>Listen, anticipate, build trust, move with speed to deliver on customer needs.</p>
+    </div>
+    <div class="value-card">
+      <h4>💪 Owners at Heart</h4>
+      <p>Treat every interaction as an opportunity to make impact and deliver excellence.</p>
+    </div>
+    <div class="value-card">
+      <h4>🔍 Curious & Ever Changing</h4>
+      <p>Approach problems with curiosity. Be bold, think big, inspire innovation.</p>
+    </div>
+    <div class="value-card">
+      <h4>🏆 Here to Win</h4>
+      <p>Deliver results today AND tomorrow. Win as a team by supporting & challenging.</p>
+    </div>
+    <div class="value-card">
+      <h4>🤝 We Extend Ourselves</h4>
+      <p>Respect and kindness. Small things that make a big difference. Welcoming environment.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ROLE PANEL -->
+<div class="panel" id="panel-role">
+  <div class="section-title">🎯 The Role: Senior Full-Stack Engineer on DSP</div>
+  <p class="section-desc">Understanding what the Digital Servicing Platform team actually owns is critical — every interview round will be filtered through this lens. The team sits at the intersection of customer-facing dashboards and internal Customer Care tooling.</p>
+
+  <div class="focus-box">
+    <h3>⚡ What DSP Owns (From the Job Description)</h3>
+    <p>The Nordstrom Digital Servicing Platform team builds two surfaces:</p>
+    <ul>
+      <li><strong>Agent-facing tools:</strong> Agent desktop platforms handling millions of customer conversations per year. Interaction Management. AI-driven self-service that deflects routine requests so Care agents can focus on high-value work.</li>
+      <li><strong>Customer-facing surfaces:</strong> Purchase History and Loyalty Rewards (Nordy Club) dashboards on Nordstrom.com AND NordstromRack.com — high-traffic surfaces where millions of shoppers track orders, returns, and rewards.</li>
+    </ul>
+    <p style="margin-top:10px;"><strong>Translation for your interview:</strong> You're being hired to build at the intersection of contact center / CRM platforms AND consumer e-commerce — both ends of the servicing flow. Frame your stories accordingly.</p>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">🛠️ Tech Stack You Should Be Ready to Discuss</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎨</span><span class="card-title">Frontend</span></div>
+      <ul>
+        <li><strong>React, Redux, TypeScript, Node.js</strong> — the core UI stack</li>
+        <li>Brush up: hooks, state management patterns, performance (memoization, code splitting), TypeScript generics</li>
+        <li>Component design for reusability — the JD explicitly mentions "reusable cross-platform components"</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚙️</span><span class="card-title">Backend</span></div>
+      <ul>
+        <li><strong>Java AND C#/.NET</strong> — unusual combo; show comfort with both OOP languages</li>
+        <li>RESTful services + <strong>event-driven systems</strong> (heavily emphasized in JD)</li>
+        <li>Spring Boot patterns; async messaging; idempotency for event handlers</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">☁️</span><span class="card-title">Cloud & Infra (AWS)</span></div>
+      <ul>
+        <li><strong>Kubernetes</strong> — Nordstrom has run K8s in prod since 2017 (Kubernetes.io case study). Big deal.</li>
+        <li>Elastic Cache <strong>Redis</strong>, <strong>DynamoDB</strong>, <strong>Lambda</strong>, CloudFormation</li>
+        <li>Docker, CI/CD pipelines, test automation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📊</span><span class="card-title">Observability</span></div>
+      <ul>
+        <li><strong>New Relic + Splunk</strong> — JD explicitly calls these out as the instrumentation stack</li>
+        <li>Custom metrics, alerts, dashboards — be ready to discuss what you instrument and why</li>
+        <li>On-call experience: this team participates in 24x7 on-call</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🤖</span><span class="card-title">AI / Automation</span></div>
+      <ul>
+        <li>The team is actively integrating <strong>agent assist, intelligent routing, self-service</strong></li>
+        <li>JD: "Curious mindset for AI adoption to optimize work processes"</li>
+        <li>Have at least one story about leveraging an LLM, copilot, or AI tool in your workflow</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎫</span><span class="card-title">Domain (Bonus)</span></div>
+      <ul>
+        <li>Contact center / CRM / agent-facing platforms — "is a plus" in the JD</li>
+        <li>If you have <strong>any</strong> CRM, Zendesk, Salesforce Service Cloud, Genesys experience — surface it</li>
+        <li>Loyalty programs, e-commerce checkout, order history — adjacent domain wins</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">💡 What Nordstrom Is Really Hiring For (Read Between the Lines)</div>
+  <div class="q-list">
+    <div class="q-item gold">
+      <div class="q-label">🌐 True Full-Stack, Not "Mostly One Side"</div>
+      <div class="q-text">The JD explicitly says "full-stack features end to end" with React + Java + C#/.NET. Many "full stack" roles lean 80/20. This one expects real fluency on both sides.</div>
+      <div class="q-tip">💡 Be ready to demonstrate front-end thinking (component design, accessibility, state management) AND back-end thinking (event-driven patterns, data modeling, API design) in the same interview.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">⚡ Event-Driven Comfort Is Non-Negotiable</div>
+      <div class="q-text">"6+ years of professional experience developing RESTful services AND event-driven applications" is the hard requirement. Event-driven shows up twice in the JD.</div>
+      <div class="q-tip">💡 Prepare a story about: message queues, pub/sub, event sourcing, async patterns, idempotency, eventual consistency, or how you handled at-least-once delivery in a real system.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🤖 The AI Angle Matters</div>
+      <div class="q-text">"Partner with AI and automation initiatives — agent assist, intelligent routing, self-service experiences." This is where DSP is investing. Sound curious and grounded — not over-hyped.</div>
+      <div class="q-tip">💡 If you've worked on chatbot integrations, RAG, LLM API calls, or even just used Cursor/Copilot well — bring it up. They want curious adopters, not AI maximalists.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🎓 Mentorship Is in the Senior Bar</div>
+      <div class="q-text">"Mentor other engineers and help split larger designs into individual work units." Senior at Nordstrom isn't just senior IC — it's a tech lead-lite expectation.</div>
+      <div class="q-tip">💡 Prep 1–2 mentorship stories: a junior engineer you grew, a code review that taught a pattern, an architecture you broke down into small tickets for the team.</div>
+    </div>
+    <div class="q-item gold">
+      <div class="q-label">🎯 Customer + Agent Empathy — Both Sides</div>
+      <div class="q-text">DSP serves agents (internal users) AND customers (external). Both UX matters. The JD ties this directly to Nordstrom's "legendary service" reputation.</div>
+      <div class="q-tip">💡 In your stories, distinguish between internal vs. external users when relevant. Show you understand operator UX is different from consumer UX.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Pre-Interview Homework</h3>
+    <ul>
+      <li><strong>Read the Kubernetes.io Nordstrom case study</strong> — quick read, gives you ammo for system design and "why Nordstrom" answers.</li>
+      <li><strong>Look at the actual Nordstrom.com Purchase History page</strong> while logged in. What are the entities, the loading states, the failure modes? This is the surface you'd own.</li>
+      <li><strong>Try the Nordstrom customer service chat</strong> — you'll get a feel for what "agent assist" and "self-service deflection" look like in production.</li>
+      <li><strong>Refresh on event-driven patterns:</strong> SQS, Kinesis, EventBridge, Kafka basics, saga pattern, outbox pattern.</li>
+      <li><strong>Re-read the JD twice</strong> — every requirement is a hint at an interview question. Map your stories to JD bullets before the loop.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- BEHAVIORAL PANEL -->
+<div class="panel" id="panel-behavioral">
+  <div class="section-title">💬 Behavioral Round <span class="priority gold">Trendsetter + Hiring Manager</span></div>
+  <p class="section-desc">Nordstrom's behavioral evaluation typically splits across <strong>two rounds</strong>: the "Trendsetter" round (named after their internal recognition culture for top performers) and the Hiring Manager round. Per Glassdoor and Blind reports, Trendsetter can lean technical — interviewers sometimes drop in system-design-flavored questions mid-conversation.</p>
+
+  <div class="star-box">
+    <h3>📐 Use the STAR Method — Critical at Senior level</h3>
+    <div class="star-grid">
+      <div class="star-cell">
+        <div class="star-letter">S</div>
+        <div class="star-word">SITUATION</div>
+        <div class="star-desc">Set the scene briefly. Where were you, what was the context?</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">T</div>
+        <div class="star-word">TASK</div>
+        <div class="star-desc">What was your specific role or responsibility?</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">A</div>
+        <div class="star-word">ACTION</div>
+        <div class="star-desc">What steps did YOU take? Be specific, not "we did…"</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">R</div>
+        <div class="star-word">RESULT</div>
+        <div class="star-desc">Measurable outcome. Numbers, latency improvements, dollars, time saved.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor + Blind reports)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🎯 Customer Obsession</div>
+      <div class="q-text">Tell me about a time you considered the end-user experience when building a feature. How did you gather feedback and iterate?</div>
+      <div class="q-tip">💡 Nordstrom is built on customer service heritage. For DSP, frame this around BOTH end users — the customer AND the agent. "I optimized this for the customer, but I also reduced clicks for the agent by 40%" is the kind of dual-audience answer they love.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">⚡ Conflict Resolution</div>
+      <div class="q-text">Describe a time you disagreed with a colleague on a technical approach. How did you resolve it?</div>
+      <div class="q-tip">💡 From Glassdoor: This question shows up in nearly every Nordstrom loop. Show openness and 1:1 dialogue — "I asked them to walk me through their reasoning, found I'd missed a constraint, and we landed on a hybrid."</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">📖 Project Deep Dive</div>
+      <div class="q-text">Walk me through a specific project on your resume. What were your contributions and the hardest technical challenge?</div>
+      <div class="q-tip">💡 Glassdoor confirms interviewers dig deep into specific resume projects. Pick 2–3 projects with strong full-stack, event-driven, or customer-facing angles. Know every bullet.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🌱 Curiosity & Learning</div>
+      <div class="q-text">Tell me about a time you had to quickly learn a new technology or skill. What was your approach?</div>
+      <div class="q-tip">💡 Maps to Nordstrom's "Curious and Ever Changing" value. Bonus points if your story involves AI/LLM tools, given the team's AI automation focus.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">👥 Mentorship & Leadership</div>
+      <div class="q-text">Tell me about a time you mentored a junior engineer or led a team through a difficult delivery.</div>
+      <div class="q-tip">💡 Senior-level Nordstrom expects this. Show specific actions — "I paired with them on PR reviews twice a week, and within 3 months they were leading the auth refactor solo."</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:12px;">🎯 How to Prepare for Trendsetter Specifically</div>
+
+  <div class="info-box">
+    <h3>📌 What "Trendsetter" Actually Means at Nordstrom</h3>
+    <p>Per Glassdoor & Blind reports, the "Trendsetter" round is named after Nordstrom's internal recognition culture (similar to "Pacesetter"). Interviewers explore whether you'd embody Nordstrom's values — but they also <strong>sometimes pivot into system design or technical depth questions mid-conversation</strong>. One candidate noted: "My trendsetter got really technical — I was asked system design questions."</p>
+    <p style="margin-top:8px;"><strong>Translation:</strong> Treat Trendsetter as a hybrid round. Have your STAR stories ready AND be willing to whiteboard a quick design if the interviewer pivots.</p>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Nordstrom-Specific Preparation Tips</h3>
+    <ul>
+      <li><strong>Know the 5 values cold:</strong> Customer Obsessed, Owners at Heart, Curious & Ever Changing, Here to Win, We Extend Ourselves. Weave them in naturally — don't recite them.</li>
+      <li><strong>"Why Nordstrom?"</strong> Almost guaranteed. Connect to: 125-year heritage, legendary service reputation, omnichannel innovation, the unique opportunity to work on both agent AND customer surfaces. Avoid generic "I love retail."</li>
+      <li><strong>Story Bank — 6 stories minimum:</strong> Customer impact, conflict, failure, mentorship, learning, leading through ambiguity. Each maps to multiple value pillars.</li>
+      <li><strong>Customer Care angle:</strong> If you have any experience with internal tools, CRMs, or supporting customer service workflows — lead with it. This team specifically builds for Customer Care.</li>
+      <li><strong>Bring on-call stories:</strong> The JD highlights 24x7 on-call. Have an incident story where you owned diagnosis and resolution.</li>
+      <li><strong>Connect to AI:</strong> They want curious AI adopters, not skeptics or hype merchants. A grounded story works ("I used Copilot to scaffold tests, then deeply reviewed them — caught 3 hallucinated assertions").</li>
+    </ul>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title">Do</span></div>
+      <ul>
+        <li>Use specific metrics — latency, conversion lift, deflection rate</li>
+        <li>Use "I" not just "we" — they need to know YOUR contribution</li>
+        <li>Tie answers to Nordstrom values explicitly</li>
+        <li>Show curiosity about Nordstrom's domain</li>
+        <li>Prepare 1–2 stories per value</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">❌</span><span class="card-title">Avoid</span></div>
+      <ul>
+        <li>Generic stories with no measurable outcomes</li>
+        <li>Bashing past employers or coworkers</li>
+        <li>Pure-IC framing — Senior at Nordstrom = lead-lite</li>
+        <li>Over-rehearsed delivery; conversational beats robotic</li>
+        <li>FAANG-pace bragging — they value sustainable execution</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Behavioral Round</div>
+  <p class="section-desc">These questions show you've researched the DSP team specifically, signal Senior-level thinking, and help you evaluate culture and growth fit.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Team Mission</div>
+      <div class="q-text">"DSP sits at an unusual intersection of internal agent tooling and customer-facing dashboards. How does the team balance roadmap time between those two audiences — and is there a Senior Engineer expected to own one side more than the other?"</div>
+      <div class="q-tip">💡 Shows you understand the team's dual mandate from the JD. Reveals whether you'd be slotted toward Care tooling or consumer surfaces — useful to know.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · AI Strategy</div>
+      <div class="q-text">"The JD mentions partnering with AI initiatives — agent assist, intelligent routing, self-service. What's the team's current bet there: are you integrating with internal AI platforms, building your own, or mostly using third-party LLMs?"</div>
+      <div class="q-tip">💡 The JD signals AI is a priority area. This question shows you took that seriously and want to understand where the actual work is. Also tells you how mature the AI integration is.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Culture & Pace</div>
+      <div class="q-text">"Nordstrom is known for legendary customer service rooted in employee empowerment — the 'use good judgment' rule. How does that culture show up day-to-day on the engineering side? How much autonomy do engineers have in technical decisions?"</div>
+      <div class="q-tip">💡 Demonstrates you've researched Nordstrom's culture (the famous 5x7 employee handbook). Also surfaces real autonomy levels — useful signal for evaluating the role.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Success Metrics</div>
+      <div class="q-text">"What does a successful first 6 months look like for a Senior Engineer on DSP? How is impact measured — is it shipping features, reducing agent handle time, improving customer self-service deflection rate, something else?"</div>
+      <div class="q-tip">💡 Shows you think about outcomes, not just outputs. The answer also tells you exactly what to optimize for if you join.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Tech Debt & Growth</div>
+      <div class="q-text">"Nordstrom has been on Kubernetes in production since 2017 — that's serious tenure. What does the modernization story look like inside DSP today? Where's the biggest tech debt, and where would a Senior Engineer have the most leverage to drive change?"</div>
+      <div class="q-tip">💡 References Nordstrom's K8s case study (shows research depth). Reveals what real engineering work looks like beyond JD bullet points. Senior engineers want to know where they can move the needle.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODING PANEL -->
+<div class="panel" id="panel-coding">
+  <div class="section-title">💻 Coding Round</div>
+  <p class="section-desc">Nordstrom coding rounds are consistently described as <strong>"easy to medium LeetCode"</strong> in difficulty — not the gauntlet you'd see at FAANG. The bar is on <em>communication, clean code, and pragmatic problem-solving</em>, not algorithmic wizardry. Expect 2 coding rounds in the loop (Hiring Manager mini-coding + dedicated coding round).</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor + Blind candidates)</h3>
+    <ul>
+      <li><strong>Difficulty:</strong> LeetCode easy to medium. "Nothing too difficult" recurs across reports.</li>
+      <li><strong>Language:</strong> Your choice. JavaScript/TypeScript or Java both fit this role given the React + Java stack.</li>
+      <li><strong>Platform:</strong> CoderPad, HireVue, or similar shared editor.</li>
+      <li><strong>Duration:</strong> ~45–60 min per round.</li>
+      <li><strong>Style:</strong> Solve + explain. Talk through your reasoning out loud. Some interviewers extend with follow-ups (refactor for performance, add a constraint).</li>
+      <li><strong>Frontend coding may appear:</strong> Per Blind reports for React-focused roles, expect a React + TypeScript component-building task in at least one round.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor + Blind reports)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🔢 Arrays & Hash Maps (Most Common)</div>
+      <div class="q-text">Sort items based on more than one category (e.g., sort products by price within category, then by rating). Classic multi-key sort problem.</div>
+      <div class="q-tip">💡 From Glassdoor: "Map-related algorithm problem, how to sort items based on more than 1 category." Practice custom comparators in your language of choice.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🔤 String Manipulation</div>
+      <div class="q-text">Implement a function to check if a string is a palindrome / parse a structured string / reverse a linked list.</div>
+      <div class="q-tip">💡 Frequently cited starter questions. Solve them clean in 5 minutes and use the remaining time to discuss optimizations and edge cases.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🎨 React + TypeScript Component (Frontend round)</div>
+      <div class="q-text">Build a small interactive UI in React + TypeScript — e.g., a filterable list, a debounced search box, or a stateful list manager with add/edit/delete.</div>
+      <div class="q-tip">💡 Per Blind, for React-focused Nordstrom roles: "basic to medium level algo, can be solved with JS." Brush up: useState, useEffect, useMemo, controlled inputs, lifting state up.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">⚙️ OOP / Data Modeling</div>
+      <div class="q-text">Easy OOD question: design classes for a shopping cart, a notification dispatcher, or a simple event bus. Show clean class hierarchy and interfaces.</div>
+      <div class="q-tip">💡 Multiple Blind reports mention "easy OOD" appears in the SDE2/Senior loop. Practice walking through abstractions, interfaces, and the open/closed principle.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🧮 Easy LC Patterns</div>
+      <div class="q-text">Classic patterns: two-pointer, sliding window, hashmap counting, basic BFS/DFS, simple dynamic programming. From Glassdoor: "Many technical interviews include challenges of varying difficulty — easy to medium."</div>
+      <div class="q-tip">💡 InterviewQuery specifically recommends focusing on dynamic programming and sliding window patterns for Nordstrom.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Focus on LC Easy + Medium</strong> — not Hard. Quality of communication beats novelty of solution at Nordstrom.</li>
+      <li><strong>Practice in your strongest language</strong> — JavaScript/TypeScript or Java fits this role. Don't switch languages last-minute.</li>
+      <li><strong>Brush up React fundamentals:</strong> hooks, state lifting, controlled vs. uncontrolled inputs, useEffect cleanup, TypeScript with React.</li>
+      <li><strong>Narrate your thinking:</strong> Nordstrom interviewers (per Glassdoor) "care about logic and reasoning far more" than getting to a perfect answer. Even a partially-working solution with strong reasoning has gotten candidates to the next round.</li>
+      <li><strong>Edge cases unprompted:</strong> "What if the array is empty? What if there are duplicates?" — proactively name these. Senior signal.</li>
+      <li><strong>Refactoring follow-ups:</strong> After your first solution, expect "can you make this more efficient?" or "what if N is 10 million?" Have time/space tradeoff discussions ready.</li>
+      <li><strong>Engineering practices come up:</strong> ~15 min of one round is questions like "how do you do code review," "how do you write unit tests," "what's your CI/CD setup." Have crisp, opinionated answers ready.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Coding Round</div>
+  <p class="section-desc">The coding interviewer is likely a peer or near-peer engineer — your future teammate. These questions reveal engineering craft and what daily life looks like.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Code Review Culture</div>
+      <div class="q-text">"What does code review look like on the DSP team — turnaround time, depth of review, who reviews what? How are disagreements in PRs typically resolved?"</div>
+      <div class="q-tip">💡 Reveals engineering rigor and team dynamics. Slow or shallow PR reviews are a red flag for any Senior IC.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Testing Standards</div>
+      <div class="q-text">"The JD calls out 'complete and automated unit, functional, integration, and end-to-end testing.' What's the actual test coverage culture like — is there a coverage bar, who owns E2E, and how do you handle flaky tests?"</div>
+      <div class="q-tip">💡 The JD is aspirational; the reality varies. This tells you whether testing is taken seriously in practice. As a Senior IC, you'd shape this culture.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Multi-Language Reality</div>
+      <div class="q-text">"The role lists React, Java, AND C#/.NET. In day-to-day work, how does that split actually look — is it 60/30/10, do engineers specialize, or is everyone touching all three?"</div>
+      <div class="q-tip">💡 Three-language full-stack roles can be either great range or context-switching nightmares. Worth knowing before you join.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · On-Call Practices</div>
+      <div class="q-text">"The role mentions 24x7 on-call. How frequent are rotations, what's the typical alert volume, and how does the team approach post-incident reviews and reducing repeat incidents?"</div>
+      <div class="q-tip">💡 On-call quality varies wildly. Critical to know upfront. Strong post-incident culture is a big positive signal.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · AI Tooling for Engineers</div>
+      <div class="q-text">"Given Nordstrom's AI initiatives, what AI tools do engineers use day-to-day — Copilot, Cursor, internal LLM tools? Is there an org philosophy on AI-assisted coding standards?"</div>
+      <div class="q-tip">💡 Shows you care about modern dev workflow. Also reveals how progressive the engineering org actually is — useful both for the role and your own growth.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN PANEL -->
+<div class="panel" id="panel-design">
+  <div class="section-title">🏗️ System Design Round <span class="priority">High Weight</span></div>
+  <p class="section-desc">System design is <strong>the most commonly cited differentiator</strong> in Nordstrom Senior SWE feedback. Glassdoor reports repeatedly mention "I wasn't well prepared for system design" as why candidates didn't progress. Format: 1 hour, ask clarifying questions, walk through tradeoffs, diagram out the solution.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor & InterviewQuery)</h3>
+    <ul>
+      <li><strong>Topic areas:</strong> API design, database schema modeling, scalability, event-driven systems, architecture trade-offs</li>
+      <li><strong>Often domain-flavored:</strong> Expect e-commerce, order/booking, notification, or contact-center themed problems — tied to Nordstrom's actual business</li>
+      <li><strong>Senior level focus:</strong> They're not just looking for whether your design works — they're looking for whether you think about scale, failure modes, observability, and cost</li>
+      <li><strong>"Focus on API design, data models, and tradeoffs"</strong> (Blind, ex-Nordstrom employee): They don't expect FAANG-scale numbers. Solid fundamentals beat over-engineering.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor, Blind, InterviewQuery)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">📦 Order History / Purchase Dashboard</div>
+      <div class="q-text">Design the Purchase History service that powers the Nordstrom.com customer dashboard. Customers can view orders, returns, and rewards history. Millions of users, with order data spread across multiple legacy systems.</div>
+      <div class="q-tip">💡 This is essentially what DSP owns. Cover: read-optimized data model, denormalization, caching (Redis), pagination, eventual consistency between source systems and the read view. Event-driven sync from order/return source-of-truth services.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🔔 Notification System</div>
+      <div class="q-text">Design a scalable notification system to send order status updates, return confirmations, and rewards alerts to millions of Nordstrom customers (email, push, SMS).</div>
+      <div class="q-tip">💡 Frequently cited Nordstrom Q. Cover: pub/sub event bus, channel-specific workers, retry/DLQ, rate limiting per user, deduplication, user preferences/opt-out, observability for delivery rates.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🎧 Agent Desktop / Contact Center Platform</div>
+      <div class="q-text">Design the platform powering customer service agents — they need real-time access to customer context (order history, past interactions, loyalty status) as calls/chats come in. Sub-second p99 latency expectation.</div>
+      <div class="q-tip">💡 DSP territory. Cover: WebSocket/SSE for real-time updates, customer 360 view aggregation, caching strategy (Redis), event-driven updates from upstream systems, graceful degradation when source systems are slow.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🛒 E-commerce Database Schema</div>
+      <div class="q-text">Design the database schema for the order + return + refund flow. Multiple line items, partial returns, multiple payment methods per order. SQL vs. NoSQL — when, why?</div>
+      <div class="q-tip">💡 Glassdoor confirms DB design questions appear. Show entity relationships, indexes, how you handle eventual consistency vs. strong consistency for money flows. Use PostgreSQL for transactional data; DynamoDB for high-read denormalized views.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🤖 AI Agent Assist Integration</div>
+      <div class="q-text">Design the system that surfaces AI-suggested responses to customer service agents in real-time during a chat, based on conversation context and customer history. Latency budget: 500ms.</div>
+      <div class="q-tip">💡 Domain-specific question for DSP. Cover: streaming inference, context assembly, vector DB for retrieval, fallback when LLM is slow, A/B testing infra, agent feedback loop to improve suggestions over time.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Use a real framework:</strong> Requirements → Capacity estimation → API design → Data model → High-level architecture → Deep dives on 1–2 components → Failure modes → Observability. Don't skip steps.</li>
+      <li><strong>Master event-driven patterns:</strong> Pub/sub, outbox pattern, saga pattern, idempotency keys, exactly-once vs. at-least-once delivery. The JD is event-driven heavy — they will probe here.</li>
+      <li><strong>Know SQL vs. NoSQL tradeoffs cold:</strong> When PostgreSQL, when DynamoDB, when Redis. Nordstrom uses all three. Have a clean mental model of which goes where.</li>
+      <li><strong>Talk through tradeoffs out loud:</strong> "I'd pick eventual consistency here because the read view doesn't need to be transactional with the write, and the latency savings are big." Senior signal.</li>
+      <li><strong>Diagram from the start:</strong> Use the shared whiteboard. Boxes and arrows beat words. Even on video, sketch in CoderPad's diagram mode or Excalidraw if offered.</li>
+      <li><strong>Use AWS terminology:</strong> ALB, ECS/EKS, SQS, SNS, Kinesis, DynamoDB, ElastiCache. Naming things by their AWS equivalents signals tech stack alignment with Nordstrom.</li>
+      <li><strong>Don't over-engineer:</strong> Multiple Blind threads warn against FAANG-style "design for 1B users" answers. Right-size your design to the stated problem.</li>
+      <li><strong>Quality & instrumentation come up:</strong> A whole separate round is dedicated to testing and observability. Be ready to discuss how you'd instrument your design — custom metrics, alerts, dashboards in New Relic/Splunk.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — System Design Round</div>
+  <p class="section-desc">The design interviewer is likely a Senior or Staff engineer on DSP. These questions show strategic depth and reveal the real architectural reality of the team.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Event Backbone</div>
+      <div class="q-text">"The JD heavily emphasizes event-driven systems. What's the team's event backbone — Kafka, Kinesis, SQS+SNS, EventBridge — and how do downstream services on DSP typically consume those events?"</div>
+      <div class="q-tip">💡 Asks the right technical detail. Their answer tells you a lot about platform maturity and what onboarding will look like.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Customer Data Aggregation</div>
+      <div class="q-text">"Both agent tools and the consumer Purchase History dashboard need a unified customer view. Is there a shared 'customer 360' aggregation layer, or does each surface build its own joined view? How is that evolving?"</div>
+      <div class="q-tip">💡 Reveals whether there's a clean platform layer or a more fragmented architecture. Senior engineers care deeply about this — it's where most leverage lives.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Scaling for Peak</div>
+      <div class="q-text">"Retail has massive holiday spikes — Black Friday, Anniversary Sale. How does DSP handle peak traffic on the customer dashboards, and what does pre-peak readiness look like? Are there formal load tests, chaos exercises?"</div>
+      <div class="q-tip">💡 Domain-specific scaling question. The answer reveals the team's operational maturity. Critical for evaluating the on-call burden you'd inherit.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · K8s Platform Maturity</div>
+      <div class="q-text">"Nordstrom has been running Kubernetes in production since 2017 — that's deep tenure. What's the developer experience like on the K8s platform today? Self-service deploys, managed observability, golden paths for new services?"</div>
+      <div class="q-tip">💡 References the well-known Nordstrom K8s case study — research signal. Also reveals the actual day-to-day infra experience, which makes a huge difference on velocity.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · AI Architecture Decisions</div>
+      <div class="q-text">"For the AI-driven self-service and agent-assist initiatives — at the architecture level, where are LLMs hosted (in-house, Bedrock, OpenAI API), how do you handle PII in prompts, and what's the latency budget for inline agent suggestions?"</div>
+      <div class="q-tip">💡 Asks an architecturally sophisticated question about a team priority area. PII handling especially shows you think about real-world constraints, not just academic AI integration.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const names = ['overview','role','behavioral','coding','design'];
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + name);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping Service — Architecture &amp; Persistence Reference</title>
+<style>
+  :root {
+    --indigo: #4f46e5;
+    --indigo-deep: #3730a3;
+    --indigo-light: #eef2ff;
+    --violet: #6d28d9;
+    --violet-light: #f3f0ff;
+    --teal: #0f766e;
+    --teal-light: #e0f2f1;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --red: #b91c1c;
+    --red-light: #fef2f2;
+    --blue: #2c6fad;
+    --blue-light: #e8f0fa;
+    --code-bg: #1e293b;
+    --code-bg2: #0f172a;
+    --code-text: #e2e8f0;
+    --code-dim: #94a3b8;
+    --code-kw: #c084fc;
+    --code-str: #86efac;
+    --code-acc: #fbbf24;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); line-height: 1.5; padding-bottom: 48px; }
+  code, pre { font-family: 'SF Mono', Monaco, Consolas, monospace; }
+
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #3730a3 55%, #0f766e 130%); color: white; padding: 32px 40px 26px; position: relative; }
+  .header::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #6d28d9 0%, #0f766e 100%); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .icon { font-size: 2rem; }
+  .header h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+  .header-sub { font-size: 0.9rem; opacity: 0.9; max-width: 720px; margin-top: 6px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.76rem; font-weight: 500; }
+
+  /* TOC */
+  .toc { background: white; margin: 22px 32px 0; border-radius: var(--radius); padding: 16px 22px; box-shadow: var(--shadow); }
+  .toc h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; margin-bottom: 11px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+  .toc a { display: flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; color: var(--text); text-decoration: none; font-weight: 500; transition: all 0.15s; }
+  .toc a:hover { background: var(--indigo-light); border-color: var(--indigo); transform: translateY(-1px); }
+
+  .section { background: white; margin: 18px 32px 0; border-radius: var(--radius); padding: 24px 28px; box-shadow: var(--shadow); }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+  .section-header h2 { font-size: 1.18rem; font-weight: 700; }
+  .section-header .se { font-size: 1.35rem; }
+  .section-desc { font-size: 0.86rem; color: var(--muted); margin: 10px 0 18px; line-height: 1.6; }
+
+  .lead { background: var(--indigo-light); border: 1px solid #c7d2fe; border-radius: 10px; padding: 16px 20px; margin: 18px 32px 0; }
+  .lead h3 { font-size: 0.92rem; font-weight: 700; color: var(--indigo-deep); margin-bottom: 6px; }
+  .lead p { font-size: 0.87rem; color: #374151; line-height: 1.6; }
+  .lead strong { color: var(--text); }
+
+  pre.ascii { background: var(--code-bg2); color: var(--code-text); padding: 18px 20px; border-radius: 10px; overflow-x: auto; font-size: 0.72rem; line-height: 1.5; white-space: pre; }
+  pre.ascii .dim { color: var(--code-dim); }
+  pre.ascii .acc { color: var(--code-acc); }
+  pre.ascii .kw { color: var(--code-kw); }
+  pre.ascii .str { color: var(--code-str); }
+  .caption { font-size: 0.75rem; color: var(--muted); margin-top: 8px; font-style: italic; }
+
+  /* layer cards */
+  .layers { display: flex; flex-direction: column; gap: 10px; }
+  .layer { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--indigo); }
+  .layer.l1 { border-left-color: var(--blue); } .layer.l2 { border-left-color: var(--violet); }
+  .layer.l3 { border-left-color: var(--teal); } .layer.l4 { border-left-color: var(--amber); }
+  .layer.l5 { border-left-color: var(--green); } .layer.l6 { border-left-color: var(--muted); }
+  .layer-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 7px; flex-wrap: wrap; }
+  .layer-pkg { font-family: 'SF Mono', monospace; font-size: 0.82rem; font-weight: 700; color: var(--indigo-deep); background: var(--gray); padding: 2px 8px; border-radius: 5px; }
+  .layer-role { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .layer p { font-size: 0.82rem; color: #374151; line-height: 1.55; }
+  .layer .members { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .member { font-family: 'SF Mono', monospace; font-size: 0.72rem; background: var(--indigo-light); color: var(--indigo-deep); padding: 2px 8px; border-radius: 5px; }
+  .layer .note { font-size: 0.78rem; color: var(--muted); margin-top: 7px; font-style: italic; }
+
+  /* generic cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 14px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--indigo); }
+  .card.r { border-left-color: var(--red); } .card.t { border-left-color: var(--teal); }
+  .card.a { border-left-color: var(--amber); } .card.g { border-left-color: var(--green); }
+  .card.b { border-left-color: var(--blue); } .card.v { border-left-color: var(--violet); }
+  .card-h { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+  .card-h .ci { font-size: 1.2rem; } .card-h .ct { font-size: 0.88rem; font-weight: 700; }
+  .card ul { padding-left: 16px; } .card li { font-size: 0.8rem; line-height: 1.55; color: #374151; margin-bottom: 4px; }
+  .card li strong { color: var(--text); } .card code { background: var(--gray); padding: 1px 5px; border-radius: 4px; font-size: 0.75rem; color: var(--indigo-deep); }
+  .card p { font-size: 0.81rem; color: #374151; line-height: 1.55; }
+
+  /* table component (DB tables) */
+  .dbtable { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  .dbtable-head { background: var(--code-bg2); color: white; padding: 11px 16px; display: flex; align-items: center; gap: 10px; }
+  .dbtable-head .tname { font-family: 'SF Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--code-acc); }
+  .dbtable-head .tdesc { font-size: 0.76rem; color: var(--code-dim); margin-left: auto; }
+  table.cols { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  table.cols th { text-align: left; padding: 8px 16px; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; background: var(--gray); color: var(--muted); }
+  table.cols td { padding: 8px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.45; }
+  table.cols tr:last-child td { border-bottom: none; }
+  table.cols .col { font-family: 'SF Mono', monospace; font-weight: 600; color: var(--text); white-space: nowrap; }
+  table.cols .typ { font-family: 'SF Mono', monospace; font-size: 0.74rem; color: var(--teal); white-space: nowrap; }
+  table.cols .desc { color: #4b5563; }
+  .keytag { font-size: 0.6rem; font-weight: 800; padding: 1px 6px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle; }
+  .pk { background: var(--amber-light); color: var(--amber); }
+  .fk { background: var(--blue-light); color: var(--blue); }
+  .uq { background: var(--violet-light); color: var(--violet); }
+  .idx { background: var(--green-light); color: var(--green); }
+  .nn { background: var(--red-light); color: var(--red); }
+
+  .snippet { background: var(--code-bg); color: var(--code-text); padding: 13px 15px; border-radius: 8px; overflow-x: auto; font-size: 0.74rem; line-height: 1.5; margin-top: 10px; white-space: pre; }
+  .snippet .kw { color: var(--code-kw); } .snippet .str { color: var(--code-str); } .snippet .cmt { color: var(--code-dim); font-style: italic; } .snippet .acc { color: var(--code-acc); } .snippet .typ { color: var(--teal); }
+
+  .tips { background: var(--amber-light); border: 1px solid #f5d99e; border-radius: 10px; padding: 14px 18px; }
+  .tips h4 { font-size: 0.85rem; font-weight: 700; color: var(--amber); margin-bottom: 8px; }
+  .tips ul { padding-left: 18px; } .tips li { font-size: 0.82rem; color: #4b5563; line-height: 1.6; margin-bottom: 5px; } .tips strong { color: var(--text); }
+
+  .footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.78rem; }
+
+  @media (max-width: 740px) {
+    .header { padding: 24px 16px 18px; }
+    .section, .lead, .toc { margin-left: 12px; margin-right: 12px; }
+    .cards { grid-template-columns: 1fr; }
+    .dbtable-head .tdesc { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="icon">📦</span>
+    <h1>Shipping Service — Architecture &amp; Persistence Reference</h1>
+  </div>
+  <p class="header-sub">How the code is structured (HLD), how the layers map to the package tree, and how the persistence layer / DB tables are designed. Spring Boot 3.3 · Java 21 · PostgreSQL · multi-carrier (EasyPost + FedEx + UPS direct).</p>
+  <div class="tags">
+    <span class="tag">🏗️ High-Level Design</span>
+    <span class="tag">🧩 Package &amp; layer map</span>
+    <span class="tag">🗄️ Persistence layer</span>
+    <span class="tag">🔗 ER model &amp; tables</span>
+    <span class="tag">🚦 Shipment state machine</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📋 Sections</h3>
+  <div class="toc-grid">
+    <a href="#hld">🏗️ HLD overview</a>
+    <a href="#layers">🧩 Code structure = layers</a>
+    <a href="#seam">🔌 The carrier seam</a>
+    <a href="#flow">🔄 Request flows</a>
+    <a href="#persistence">🗄️ Persistence layer</a>
+    <a href="#er">🔗 ER model</a>
+    <a href="#tables">📑 Table-by-table</a>
+    <a href="#state">🚦 State machine</a>
+    <a href="#takeaways">🎯 Design takeaways</a>
+  </div>
+</div>
+
+<div class="lead">
+  <h3>How to read this document</h3>
+  <p>The <strong>code structure IS the high-level design</strong> here — each package is an architectural layer with one responsibility, and dependencies flow in one direction (API → service → carrier abstraction → providers; everything reads/writes through the domain + repo layer). The second half maps the <strong>persistence layer</strong>: four tables anchored on a <code>shipment</code> aggregate root, with the relational schema, keys, indexes, and the JPA entity mapping that backs each one.</p>
+</div>
+
+<!-- HLD -->
+<div class="section" id="hld">
+  <div class="section-header"><span class="se">🏗️</span><h2>High-Level Design — the runtime shape</h2></div>
+  <p class="section-desc">A single Spring Boot service exposes a small REST API, orchestrates in one service layer, and talks to three carriers through one uniform provider interface. The aggregator (EasyPost) gives breadth; FedEx + UPS direct give better rates on heavy lanes. All state persists to Postgres; carriers push tracking back via webhooks.</p>
+<pre class="ascii">                          <span class="dim">┌──────────────────────┐</span>
+                          <span class="dim">│</span>   Buyer / Seller UI   <span class="dim">│</span>
+                          <span class="dim">└──────────┬───────────┘</span>
+                                     <span class="dim">│  HTTPS / JSON</span>
+                                     ▼
+          <span class="dim">┌──────────────────────────────────────────────────┐</span>
+          <span class="dim">│</span>          <span class="acc">Shipping Service (Spring Boot)</span>            <span class="dim">│</span>
+          <span class="dim">│</span>                                                    <span class="dim">│</span>
+          <span class="dim">│</span>   <span class="kw">api/</span>  Controllers ───▶ <span class="kw">service/</span> ShippingService   <span class="dim">│</span>  <span class="dim">orchestration</span>
+          <span class="dim">│</span>                              │                     <span class="dim">│</span>
+          <span class="dim">│</span>                              ▼                     <span class="dim">│</span>
+          <span class="dim">│</span>          <span class="kw">carrier/</span> CarrierProvider <span class="str">(interface)</span>        <span class="dim">│</span>  <span class="dim">← the seam</span>
+          <span class="dim">│</span>          resolved via CarrierRegistry (Spring DI)  <span class="dim">│</span>
+          <span class="dim">│</span>           │            │             │             <span class="dim">│</span>
+          <span class="dim">│</span>       EasyPost       FedEx          UPS            <span class="dim">│</span>
+          <span class="dim">│</span>       Provider       Provider       Provider       <span class="dim">│</span>  <span class="dim">Adapters</span>
+          <span class="dim">└───────────┼────────────┼─────────────┼─────────────┘</span>
+                      │ HTTPS      │ HTTPS       │ HTTPS
+                      ▼            ▼             ▼
+                <span class="dim">┌─────────┐  ┌─────────┐   ┌─────────┐</span>
+                <span class="dim">│EasyPost │  │ FedEx   │   │  UPS    │</span>
+                <span class="dim">│  API    │  │ Direct  │   │ Direct  │</span>
+                <span class="dim">│(100+cxr)│  │  API    │   │  API    │</span>
+                <span class="dim">└─────────┘  └─────────┘   └─────────┘</span>
+                      ▲            ▲             ▲
+                      └──── Webhooks (tracking) ─┘
+                                   │
+                                   ▼
+                         <span class="dim">┌──────────────────┐</span>
+                         <span class="dim">│</span>  <span class="acc">PostgreSQL</span>      <span class="dim">│</span>  shipment · rate
+                         <span class="dim">│</span>  (4 tables)      <span class="dim">│</span>  label · tracking_event
+                         <span class="dim">└──────────────────┘</span></pre>
+  <div class="cards" style="margin-top:16px;">
+    <div class="card b"><div class="card-h"><span class="ci">🎯</span><span class="ct">One interface, many providers</span></div><p>Adding or removing a carrier never touches business logic — it's a new class implementing <code>CarrierProvider</code>. The service layer only knows the interface.</p></div>
+    <div class="card t"><div class="card-h"><span class="ci">🌐</span><span class="ct">Aggregator + direct hybrid</span></div><p>EasyPost covers 100+ carriers, international, and customs. FedEx/UPS direct avoid aggregator markup on high-volume lanes. Both sit behind the same seam.</p></div>
+    <div class="card a"><div class="card-h"><span class="ci">⚡</span><span class="ct">Async fan-out at quote time</span></div><p>The service calls all selected providers in parallel with a per-provider timeout, so the buyer gets all rates in ~1 round-trip even though 3 systems are queried.</p></div>
+  </div>
+</div>
+
+<!-- LAYERS -->
+<div class="section" id="layers">
+  <div class="section-header"><span class="se">🧩</span><h2>Code structure = the layers</h2></div>
+  <p class="section-desc">Each package under <code>com.marketplace.shipping</code> is one architectural layer with a single responsibility. Dependencies point downward only: the edge depends on the service, the service depends on the carrier abstraction and the domain/repo — never the reverse. This is what keeps the carrier seam clean.</p>
+
+  <div class="layers">
+    <div class="layer l1">
+      <div class="layer-head"><span class="layer-pkg">api/</span><span class="layer-role">REST edge</span></div>
+      <p>HTTP boundary. Controllers accept/return DTOs only — no entities cross the wire. Bean-validation on inputs; thin, delegates straight to the service.</p>
+      <div class="members"><span class="member">ShippingController</span><span class="member">WebhookController</span><span class="member">dto/ QuoteRequest, RateDto, PurchaseRequest, LabelDto, TrackingDto, AddressDto, ParcelDto, CustomsDto</span></div>
+    </div>
+
+    <div class="layer l2">
+      <div class="layer-head"><span class="layer-pkg">service/</span><span class="layer-role">Orchestration</span></div>
+      <p>The brain. <code>ShippingService</code> runs <code>quote()</code> / <code>purchase()</code> / <code>getTracking()</code>, owns the shipment state machine, drives the async fan-out, and persists via repos. Supporting services validate addresses and build customs payloads.</p>
+      <div class="members"><span class="member">ShippingService</span><span class="member">AddressValidator</span><span class="member">CustomsService</span></div>
+    </div>
+
+    <div class="layer l3">
+      <div class="layer-head"><span class="layer-pkg">carrier/</span><span class="layer-role">Provider abstraction — the seam</span></div>
+      <p>The heart of the design. A single <code>CarrierProvider</code> interface; a <code>CarrierRegistry</code> that collects all provider beans and routes by namespaced <code>rateId</code> prefix; a pluggable <code>CarrierRoutingPolicy</code> (Strategy) that decides which providers to query per region; and three Adapter implementations.</p>
+      <div class="members"><span class="member">CarrierProvider (interface)</span><span class="member">CarrierRegistry</span><span class="member">routing/ CarrierRoutingPolicy, ConfigurableRoutingPolicy, RoutingProperties</span><span class="member">model/ CarrierShipment, CarrierRate, CarrierLabel, CarrierTracking</span><span class="member">easypost/ · fedex/ · ups/ Providers + Auth clients</span></div>
+      <div class="note">Neutral <code>model/</code> types are the lingua franca — providers translate carrier wire formats to/from these, so nothing carrier-specific leaks upward.</div>
+    </div>
+
+    <div class="layer l4">
+      <div class="layer-head"><span class="layer-pkg">domain/</span><span class="layer-role">JPA entities — the aggregate</span></div>
+      <p>The persistent model. <code>Shipment</code> is the aggregate root; <code>Rate</code>, <code>Label</code>, <code>TrackingEvent</code> hang off it; <code>Address</code>/<code>Parcel</code> are embeddable value objects stored as jsonb. This is where the code layer meets the persistence layer.</p>
+      <div class="members"><span class="member">Shipment (root)</span><span class="member">Rate</span><span class="member">Label</span><span class="member">TrackingEvent</span><span class="member">Address, Parcel (@Embeddable / jsonb)</span><span class="member">CustomsDeclaration (jsonb)</span></div>
+    </div>
+
+    <div class="layer l5">
+      <div class="layer-head"><span class="layer-pkg">repo/</span><span class="layer-role">Persistence access</span></div>
+      <p>Spring Data JPA repositories — interfaces extending <code>JpaRepository</code>. No hand-written SQL for CRUD; derived queries by method name. This is the boundary between the domain objects and Postgres.</p>
+      <div class="members"><span class="member">ShipmentRepository</span><span class="member">RateRepository</span><span class="member">LabelRepository</span><span class="member">TrackingEventRepository</span></div>
+    </div>
+
+    <div class="layer l6">
+      <div class="layer-head"><span class="layer-pkg">config/</span><span class="layer-role">Wiring</span></div>
+      <p>Typed configuration and infrastructure beans. Carrier credentials/feature-flags via <code>@ConfigurationProperties</code>; one tuned <code>WebClient</code> per direct carrier (timeouts, retry filter).</p>
+      <div class="members"><span class="member">CarrierProperties</span><span class="member">WebClientConfig</span><span class="member">ShippingApplication (entrypoint)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEAM -->
+<div class="section" id="seam">
+  <div class="section-header"><span class="se">🔌</span><h2>The carrier seam — how the abstraction holds</h2></div>
+  <p class="section-desc">This is the most important LLD decision: one interface, namespaced rate IDs for routing, and a Strategy policy for selection. Together they mean carriers are plug-in modules.</p>
+
+  <div class="cards">
+    <div class="card v">
+      <div class="card-h"><span class="ci">🔗</span><span class="ct">CarrierProvider — the one interface</span></div>
+<pre class="snippet"><span class="kw">interface</span> <span class="typ">CarrierProvider</span> {
+  <span class="typ">String</span> name();                       <span class="cmt">// "easypost"|"fedex"|"ups"</span>
+  <span class="kw">boolean</span> supports(<span class="typ">Address</span> f, <span class="typ">Address</span> t); <span class="cmt">// geo filter</span>
+  <span class="typ">List</span>&lt;<span class="typ">CarrierRate</span>&gt; getRates(<span class="typ">CarrierShipment</span> s);
+  <span class="typ">CarrierLabel</span>  buyLabel(<span class="typ">CarrierShipment</span> s, <span class="typ">String</span> rateId);
+  <span class="typ">CarrierTracking</span> track(<span class="typ">String</span> trackingNumber);
+}</pre>
+      <p style="margin-top:8px;">Each provider is an <strong>Adapter</strong>: it maps the neutral <code>CarrierShipment</code>/<code>CarrierRate</code> types to and from that carrier's wire format.</p>
+    </div>
+    <div class="card a">
+      <div class="card-h"><span class="ci">🔑</span><span class="ct">Namespaced rate IDs → routing</span></div>
+      <p>Every rate ID is prefixed with its provider: <code>easypost:rate_xyz</code>, <code>fedex:STANDARD_OVERNIGHT</code>, <code>ups:03</code>.</p>
+      <p style="margin-top:6px;">On purchase, <code>CarrierRegistry.providerFor(rateId)</code> splits on <code>":"</code> to route the buy back to the exact provider that issued the quote. <strong>Registry + namespaced IDs</strong> pattern.</p>
+    </div>
+    <div class="card t">
+      <div class="card-h"><span class="ci">🎯</span><span class="ct">Routing policy — Strategy</span></div>
+      <p>A YAML-driven <code>ConfigurableRoutingPolicy</code> decides, per <code>(fromRegion, toRegion)</code>, which providers to query and in what priority order — with state-level overrides (e.g. HI/AK/PR exclude UPS).</p>
+      <p style="margin-top:6px;">Swap in a <code>MachineLearnedRoutingPolicy</code> later without touching <code>ShippingService</code>.</p>
+    </div>
+  </div>
+
+  <div class="tips" style="margin-top:16px;">
+    <h4>Why NOT Abstract Factory for regions (a deliberate call in the plan)</h4>
+    <ul>
+      <li>Abstract Factory produces <strong>families of related objects</strong> whose concrete types vary by context. Here every region returns the <em>same</em> type — <code>CarrierProvider</code> — just a different <em>subset</em>.</li>
+      <li>That's a <strong>filter/Strategy</strong> problem, not a factory problem. Adding Abstract Factory would be indirection without payoff.</li>
+      <li>Revisit only if regions need different object <em>families</em> together (region-specific <code>RateFormatter</code> + <code>CustomsBuilder</code> + <code>LabelRenderer</code> all varying as a set).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- FLOW -->
+<div class="section" id="flow">
+  <div class="section-header"><span class="se">🔄</span><h2>Request flows — how a call moves through the layers</h2></div>
+  <p class="section-desc">The two core operations. Notice each one touches the layers top-to-bottom and persists at well-defined points — quote writes the shipment + rates, purchase writes the label and advances state.</p>
+
+  <div class="cards" style="grid-template-columns: 1fr;">
+    <div class="card b">
+      <div class="card-h"><span class="ci">💬</span><span class="ct">POST /quotes — async fan-out (Scatter–Gather)</span></div>
+<pre class="snippet"><span class="cmt">1.</span> Controller validates DTO, hands QuoteRequest to ShippingService
+<span class="cmt">2.</span> AddressValidator checks from/to (postal regex per country)
+<span class="cmt">3.</span> INSERT shipment row, status = <span class="acc">QUOTED</span>
+<span class="cmt">4.</span> CarrierRoutingPolicy.resolve(from,to) → ordered provider list
+<span class="cmt">5.</span> getRates() called on each provider in PARALLEL
+       CompletableFuture.allOf + per-future orTimeout(3s), partial-ok
+<span class="cmt">6.</span> de-dupe (prefer FedEx direct over the same service via EasyPost)
+<span class="cmt">7.</span> INSERT rate rows (one per returned rate)
+<span class="cmt">8.</span> return QuoteResponse {shipmentId, status, rates[]}</pre>
+    </div>
+    <div class="card g">
+      <div class="card-h"><span class="ci">🏷️</span><span class="ct">POST /shipments/{id}/purchase</span></div>
+<pre class="snippet"><span class="cmt">1.</span> load Shipment by id (must be in QUOTED)
+<span class="cmt">2.</span> CarrierRegistry.providerFor(rateId) → the issuing provider
+<span class="cmt">3.</span> if international → CustomsService builds HS-code payload
+<span class="cmt">4.</span> provider.buyLabel(shipment, rateId) → real carrier API call
+       ← label url/bytes + tracking number
+<span class="cmt">5.</span> INSERT label row, advance shipment status → <span class="acc">PURCHASED</span>
+<span class="cmt">6.</span> return LabelDto</pre>
+    </div>
+  </div>
+  <p class="caption">Tracking arrives asynchronously: carriers POST to <code>/webhooks/{provider}</code>; the service verifies the HMAC signature, idempotently upserts a <code>tracking_event</code>, and advances <code>shipment.status</code> on terminal events.</p>
+</div>
+
+<!-- PERSISTENCE -->
+<div class="section" id="persistence">
+  <div class="section-header"><span class="se">🗄️</span><h2>Persistence layer — how it's structured</h2></div>
+  <p class="section-desc">The persistence layer is a thin, deliberate stack: domain entities ↔ Spring Data JPA repositories ↔ Hibernate ↔ Postgres, with Flyway owning the schema. The shape mirrors the domain: one aggregate root with child collections.</p>
+
+  <div class="cards">
+    <div class="card v">
+      <div class="card-h"><span class="ci">🧱</span><span class="ct">The stack</span></div>
+      <ul>
+        <li><strong>domain/</strong> — JPA <code>@Entity</code> classes (the object model)</li>
+        <li><strong>repo/</strong> — <code>JpaRepository</code> interfaces (no hand-written CRUD SQL)</li>
+        <li><strong>Hibernate</strong> — the JPA provider doing the actual O/R mapping</li>
+        <li><strong>Flyway</strong> — <code>V1__init.sql</code> owns DDL; <code>ddl-auto: validate</code> so Hibernate never mutates schema</li>
+        <li><strong>Postgres</strong> — 4 tables + jsonb for embedded value objects</li>
+      </ul>
+    </div>
+    <div class="card a">
+      <div class="card-h"><span class="ci">🏛️</span><span class="ct">Aggregate shape</span></div>
+      <p><code>Shipment</code> is the <strong>aggregate root</strong>. Everything else is reached through it and cascades from it:</p>
+      <ul>
+        <li><code>Shipment</code> 1 ──&lt; <code>Rate</code> (many quotes per shipment)</li>
+        <li><code>Shipment</code> 1 ── 0..1 <code>Label</code> (at most one)</li>
+        <li><code>Shipment</code> 1 ──&lt; <code>TrackingEvent</code> (many over time)</li>
+        <li><code>Address</code>, <code>Parcel</code>, <code>Customs</code> — embedded as <strong>jsonb</strong>, not separate tables</li>
+      </ul>
+    </div>
+    <div class="card t">
+      <div class="card-h"><span class="ci">💡</span><span class="ct">Relational + jsonb hybrid</span></div>
+      <p>Structured, queried-on data (status, provider, amounts, FKs) is <strong>columns</strong>. Free-form, never-queried-individually data (addresses, parcel dims, customs, raw webhook bodies) is <strong>jsonb</strong> — flexible without a table explosion.</p>
+      <p style="margin-top:6px;">This is the access-pattern-driven store decision applied <em>within</em> one database.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ER -->
+<div class="section" id="er">
+  <div class="section-header"><span class="se">🔗</span><h2>ER model</h2></div>
+  <p class="section-desc">Four tables, all anchored on <code>shipment.id</code>. Child rows cascade-delete with the shipment. <code>label</code> is 1:1 (unique FK); <code>rate</code> and <code>tracking_event</code> are 1:N.</p>
+<pre class="ascii">                       <span class="acc">┌─────────────────────────────┐</span>
+                       <span class="acc">│          shipment           │</span>  <span class="dim">aggregate root</span>
+                       <span class="acc">├─────────────────────────────┤</span>
+                       <span class="acc">│ id (PK)            uuid      │</span>
+                       <span class="acc">│ seller_id          uuid      │</span>
+                       <span class="acc">│ buyer_id / order_id uuid     │</span>
+                       <span class="acc">│ status             text      │</span>  <span class="dim">state machine</span>
+                       <span class="acc">│ from_addr / to_addr jsonb    │</span>
+                       <span class="acc">│ parcel / customs   jsonb     │</span>
+                       <span class="acc">│ selected_rate_id   uuid      │</span>
+                       <span class="acc">└──────┬───────────┬──────┬────┘</span>
+              1:N <span class="dim">│</span>      1:1 <span class="dim">│</span>   1:N <span class="dim">│</span>
+          ┌─────────▼──┐  ┌──────▼─────┐  ┌─▼──────────────┐
+          │   rate     │  │   label    │  │ tracking_event │
+          ├────────────┤  ├────────────┤  ├────────────────┤
+          │ id (PK)    │  │ id (PK)    │  │ id (PK,bigserial)│
+          │ shipment_id│  │ shipment_id│  │ shipment_id    │
+          │   (FK)     │  │  (FK,<span class="str">UNIQUE</span>)│  │   (FK)         │
+          │ provider   │  │ provider   │  │ status         │
+          │ carrier    │  │ tracking_# │  │ description    │
+          │ service_*  │  │ label_fmt  │  │ location       │
+          │ amount_cents│ │ label_url  │  │ occurred_at    │
+          │ currency   │  │ label_bytes│  │ raw (jsonb)    │
+          │ est_days   │  │ purchased_at│ └────────────────┘
+          │ external_id│  └────────────┘
+          └────────────┘
+       <span class="dim">FK ON DELETE CASCADE on all three children</span></pre>
+</div>
+
+<!-- TABLES -->
+<div class="section" id="tables">
+  <div class="section-header"><span class="se">📑</span><h2>Table-by-table</h2></div>
+  <p class="section-desc">The four tables from <code>V1__init.sql</code>, with key/index annotations. <span class="keytag pk">PK</span> primary key · <span class="keytag fk">FK</span> foreign key · <span class="keytag uq">UQ</span> unique · <span class="keytag idx">IDX</span> indexed · <span class="keytag nn">NN</span> not-null.</p>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">shipment</span><span class="tdesc">aggregate root · the order's shipping record</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">id<span class="keytag pk">PK</span></td><td class="typ">uuid</td><td class="desc">Shipment identifier, surfaced to clients.</td></tr>
+      <tr><td class="col">seller_id<span class="keytag nn">NN</span></td><td class="typ">uuid</td><td class="desc">Owning seller (the actor who purchases the label).</td></tr>
+      <tr><td class="col">buyer_id</td><td class="typ">uuid</td><td class="desc">Buyer reference (nullable until linked to an order).</td></tr>
+      <tr><td class="col">order_id</td><td class="typ">uuid</td><td class="desc">Marketplace order this shipment fulfills.</td></tr>
+      <tr><td class="col">status<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">State machine: QUOTED · PURCHASED · IN_TRANSIT · DELIVERED · EXCEPTION · CANCELLED · EXPIRED.</td></tr>
+      <tr><td class="col">from_addr<span class="keytag nn">NN</span></td><td class="typ">jsonb</td><td class="desc">Origin address (embedded value object).</td></tr>
+      <tr><td class="col">to_addr<span class="keytag nn">NN</span></td><td class="typ">jsonb</td><td class="desc">Destination address.</td></tr>
+      <tr><td class="col">parcel<span class="keytag nn">NN</span></td><td class="typ">jsonb</td><td class="desc">{length, width, height, weight, units}.</td></tr>
+      <tr><td class="col">customs</td><td class="typ">jsonb</td><td class="desc">International only — HS codes, declared values.</td></tr>
+      <tr><td class="col">selected_rate_id</td><td class="typ">uuid</td><td class="desc">The rate chosen at purchase.</td></tr>
+      <tr><td class="col">created_at / updated_at</td><td class="typ">timestamptz</td><td class="desc">Audit timestamps, default now().</td></tr>
+    </table>
+  </div>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">rate</span><span class="tdesc">1:N · one row per carrier rate returned at quote time</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">id<span class="keytag pk">PK</span></td><td class="typ">uuid</td><td class="desc">Internal rate id.</td></tr>
+      <tr><td class="col">shipment_id<span class="keytag fk">FK</span><span class="keytag idx">IDX</span></td><td class="typ">uuid</td><td class="desc">→ shipment(id), ON DELETE CASCADE. Indexed for "rates for this shipment".</td></tr>
+      <tr><td class="col">provider<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">easypost | fedex | ups — which integration produced it.</td></tr>
+      <tr><td class="col">carrier_name<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">USPS | FedEx | UPS | DHL … (the actual carrier).</td></tr>
+      <tr><td class="col">service_code / service_name<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">Carrier service tier, code + human label.</td></tr>
+      <tr><td class="col">amount_cents<span class="keytag nn">NN</span></td><td class="typ">bigint</td><td class="desc">Price in minor units — integer cents, never floats for money.</td></tr>
+      <tr><td class="col">currency<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">ISO currency code.</td></tr>
+      <tr><td class="col">est_delivery_days</td><td class="typ">int</td><td class="desc">Estimated transit time.</td></tr>
+      <tr><td class="col">external_rate_id<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">Raw namespaced id from the provider — used to route the purchase back.</td></tr>
+    </table>
+  </div>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">label</span><span class="tdesc">1:1 · the purchased label for a shipment</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">id<span class="keytag pk">PK</span></td><td class="typ">uuid</td><td class="desc">Label id.</td></tr>
+      <tr><td class="col">shipment_id<span class="keytag fk">FK</span><span class="keytag uq">UQ</span></td><td class="typ">uuid</td><td class="desc">→ shipment(id), <strong>UNIQUE</strong> — enforces at most one label per shipment. CASCADE.</td></tr>
+      <tr><td class="col">provider<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">Which provider generated the label.</td></tr>
+      <tr><td class="col">tracking_number<span class="keytag nn">NN</span><span class="keytag idx">IDX</span></td><td class="typ">text</td><td class="desc">Carrier tracking number; indexed for webhook lookup by tracking #.</td></tr>
+      <tr><td class="col">label_format<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">PDF | PNG | ZPL.</td></tr>
+      <tr><td class="col">label_url</td><td class="typ">text</td><td class="desc">Hosted label file URL.</td></tr>
+      <tr><td class="col">label_bytes</td><td class="typ">bytea</td><td class="desc">Optional inline label binary.</td></tr>
+      <tr><td class="col">purchased_at</td><td class="typ">timestamptz</td><td class="desc">When the label was bought.</td></tr>
+    </table>
+  </div>
+
+  <div class="dbtable">
+    <div class="dbtable-head"><span class="tname">tracking_event</span><span class="tdesc">1:N · append-only stream of carrier status updates</span></div>
+    <table class="cols">
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td class="col">id<span class="keytag pk">PK</span></td><td class="typ">bigserial</td><td class="desc">High-volume append → cheap auto-increment rather than uuid.</td></tr>
+      <tr><td class="col">shipment_id<span class="keytag fk">FK</span></td><td class="typ">uuid</td><td class="desc">→ shipment(id), CASCADE.</td></tr>
+      <tr><td class="col">status<span class="keytag nn">NN</span></td><td class="typ">text</td><td class="desc">LABEL_CREATED · PICKED_UP · IN_TRANSIT · DELIVERED · EXCEPTION …</td></tr>
+      <tr><td class="col">description / location</td><td class="typ">text</td><td class="desc">Human-readable event + place.</td></tr>
+      <tr><td class="col">occurred_at<span class="keytag nn">NN</span></td><td class="typ">timestamptz</td><td class="desc">Carrier event time (not arrival time) — events can be out of order.</td></tr>
+      <tr><td class="col">raw</td><td class="typ">jsonb</td><td class="desc">Original webhook payload, retained for audit/debug.</td></tr>
+      <tr><td class="col" colspan="2"><span class="keytag idx">IDX</span> (shipment_id, occurred_at)</td><td class="desc">Composite index — fetch a shipment's events in chronological order.</td></tr>
+    </table>
+  </div>
+
+  <div class="card v" style="margin-top:4px;">
+    <div class="card-h"><span class="ci">🧩</span><span class="ct">How an entity maps to a table (JPA)</span></div>
+<pre class="snippet"><span class="kw">@Entity @Table</span>(name = <span class="str">"shipment"</span>)
+<span class="kw">class</span> <span class="typ">Shipment</span> {
+  <span class="kw">@Id</span> <span class="typ">UUID</span> id;
+  <span class="typ">UUID</span> sellerId;
+  <span class="kw">@Enumerated</span>(STRING) <span class="typ">ShipmentStatus</span> status;   <span class="cmt">// state machine</span>
+
+  <span class="kw">@JdbcTypeCode</span>(JSON) <span class="typ">Address</span> fromAddr;        <span class="cmt">// → jsonb column</span>
+  <span class="kw">@JdbcTypeCode</span>(JSON) <span class="typ">Address</span> toAddr;
+  <span class="kw">@JdbcTypeCode</span>(JSON) <span class="typ">Parcel</span>  parcel;
+
+  <span class="kw">@OneToMany</span>(mappedBy=<span class="str">"shipment"</span>, cascade=ALL) <span class="typ">List</span>&lt;<span class="typ">Rate</span>&gt; rates;
+  <span class="kw">@OneToOne</span>(mappedBy=<span class="str">"shipment"</span>, cascade=ALL)  <span class="typ">Label</span> label;
+  <span class="kw">@OneToMany</span>(mappedBy=<span class="str">"shipment"</span>, cascade=ALL) <span class="typ">List</span>&lt;<span class="typ">TrackingEvent</span>&gt; events;
+}</pre>
+    <p style="margin-top:8px;">The <code>@OneToMany</code>/<code>@OneToOne</code> mappings are exactly the 1:N / 1:1 lines in the ER diagram; the jsonb embeds are the <code>Address</code>/<code>Parcel</code> value objects that don't earn their own tables.</p>
+  </div>
+</div>
+
+<!-- STATE -->
+<div class="section" id="state">
+  <div class="section-header"><span class="se">🚦</span><h2>Shipment state machine</h2></div>
+  <p class="section-desc">The <code>status</code> column is driven by a state machine enforced in <code>ShippingService</code> — illegal transitions throw. Quote creates QUOTED; purchase advances to PURCHASED; webhooks drive the rest.</p>
+<pre class="ascii">  <span class="dim">┌──────────┐</span>  purchase()   <span class="dim">┌────────────┐</span>  webhook    <span class="dim">┌────────────┐</span>  webhook   <span class="dim">┌───────────┐</span>
+  <span class="dim">│</span> <span class="acc">QUOTED</span>   <span class="dim">│</span> ─────────────▶<span class="dim">│</span> <span class="acc">PURCHASED</span>  <span class="dim">│</span> ──────────▶ <span class="dim">│</span> <span class="acc">IN_TRANSIT</span> <span class="dim">│</span> ─────────▶ <span class="dim">│</span> <span class="acc">DELIVERED</span> <span class="dim">│</span>
+  <span class="dim">└────┬─────┘</span>               <span class="dim">└─────┬──────┘</span>             <span class="dim">└──────┬─────┘</span>            <span class="dim">└───────────┘</span>
+       <span class="dim">│</span>                           <span class="dim">│</span> cancel()                 <span class="dim">│</span> exception
+       <span class="dim">│</span> expire(24h)                <span class="dim">▼</span>                          <span class="dim">▼</span>
+       <span class="dim">▼</span>                      <span class="dim">┌────────────┐</span>            <span class="dim">┌────────────┐</span>
+  <span class="dim">┌──────────┐</span>                <span class="dim">│</span> CANCELLED  <span class="dim">│</span>            <span class="dim">│</span> EXCEPTION  <span class="dim">│</span>
+  <span class="dim">│</span> EXPIRED  <span class="dim">│</span>                <span class="dim">└────────────┘</span>            <span class="dim">└────────────┘</span>
+  <span class="dim">└──────────┘</span></pre>
+  <p class="caption">A QUOTED shipment that's never purchased expires after 24h. PURCHASED can be cancelled; in-transit shipments can land in EXCEPTION on a carrier problem.</p>
+</div>
+
+<!-- TAKEAWAYS -->
+<div class="section" id="takeaways">
+  <div class="section-header"><span class="se">🎯</span><h2>Design takeaways — why this structure holds up</h2></div>
+  <div class="cards">
+    <div class="card g"><div class="card-h"><span class="ci">🔌</span><span class="ct">The seam is the whole point</span></div><p>Carriers are plug-ins behind one interface. Adding DHL-direct = one new Adapter class + a routing rule. Business logic, controllers, and the schema don't change.</p></div>
+    <div class="card b"><div class="card-h"><span class="ci">📐</span><span class="ct">Layers enforce direction</span></div><p>api → service → carrier → domain/repo. DTOs at the edge, entities at the core, neutral carrier models in the middle. Nothing carrier-specific leaks upward.</p></div>
+    <div class="card a"><div class="card-h"><span class="ci">🗄️</span><span class="ct">Schema mirrors the aggregate</span></div><p>One root (shipment) + child tables with cascade. Columns for queried/structured data, jsonb for free-form. Money in integer cents. Tracking append-only with bigserial.</p></div>
+    <div class="card v"><div class="card-h"><span class="ci">🧭</span><span class="ct">Patterns chosen, not sprinkled</span></div><p>Adapter, Strategy (routing), Registry (namespaced IDs), Scatter–Gather (fan-out), State Machine. Abstract Factory explicitly rejected with a reason — that judgment is the staff signal.</p></div>
+    <div class="card t"><div class="card-h"><span class="ci">🛡️</span><span class="ct">Flyway owns DDL</span></div><p><code>ddl-auto: validate</code> means Hibernate verifies but never mutates the schema. Migrations are versioned and reviewable — no surprise schema drift in prod.</p></div>
+    <div class="card r"><div class="card-h"><span class="ci">⚠️</span><span class="ct">Honest v1 gaps</span></div><p>No idempotency key on purchase yet (a money-flow must-have), single-parcel only, platform carrier accounts only, payments out of scope. All explicitly deferred — known, not missed.</p></div>
+  </div>
+</div>
+
+<div class="footer">
+  📦 Shipping Service · Architecture &amp; Persistence Reference · code structure = HLD · 4-table aggregate persistence layer
+</div>
+
+</body>
+</html>

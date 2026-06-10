@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StubHub System Design Prep — Event Email/Notification System</title>
+<style>
+  :root {
+    --primary: #ff6b00;
+    --primary-dark: #cc4f00;
+    --primary-light: #fff1e6;
+    --blue: #2c6fad;
+    --blue-light: #e8f0fa;
+    --purple: #6d28d9;
+    --purple-light: #f3f0ff;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --red: #c0392b;
+    --red-light: #fdecea;
+    --amber: #b7791f;
+    --amber-light: #fef6e0;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); line-height: 1.5; }
+
+  .header { background: linear-gradient(135deg, #1e3a5f 0%, #2c6fad 60%, #4a90d9 100%); color: white; padding: 36px 40px 30px; }
+  .header-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .paw { font-size: 2.2rem; }
+  .header h1 { font-size: 1.8rem; font-weight: 700; }
+  .header-sub { font-size: 0.95rem; opacity: 0.93; margin-bottom: 16px; max-width: 840px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  .strip { margin: 24px 32px 0; background: white; border-radius: var(--radius); padding: 18px 26px; box-shadow: var(--shadow); display: flex; gap: 28px; flex-wrap: wrap; }
+  .strip-item { display: flex; flex-direction: column; gap: 2px; }
+  .strip-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .strip-value { font-size: 0.9rem; font-weight: 600; }
+
+  .warn-banner { margin: 16px 32px 0; background: var(--amber-light); border: 1px solid #f0d98a; border-left: 5px solid var(--amber); border-radius: var(--radius); padding: 14px 22px; font-size: 0.88rem; }
+  .warn-banner b { color: var(--amber); }
+
+  .tabs { display: flex; gap: 0; margin: 22px 32px 0; background: white; border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); overflow: hidden; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 120px; padding: 13px 8px; text-align: center; cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab:hover { background: var(--gray); color: var(--text); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); background: white; }
+  .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+  .tab-q { font-size: 0.68rem; color: var(--muted); font-weight: 500; display:block; }
+
+  .panel { display: none; background: white; margin: 0 32px 32px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); padding: 30px; }
+  .panel.active { display: block; }
+
+  .qhead { display:flex; align-items:flex-start; gap:14px; margin-bottom: 6px; }
+  .qnum { background: var(--blue); color: white; font-weight: 800; font-size: 1.05rem; min-width: 42px; height: 42px; border-radius: 10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .qtitle { font-size: 1.3rem; font-weight: 700; }
+  .qprompt { background: var(--gray); border-left: 4px solid var(--blue); border-radius: 8px; padding: 13px 18px; margin: 13px 0 20px; font-size: 0.9rem; }
+
+  h4.block { font-size: 1rem; font-weight: 700; margin: 24px 0 10px; display:flex; align-items:center; gap:8px; padding-bottom:6px; border-bottom: 2px solid var(--border); }
+
+  .diagram { background: #fafbfc; border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 12px 0; overflow-x: auto; }
+
+  .callout { border-radius: 10px; padding: 13px 18px; margin: 14px 0; font-size: 0.86rem; }
+  .callout-title { font-weight: 700; margin-bottom: 5px; display:flex; align-items:center; gap:7px; }
+  .gotcha { background: var(--red-light); border-left: 4px solid var(--red); }
+  .gotcha .callout-title { color: var(--red); }
+  .remember { background: var(--amber-light); border-left: 4px solid var(--amber); }
+  .remember .callout-title { color: var(--amber); }
+  .win { background: var(--green-light); border-left: 4px solid var(--green); }
+  .win .callout-title { color: var(--green); }
+  .callout ul { margin: 4px 0 0 18px; } .callout li { margin: 3px 0; }
+
+  table.cmp { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.83rem; }
+  table.cmp th { background: var(--blue-light); color: var(--blue); text-align: left; padding: 9px 12px; font-weight: 700; border: 1px solid var(--border); }
+  table.cmp td { padding: 9px 12px; border: 1px solid var(--border); vertical-align: top; }
+  table.cmp tr:nth-child(even) td { background: var(--gray); }
+  table.cmp td b { color: var(--primary-dark); }
+
+  code.inline { background: var(--purple-light); color: var(--purple); padding: 1px 6px; border-radius: 5px; font-size: 0.82em; font-family: 'SF Mono', Consolas, monospace; font-weight: 600; }
+  .lead { font-size: 0.88rem; color: var(--muted); margin-bottom: 10px; }
+  footer { text-align:center; color: var(--muted); font-size: 0.8rem; padding: 10px 0 36px; }
+  @media (max-width: 640px) {
+    .header, .panel { padding-left: 18px; padding-right: 18px; }
+    .strip, .warn-banner, .tabs, .panel { margin-left: 14px; margin-right: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <span class="paw">🏗️</span>
+    <h1>System Design — Event Email / Notification System</h1>
+  </div>
+  <p class="header-sub">60 min · Builds on the code-pair scenario. Design a system that <b>delivers relevant event emails/notifications to users at scale</b>. <b>You lead</b> after gathering requirements; the interviewer plays a <b>PM partner</b>. Frame everything as: how would a team of junior engineers build this? Focus on <b>trade-offs, business impact, metrics, reliability</b>.</p>
+  <div class="tags">
+    <span class="tag">✉️ Recommend → deliver notifications</span>
+    <span class="tag">📈 Functional + non-functional</span>
+    <span class="tag">🔁 Retries · idempotency · fallback</span>
+    <span class="tag">🚦 Ship safely: flags · backfill</span>
+  </div>
+</div>
+
+<div class="strip">
+  <div class="strip-item"><span class="strip-label">Cover (prep doc)</span><span class="strip-value">Clarify → architecture → tech justify → ops → ship safely</span></div>
+  <div class="strip-item"><span class="strip-label">Non-functional</span><span class="strip-value">Reliability · latency · cost · privacy</span></div>
+  <div class="strip-item"><span class="strip-label">They want</span><span class="strip-value">Tradeoffs + business impact + "is it working?" metrics</span></div>
+</div>
+
+<div class="warn-banner">
+  ⚠️ <b>The #1 reported failure mode:</b> recent candidates say the interviewer <b>pastes ~4 product requirements and scope balloons fast</b> — people lose track of <b>what's an existing service to call vs. what they must build</b>. <b>Pin scope hard in the first 5 min</b> and draw a box around "my system." Restate non-goals out loud.
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('q1')"><span class="tab-icon">📋</span>Q1 Requirements<span class="tab-q">Scope + scale math</span></div>
+  <div class="tab" onclick="showTab('q2')"><span class="tab-icon">🗺️</span>Q2 Architecture<span class="tab-q">High-level boxes</span></div>
+  <div class="tab" onclick="showTab('q3')"><span class="tab-icon">🎯</span>Q3 Recommendation<span class="tab-q">Relevance + fallback</span></div>
+  <div class="tab" onclick="showTab('q4')"><span class="tab-icon">📮</span>Q4 Delivery<span class="tab-q">Reliability + idempotency</span></div>
+  <div class="tab" onclick="showTab('q5')"><span class="tab-icon">📊</span>Q5 Scale &amp; Ops<span class="tab-q">Metrics · ship safely</span></div>
+</div>
+
+<!-- ======= Q1 ======= -->
+<div class="panel active" id="panel-q1">
+  <div class="qhead"><div class="qnum">Q1</div><div><div class="qtitle">Clarify requirements & size the system</div></div></div>
+  <div class="qprompt">Lead by gathering requirements. Establish <b>users, goals, success criteria, and non-goals</b> — then do quick scale math so every later decision has numbers behind it.</div>
+
+  <h4 class="block">🎯 Questions to ask the PM (out loud, first 5 min)</h4>
+  <table class="cmp">
+    <tr><th>Dimension</th><th>Ask</th></tr>
+    <tr><td><b>Trigger</b></td><td>Scheduled digest (daily/weekly) or event-driven (new event near you, price drop)? Both?</td></tr>
+    <tr><td><b>Channel</b></td><td>Email only, or push/SMS too? (Design for one, abstract the rest.)</td></tr>
+    <tr><td><b>Relevance</b></td><td>Reuse the code-pair logic (city, date, distance, price)? Is there an existing ML reco service I call, or do I build ranking?</td></tr>
+    <tr><td><b>Scale</b></td><td>How many users? Notifications/day? Peak (event on-sale spikes)?</td></tr>
+    <tr><td><b>SLA</b></td><td>How fresh? "New event" notification within minutes, or is next-day digest fine?</td></tr>
+    <tr><td><b>Non-goals</b></td><td>Am I building the email <em>renderer/ESP</em>, or calling SendGrid/SES? Building the ML model, or calling a reco API? <b>Draw the boundary.</b></td></tr>
+  </table>
+
+  <h4 class="block">🔢 Back-of-envelope (state assumptions, then derive)</h4>
+  <div class="diagram">
+    <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;font-family:monospace;font-size:12px">
+      <text x="10" y="22" font-weight="bold" fill="#1a1a2e" font-size="13">Assume: 50M users · 1 daily digest each</text>
+      <rect x="10" y="38" width="220" height="34" rx="5" fill="#e8f0fa" stroke="#2c6fad"/>
+      <text x="20" y="59" fill="#2c6fad">50M emails / day</text>
+      <text x="245" y="59" fill="#6b7280">≈ 580 / sec average</text>
+      <rect x="10" y="82" width="220" height="34" rx="5" fill="#fff1e6" stroke="#ff6b00"/>
+      <text x="20" y="103" fill="#cc4f00">Sent in a 4-hr window</text>
+      <text x="245" y="103" fill="#6b7280">≈ 3,500 / sec → design for ~10k/s peak</text>
+      <rect x="10" y="126" width="220" height="34" rx="5" fill="#f3f0ff" stroke="#6d28d9"/>
+      <text x="20" y="147" fill="#6d28d9">Reco compute</text>
+      <text x="245" y="147" fill="#6b7280">precompute offline, not per-send → cheap reads</text>
+      <text x="10" y="186" fill="#c0392b" font-weight="bold">Takeaway: read-heavy, batchable, spiky. Favors queues + precomputed recos + horizontal workers.</text>
+    </svg>
+  </div>
+
+  <div class="callout gotcha">
+    <div class="callout-title">⚠️ Gotchas</div>
+    <ul>
+      <li><b>Don't start drawing boxes before scope is pinned.</b> That's the documented trap. Confirm what you build vs. call.</li>
+      <li>Numbers should <b>drive decisions</b> — "10k/s peak, so I need a queue + N stateless workers," not trivia for its own sake.</li>
+      <li>Separate <b>functional</b> (filter → rank → send → don't double-send) from <b>non-functional</b> (reliability, latency, cost, privacy). The prep doc names all four NFRs — hit each.</li>
+    </ul>
+  </div>
+  <div class="callout remember">
+    <div class="callout-title">📌 Remember — success metrics (PM language)</div>
+    <ul>
+      <li>Tie design to <b>business impact</b>: delivery rate, open/click-through, conversion to ticket purchase, unsubscribe rate. "Is it working?" = these dashboards.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======= Q2 ======= -->
+<div class="panel" id="panel-q2">
+  <div class="qhead"><div class="qnum">Q2</div><div><div class="qtitle">High-level architecture</div></div></div>
+  <div class="qprompt">Draw core services, stores, queues, and integration points. Keep the pipeline legible: <b>trigger → select audience → recommend → render → deliver → track</b>. Decouple stages with queues so each scales independently.</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:sans-serif;font-size:11px">
+      <!-- triggers -->
+      <rect x="10" y="20" width="120" height="50" rx="6" fill="#fff1e6" stroke="#ff6b00"/>
+      <text x="70" y="40" text-anchor="middle" font-weight="bold" fill="#cc4f00">Scheduler</text>
+      <text x="70" y="56" text-anchor="middle" fill="#6b7280" font-size="10">daily digest cron</text>
+      <rect x="10" y="85" width="120" height="50" rx="6" fill="#fff1e6" stroke="#ff6b00"/>
+      <text x="70" y="105" text-anchor="middle" font-weight="bold" fill="#cc4f00">Event stream</text>
+      <text x="70" y="121" text-anchor="middle" fill="#6b7280" font-size="10">new event / price drop</text>
+
+      <!-- orchestrator -->
+      <rect x="175" y="50" width="120" height="56" rx="6" fill="#e8f0fa" stroke="#2c6fad"/>
+      <text x="235" y="74" text-anchor="middle" font-weight="bold" fill="#2c6fad">Notification</text>
+      <text x="235" y="90" text-anchor="middle" font-weight="bold" fill="#2c6fad">Orchestrator</text>
+
+      <!-- queue 1 -->
+      <rect x="335" y="52" width="70" height="52" rx="6" fill="#f3f0ff" stroke="#6d28d9"/>
+      <text x="370" y="74" text-anchor="middle" fill="#6d28d9" font-weight="bold">Kafka</text>
+      <text x="370" y="90" text-anchor="middle" fill="#6b7280" font-size="9">jobs</text>
+
+      <!-- reco worker -->
+      <rect x="445" y="20" width="130" height="56" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="510" y="42" text-anchor="middle" font-weight="bold" fill="#2d7a4f">Reco / Ranking</text>
+      <text x="510" y="58" text-anchor="middle" fill="#6b7280" font-size="10">filter + score (Q3)</text>
+
+      <!-- render worker -->
+      <rect x="445" y="86" width="130" height="50" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="510" y="107" text-anchor="middle" font-weight="bold" fill="#2d7a4f">Render + Dedup</text>
+      <text x="510" y="123" text-anchor="middle" fill="#6b7280" font-size="10">template, idempotency key</text>
+
+      <!-- queue 2 -->
+      <rect x="610" y="60" width="60" height="50" rx="6" fill="#f3f0ff" stroke="#6d28d9"/>
+      <text x="640" y="82" text-anchor="middle" fill="#6d28d9" font-weight="bold">Send</text>
+      <text x="640" y="96" text-anchor="middle" fill="#6b7280" font-size="9">queue</text>
+
+      <!-- ESP -->
+      <rect x="610" y="135" width="60" height="46" rx="6" fill="#fdecea" stroke="#c0392b"/>
+      <text x="640" y="156" text-anchor="middle" font-weight="bold" fill="#c0392b">ESP</text>
+      <text x="640" y="170" text-anchor="middle" fill="#6b7280" font-size="9">SES/SendGrid</text>
+
+      <!-- stores -->
+      <rect x="175" y="200" width="120" height="44" rx="6" fill="#fafbfc" stroke="#9ca3af"/>
+      <text x="235" y="221" text-anchor="middle" fill="#374151" font-weight="bold">User / Prefs DB</text>
+      <text x="235" y="236" text-anchor="middle" fill="#6b7280" font-size="9">opt-in, frequency caps</text>
+      <rect x="320" y="200" width="120" height="44" rx="6" fill="#fafbfc" stroke="#9ca3af"/>
+      <text x="380" y="221" text-anchor="middle" fill="#374151" font-weight="bold">Event catalog</text>
+      <text x="380" y="236" text-anchor="middle" fill="#6b7280" font-size="9">+ price API (Q4)</text>
+      <rect x="465" y="200" width="130" height="44" rx="6" fill="#fafbfc" stroke="#9ca3af"/>
+      <text x="530" y="221" text-anchor="middle" fill="#374151" font-weight="bold">Sent-log / dedup</text>
+      <text x="530" y="236" text-anchor="middle" fill="#6b7280" font-size="9">idempotency store</text>
+
+      <!-- tracking -->
+      <rect x="465" y="290" width="130" height="44" rx="6" fill="#e8f0fa" stroke="#2c6fad"/>
+      <text x="530" y="311" text-anchor="middle" fill="#2c6fad" font-weight="bold">Tracking / Events</text>
+      <text x="530" y="326" text-anchor="middle" fill="#6b7280" font-size="9">opens, clicks, bounces</text>
+      <rect x="610" y="290" width="60" height="44" rx="6" fill="#fef6e0" stroke="#b7791f"/>
+      <text x="640" y="311" text-anchor="middle" fill="#b7791f" font-weight="bold">Metrics</text>
+      <text x="640" y="326" text-anchor="middle" fill="#6b7280" font-size="9">dash+alert</text>
+
+      <!-- arrows -->
+      <g stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#a)">
+        <path d="M130 45 L175 65"/>
+        <path d="M130 110 L175 90"/>
+        <path d="M295 78 L335 78"/>
+        <path d="M405 70 L445 48"/>
+        <path d="M575 110 L610 110"/>
+        <path d="M640 110 L640 135"/>
+        <path d="M235 106 L235 200"/>
+        <path d="M530 181 L530 200" stroke-dasharray="4"/>
+        <path d="M640 181 L640 240 L595 312"/>
+        <path d="M595 312 L675 312"/>
+      </g>
+      <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9ca3af"/></marker></defs>
+    </svg>
+  </div>
+
+  <h4 class="block">🧩 Why this shape</h4>
+  <table class="cmp">
+    <tr><th>Decision</th><th>Why · trade-off</th></tr>
+    <tr><td><b>Queues between stages (Kafka)</b></td><td>Decouple producers from consumers; absorb spikes; replay on failure. Cost: ordering/exactly-once nuance → handle with idempotency, not strict ordering.</td></tr>
+    <tr><td><b>Stateless workers</b></td><td>Scale horizontally on queue depth. Any worker handles any job.</td></tr>
+    <tr><td><b>Precompute recos offline</b></td><td>Send-time reads are cheap; ranking isn't on the hot path. Trade-off: slight staleness — fine for digests.</td></tr>
+    <tr><td><b>Call ESP, don't build it</b></td><td>SES/SendGrid handle deliverability, SPF/DKIM, bounces. <b>Explicit non-goal</b> — say so.</td></tr>
+    <tr><td><b>Separate tracking pipeline</b></td><td>Opens/clicks via webhook → feeds metrics + future reco signal. Closes the "is it working?" loop.</td></tr>
+  </table>
+  <div class="callout remember">
+    <div class="callout-title">📌 Remember</div>
+    <ul><li>Narrate the <b>data flow</b> as a story: "a trigger fans out into per-user jobs on a queue; a reco worker attaches the best events; a render worker stamps an idempotency key; a sender hands off to the ESP; webhooks feed tracking." A clear narrative beats a busy diagram.</li></ul>
+  </div>
+</div>
+
+<!-- ======= Q3 ======= -->
+<div class="panel" id="panel-q3">
+  <div class="qhead"><div class="qnum">Q3</div><div><div class="qtitle">Relevance: recommendation + fallback</div></div></div>
+  <div class="qprompt">This is where the code-pair scenario plugs in. How do you pick <b>which events</b> go to <b>which user</b> — and what happens when personalized recos aren't available? <b>Fallback strategy</b> was explicitly probed in 2026 interviews.</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 740 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:740px;font-family:sans-serif;font-size:11px">
+      <rect x="10" y="90" width="110" height="48" rx="6" fill="#e8f0fa" stroke="#2c6fad"/>
+      <text x="65" y="111" text-anchor="middle" font-weight="bold" fill="#2c6fad">User profile</text>
+      <text x="65" y="126" text-anchor="middle" fill="#6b7280" font-size="9">city, history, prefs</text>
+
+      <rect x="160" y="20" width="150" height="44" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="235" y="40" text-anchor="middle" font-weight="bold" fill="#2d7a4f">1. Candidate gen</text>
+      <text x="235" y="55" text-anchor="middle" fill="#6b7280" font-size="9">filter: city/region, future</text>
+      <rect x="160" y="78" width="150" height="44" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="235" y="98" text-anchor="middle" font-weight="bold" fill="#2d7a4f">2. Score / rank</text>
+      <text x="235" y="113" text-anchor="middle" fill="#6b7280" font-size="9">distance+birthday+price+ML</text>
+      <rect x="160" y="136" width="150" height="44" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="235" y="156" text-anchor="middle" font-weight="bold" fill="#2d7a4f">3. Top-K + dedup</text>
+      <text x="235" y="171" text-anchor="middle" fill="#6b7280" font-size="9">exclude recently-sent</text>
+
+      <!-- fallback ladder -->
+      <rect x="370" y="20" width="160" height="160" rx="8" fill="#fef6e0" stroke="#b7791f" stroke-dasharray="5"/>
+      <text x="450" y="40" text-anchor="middle" font-weight="bold" fill="#b7791f">Fallback ladder</text>
+      <text x="380" y="62" fill="#374151">① personalized reco</text>
+      <text x="380" y="84" fill="#374151">② popular-in-your-city</text>
+      <text x="380" y="106" fill="#374151">③ trending nationally</text>
+      <text x="380" y="128" fill="#374151">④ editorial / curated</text>
+      <text x="380" y="156" fill="#c0392b" font-size="10">cold start &amp; reco-down</text>
+      <text x="380" y="170" fill="#c0392b" font-size="10">→ still send something good</text>
+
+      <rect x="580" y="78" width="150" height="44" rx="6" fill="#fff1e6" stroke="#ff6b00"/>
+      <text x="655" y="98" text-anchor="middle" font-weight="bold" fill="#cc4f00">Final list</text>
+      <text x="655" y="113" text-anchor="middle" fill="#6b7280" font-size="9">→ render → send</text>
+
+      <g stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#b)">
+        <path d="M120 110 L160 100"/>
+        <path d="M310 42 L325 42 L325 100 L160 100" stroke="none"/>
+        <path d="M310 100 L310 100"/>
+        <path d="M310 158 L370 110"/>
+        <path d="M530 100 L580 100"/>
+      </g>
+      <defs><marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9ca3af"/></marker></defs>
+    </svg>
+  </div>
+
+  <h4 class="block">🔌 Build vs. call</h4>
+  <p class="lead">Say it explicitly: candidate-gen + simple scoring (the code-pair logic) you can own; a heavy ML model is likely an <b>existing service you call</b>. Either way, wrap it behind an interface so the fallback ladder is uniform.</p>
+
+  <div class="callout gotcha">
+    <div class="callout-title">⚠️ Gotchas</div>
+    <ul>
+      <li><b>Cold start.</b> New user with no history → ladder drops to popular/trending. Never send an empty email.</li>
+      <li><b>Reco service down ≠ no email.</b> Circuit-break to the next ladder rung; degrade relevance, not delivery.</li>
+      <li><b>Frequency caps & dedup.</b> Don't re-send the same event; respect "max N emails/week." Lives in user prefs + sent-log.</li>
+      <li><b>Precompute vs. real-time.</b> Daily digest → precompute nightly. "New event near you" → must rank in near-real-time off the event stream. Different freshness, possibly different paths.</li>
+    </ul>
+  </div>
+  <div class="callout win">
+    <div class="callout-title">✅ Senior signal</div>
+    <ul><li>Tie relevance back to <b>metrics</b>: "I'd A/B test ranking variants and watch click-through + purchase conversion, not just opens." Feeding tracking events back as future ranking features closes the loop.</li></ul>
+  </div>
+</div>
+
+<!-- ======= Q4 ======= -->
+<div class="panel" id="panel-q4">
+  <div class="qhead"><div class="qnum">Q4</div><div><div class="qtitle">Reliable delivery: idempotency, retries, failure</div></div></div>
+  <div class="qprompt">The reliability core. Guarantee <b>at-least-once delivery without double-sending</b>, handle ESP failures, and isolate poison messages. This mirrors the code-pair API rubric at system scale.</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 740 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:740px;font-family:sans-serif;font-size:11px">
+      <rect x="10" y="100" width="90" height="46" rx="6" fill="#f3f0ff" stroke="#6d28d9"/>
+      <text x="55" y="121" text-anchor="middle" fill="#6d28d9" font-weight="bold">Send queue</text>
+      <text x="55" y="136" text-anchor="middle" fill="#6b7280" font-size="9">job + idemp key</text>
+
+      <rect x="140" y="98" width="120" height="50" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="200" y="119" text-anchor="middle" font-weight="bold" fill="#2d7a4f">Sender worker</text>
+      <text x="200" y="134" text-anchor="middle" fill="#6b7280" font-size="9">check sent-log first</text>
+
+      <rect x="300" y="40" width="130" height="44" rx="6" fill="#fafbfc" stroke="#9ca3af"/>
+      <text x="365" y="60" text-anchor="middle" font-weight="bold" fill="#374151">Sent-log (KV)</text>
+      <text x="365" y="75" text-anchor="middle" fill="#6b7280" font-size="9">key = user+digest+date</text>
+
+      <rect x="300" y="100" width="130" height="46" rx="6" fill="#fdecea" stroke="#c0392b"/>
+      <text x="365" y="121" text-anchor="middle" font-weight="bold" fill="#c0392b">ESP</text>
+      <text x="365" y="136" text-anchor="middle" fill="#6b7280" font-size="9">timeout + retry/backoff</text>
+
+      <rect x="470" y="40" width="120" height="46" rx="6" fill="#fff1e6" stroke="#ff6b00"/>
+      <text x="530" y="60" text-anchor="middle" font-weight="bold" fill="#cc4f00">Success</text>
+      <text x="530" y="75" text-anchor="middle" fill="#6b7280" font-size="9">mark sent, ack</text>
+
+      <rect x="470" y="110" width="120" height="46" rx="6" fill="#fef6e0" stroke="#b7791f"/>
+      <text x="530" y="131" text-anchor="middle" font-weight="bold" fill="#b7791f">Retry (transient)</text>
+      <text x="530" y="146" text-anchor="middle" fill="#6b7280" font-size="9">requeue w/ backoff</text>
+
+      <rect x="470" y="180" width="120" height="46" rx="6" fill="#fdecea" stroke="#c0392b"/>
+      <text x="530" y="201" text-anchor="middle" font-weight="bold" fill="#c0392b">DLQ</text>
+      <text x="530" y="216" text-anchor="middle" fill="#6b7280" font-size="9">poison msg, alert</text>
+
+      <g stroke="#9ca3af" stroke-width="1.5" fill="none" marker-end="url(#c)">
+        <path d="M100 123 L140 123"/>
+        <path d="M260 110 L300 70"/>
+        <path d="M260 123 L300 123"/>
+        <path d="M430 115 L470 70"/>
+        <path d="M430 128 L470 130"/>
+        <path d="M530 156 L530 180"/>
+      </g>
+      <defs><marker id="c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9ca3af"/></marker></defs>
+      <text x="610" y="128" fill="#c0392b" font-size="10">after N retries →</text>
+    </svg>
+  </div>
+
+  <h4 class="block">🔑 The idempotency story (say this clearly)</h4>
+  <table class="cmp">
+    <tr><th>Concern</th><th>Mechanism</th></tr>
+    <tr><td><b>No double-send</b></td><td>Deterministic key <code class="inline">userId + campaign + date</code>. Worker checks sent-log before calling ESP; conditional write (<code class="inline">putIfAbsent</code>) wins the race.</td></tr>
+    <tr><td><b>At-least-once</b></td><td>Queue redelivers on no-ack (worker crash). Idempotency makes redelivery safe → effectively exactly-once <em>effect</em>.</td></tr>
+    <tr><td><b>Transient failure</b></td><td>ESP timeout/5xx → retry with exponential backoff + jitter, capped attempts.</td></tr>
+    <tr><td><b>Permanent failure</b></td><td>Hard bounce / invalid address / repeated failure → <b>Dead Letter Queue</b>, alert, don't retry forever.</td></tr>
+    <tr><td><b>Ordering</b></td><td>Mostly don't need it for notifications — lean on idempotency instead of strict ordering (simpler, scales better).</td></tr>
+  </table>
+
+  <div class="callout gotcha">
+    <div class="callout-title">⚠️ Gotchas</div>
+    <ul>
+      <li><b>The classic race:</b> worker sends, crashes <em>before</em> marking sent → redelivery double-sends. Fix: write the idempotency record <em>conditionally</em>, and/or mark "in-flight" before the ESP call.</li>
+      <li><b>Retry only transient errors.</b> Retrying a hard bounce wastes quota and can hurt sender reputation.</li>
+      <li><b>Poison messages</b> (a job that always fails) will jam a queue — route to DLQ after N attempts so the pipeline keeps flowing.</li>
+      <li><b>Respect unsubscribe instantly</b> — checked at send time, never cached stale. A wrongful send is a compliance issue.</li>
+    </ul>
+  </div>
+  <div class="callout remember">
+    <div class="callout-title">📌 Remember — privacy (a named NFR)</div>
+    <ul><li>PII (email, location) encrypted at rest + in transit; honor opt-out / CAN-SPAM / GDPR; minimize PII in logs and queue payloads (pass IDs, hydrate late).</li></ul>
+  </div>
+</div>
+
+<!-- ======= Q5 ======= -->
+<div class="panel" id="panel-q5">
+  <div class="qhead"><div class="qnum">Q5</div><div><div class="qtitle">Scale, observability & shipping safely</div></div></div>
+  <div class="qprompt">Close strong on operations: scaling strategy, the metrics that answer <b>"is it working?"</b>, and a <b>safe rollout</b> (flags, backfill, instrumentation) — all named in the prep doc.</div>
+
+  <h4 class="block">📈 Scaling strategy</h4>
+  <table class="cmp">
+    <tr><th>Lever</th><th>How</th></tr>
+    <tr><td><b>Workers</b></td><td>Stateless; autoscale on queue depth / lag. Peak ~10k/s handled by adding consumers.</td></tr>
+    <tr><td><b>Fan-out</b></td><td>One trigger → millions of per-user jobs. Partition the queue by userId for parallelism + even spread.</td></tr>
+    <tr><td><b>Hot data</b></td><td>Cache user prefs + precomputed recos (Redis). Sent-log in a fast KV store with TTL.</td></tr>
+    <tr><td><b>ESP limits</b></td><td>Rate-limit toward the ESP (token bucket) to respect provider quotas; smooth the burst.</td></tr>
+    <tr><td><b>Cost</b></td><td>Precompute offline (cheap batch) vs. real-time only where freshness demands. Batch ESP calls if supported.</td></tr>
+  </table>
+
+  <h4 class="block">📊 Observability — "is it working?"</h4>
+  <div class="diagram">
+    <svg viewBox="0 0 740 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:740px;font-family:sans-serif;font-size:11px">
+      <rect x="10" y="40" width="150" height="50" rx="6" fill="#e8f5ee" stroke="#2d7a4f"/>
+      <text x="85" y="60" text-anchor="middle" font-weight="bold" fill="#2d7a4f">System health</text>
+      <text x="85" y="76" text-anchor="middle" fill="#6b7280" font-size="9">queue lag · error rate · p99</text>
+      <rect x="185" y="40" width="160" height="50" rx="6" fill="#e8f0fa" stroke="#2c6fad"/>
+      <text x="265" y="60" text-anchor="middle" font-weight="bold" fill="#2c6fad">Delivery funnel</text>
+      <text x="265" y="76" text-anchor="middle" fill="#6b7280" font-size="9">sent→delivered→bounce</text>
+      <rect x="370" y="40" width="160" height="50" rx="6" fill="#fff1e6" stroke="#ff6b00"/>
+      <text x="450" y="60" text-anchor="middle" font-weight="bold" fill="#cc4f00">Engagement</text>
+      <text x="450" y="76" text-anchor="middle" fill="#6b7280" font-size="9">open · click · unsub</text>
+      <rect x="555" y="40" width="175" height="50" rx="6" fill="#f3f0ff" stroke="#6d28d9"/>
+      <text x="642" y="60" text-anchor="middle" font-weight="bold" fill="#6d28d9">Business</text>
+      <text x="642" y="76" text-anchor="middle" fill="#6b7280" font-size="9">conversion to purchase</text>
+      <text x="10" y="118" fill="#c0392b" font-weight="bold">Alert on: delivery-rate drop, bounce spike, queue lag, reco-fallback rate climbing.</text>
+    </svg>
+  </div>
+
+  <h4 class="block">🚦 Ship safely</h4>
+  <table class="cmp">
+    <tr><th>Step</th><th>Detail</th></tr>
+    <tr><td><b>Feature flags</b></td><td>Roll out to 1% → 10% → 100%. Kill switch per channel/campaign.</td></tr>
+    <tr><td><b>Shadow / dry-run</b></td><td>Run reco + render, log what <em>would</em> send before actually sending — catches bad templates.</td></tr>
+    <tr><td><b>Backfill / migration</b></td><td>For existing users, backfill prefs/recos in batches with rate control; idempotency makes reruns safe.</td></tr>
+    <tr><td><b>Instrumentation first</b></td><td>Ship metrics + dashboards <em>before</em> the feature so you can prove it's working day one.</td></tr>
+  </table>
+
+  <div class="callout win">
+    <div class="callout-title">✅ Strong close (last 2 min)</div>
+    <ul>
+      <li>Summarize the 3 hardest trade-offs you made (precompute vs. real-time · at-least-once + idempotency vs. exactly-once · build ranking vs. call reco service).</li>
+      <li>Name what you'd do <b>next with more time</b>: multi-channel abstraction, ML ranking with the tracking feedback loop, regional sharding for latency/privacy.</li>
+    </ul>
+  </div>
+  <div class="callout remember">
+    <div class="callout-title">📌 Remember — the framing they grade</div>
+    <ul>
+      <li><b>You lead, PM guides pacing.</b> Drive the structure but check in: "Does this scope match what you had in mind?"</li>
+      <li>Explain it so <b>junior engineers could build it</b> — clear contracts, named components, obvious ownership.</li>
+      <li>Every choice = a <b>trade-off + business impact</b> sentence, not just a technology name.</li>
+    </ul>
+  </div>
+</div>
+
+<footer>Built for Karthik's StubHub System Design · diagram-first · sourced from 2026 candidate reports + the official SIM prep doc · NFRs: reliability · latency · cost · privacy</footer>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    event.currentTarget.classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+</script>
+</body>
+</html>

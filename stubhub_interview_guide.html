@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StubHub Interview Guide — Senior SWE, Supply</title>
+<style>
+  :root {
+    --primary: #ff6b00;
+    --primary-dark: #cc4f00;
+    --primary-light: #fff1e6;
+    --primary-mid: #ff8a3d;
+    --orange: #e07b39;
+    --blue: #2c6fad;
+    --blue-light: #e8f0fa;
+    --orange-light: #fef3ec;
+    --purple: #6d28d9;
+    --purple-light: #f3f0ff;
+    --purple-mid: #8b5cf6;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #b34700 0%, #e85d00 55%, #ff8a3d 100%);
+    color: white; padding: 36px 40px 30px;
+  }
+  .header-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .paw { font-size: 2.2rem; }
+  .header h1 { font-size: 1.9rem; font-weight: 700; }
+  .header-sub { font-size: 0.95rem; opacity: 0.9; margin-bottom: 16px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  /* Company snapshot */
+  .snapshot { background: white; margin: 24px 32px 0; border-radius: var(--radius); padding: 22px 28px; box-shadow: var(--shadow); display: flex; gap: 32px; flex-wrap: wrap; }
+  .snap-item { display: flex; flex-direction: column; gap: 2px; }
+  .snap-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .snap-value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+
+  /* Sources bar */
+  .sources-bar { margin: 16px 32px 0; background: white; border-radius: var(--radius); padding: 14px 22px; box-shadow: var(--shadow); }
+  .sources-bar h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .source-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .source-link { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 13px; font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+  .source-link:hover { background: var(--blue-light); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+  .dot-orange { background: var(--orange); }
+
+  /* Nav tabs */
+  .tabs { display: flex; gap: 0; margin: 22px 32px 0; background: white; border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); overflow: hidden; border-bottom: 2px solid var(--border); }
+  .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab:hover { background: var(--gray); color: var(--text); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); background: white; }
+  .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+
+  /* Content panels */
+  .panel { display: none; background: white; margin: 0 32px 32px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .panel.active { display: block; }
+
+  /* Section headings */
+  .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .section-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Process flow */
+  .process { display: flex; gap: 0; margin-bottom: 28px; flex-wrap: wrap; }
+  .process-step { flex: 1; min-width: 140px; background: var(--primary-light); border-radius: 10px; padding: 14px; text-align: center; position: relative; }
+  .process-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.2rem; font-weight: bold; }
+  .step-num { background: var(--primary); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .step-title { font-size: 0.8rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 3px; }
+  .step-detail { font-size: 0.72rem; color: #7a4d2b; }
+
+  /* Cards grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-icon { font-size: 1.3rem; }
+  .card-title { font-size: 0.9rem; font-weight: 700; }
+  .card p, .card li { font-size: 0.85rem; line-height: 1.6; color: #374151; }
+  .card ul { padding-left: 16px; }
+  .card li { margin-bottom: 4px; }
+
+  /* Example questions */
+  .q-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .q-item { background: var(--gray); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--primary); }
+  .q-item.orange { border-left-color: var(--orange); }
+  .q-item.blue { border-left-color: var(--blue); }
+  .q-item.purple { border-left-color: var(--purple); }
+  .q-item.green { border-left-color: var(--green); }
+  .q-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .q-text { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .q-tip { font-size: 0.8rem; color: #4b5563; line-height: 1.5; }
+
+  /* STAR box */
+  .star-box { background: linear-gradient(135deg, #fff7f0, #ffe9d4); border: 1px solid #ffc999; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .star-box h3 { font-size: 0.92rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 12px; }
+  .star-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .star-cell { background: white; border-radius: 8px; padding: 10px 14px; }
+  .star-letter { font-size: 1.4rem; font-weight: 800; color: var(--primary); line-height: 1; }
+  .star-word { font-size: 0.75rem; font-weight: 600; color: var(--primary-mid); margin-bottom: 4px; }
+  .star-desc { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Tips */
+  .tips { background: var(--orange-light); border: 1px solid #f5c6a0; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .tips h3 { font-size: 0.85rem; font-weight: 700; color: var(--orange); margin-bottom: 10px; }
+  .tips ul { padding-left: 18px; }
+  .tips li { font-size: 0.83rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+
+  .info-box { background: var(--blue-light); border: 1px solid #b3cde8; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .info-box h3 { font-size: 0.85rem; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .info-box p, .info-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .info-box ul { padding-left: 18px; }
+
+  .warn-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .warn-box h3 { font-size: 0.85rem; font-weight: 700; color: #b91c1c; margin-bottom: 8px; }
+  .warn-box p, .warn-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .warn-box ul { padding-left: 18px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+  /* Priority badge */
+  .priority { display: inline-block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 20px; font-size: 0.72rem; font-weight: 700; padding: 2px 10px; margin-left: 8px; }
+  .priority.med { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+  .priority.low { background: var(--blue-light); color: var(--blue); border-color: #bfdbfe; }
+
+  /* Role compare */
+  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .role-card { border-radius: 10px; padding: 16px 18px; }
+  .role-card.a { background: #fff1e6; border: 1px solid #ffc999; }
+  .role-card.b { background: #e8f0fa; border: 1px solid #b3cde8; }
+  .role-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; }
+  .role-card.a h4 { color: var(--primary-dark); }
+  .role-card.b h4 { color: var(--blue); }
+  .role-card .role-loc { font-size: 0.74rem; color: var(--muted); margin-bottom: 8px; }
+  .role-card p, .role-card li { font-size: 0.82rem; color: #374151; line-height: 1.55; }
+  .role-card ul { padding-left: 16px; margin-top: 6px; }
+  .role-card li { margin-bottom: 3px; }
+
+  @media (max-width: 680px) {
+    .role-grid { grid-template-columns: 1fr; }
+    .snapshot, .tabs, .panel, .sources-bar { margin-left: 12px; margin-right: 12px; }
+    .header { padding: 24px 18px 20px; }
+    .star-grid { grid-template-columns: 1fr; }
+    .process { flex-direction: column; gap: 8px; }
+    .process-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -14px; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="paw">🎟️</span>
+    <h1>StubHub Interview Guide</h1>
+  </div>
+  <p class="header-sub">Senior Software Engineer — Supply Integrations / Supply Core (Fullstack) · Sourced from Glassdoor, Blind, InterviewQuery, LinkJob & Greenhouse · May 2026</p>
+  <div class="tags">
+    <span class="tag">🎫 Live Event Ticket Marketplace</span>
+    <span class="tag">🏙️ HQ: NY · Aliso Viejo · Seattle</span>
+    <span class="tag">🌍 195 countries · 300M+ tickets/yr</span>
+    <span class="tag">💰 $200K–$250K base</span>
+    <span class="tag">📅 ~25% pass rate</span>
+  </div>
+</div>
+
+<!-- Sources -->
+<div class="sources-bar">
+  <h3>📚 Reliable Sources Checked</h3>
+  <div class="source-links">
+    <a class="source-link" href="https://www.glassdoor.com/Interview/StubHub-Software-Engineer-Interview-Questions-EI_IE21959.0,7_KO8,25.htm" target="_blank"><span class="dot dot-green"></span>Glassdoor Interviews</a>
+    <a class="source-link" href="https://www.interviewquery.com/interview-guides/stubhub-software-engineer" target="_blank"><span class="dot dot-blue"></span>InterviewQuery</a>
+    <a class="source-link" href="https://www.linkjob.ai/interview-questions/stubhub-software-engineer-interview/" target="_blank"><span class="dot dot-blue"></span>LinkJob 2026 Writeup</a>
+    <a class="source-link" href="https://www.teamblind.com/post/stubhub-software-engineer-interview-p3uprits" target="_blank"><span class="dot dot-orange"></span>Blind Discussions</a>
+    <a class="source-link" href="https://prepfully.com/interview-questions/stubhub/software-engineer" target="_blank"><span class="dot dot-orange"></span>Prepfully</a>
+    <a class="source-link" href="https://job-boards.eu.greenhouse.io/stubhubinc" target="_blank"><span class="dot dot-green"></span>StubHub Careers (Greenhouse)</a>
+  </div>
+</div>
+
+<!-- Company snapshot -->
+<div class="snapshot">
+  <div class="snap-item"><span class="snap-label">What they do</span><span class="snap-value">World's leading ticket resale marketplace (StubHub + viagogo)</span></div>
+  <div class="snap-item"><span class="snap-label">Tech Stack</span><span class="snap-value">Java, C#, React, distributed systems, AWS</span></div>
+  <div class="snap-item"><span class="snap-label">Org You're Joining</span><span class="snap-value">Engineering / Enterprise Engineering / Supply Engineering</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Difficulty</span><span class="snap-value">Medium · ~25% pass rate</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Style</span><span class="snap-value">OOD/implementation > LeetCode tricks · business-impact framing</span></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')"><span class="tab-icon">🗺️</span>Process Overview</div>
+  <div class="tab" onclick="showTab('recruiter')"><span class="tab-icon">📞</span>Recruiter Call <span class="priority">In 20 min!</span></div>
+  <div class="tab" onclick="showTab('behavioral')"><span class="tab-icon">💬</span>Behavioral</div>
+  <div class="tab" onclick="showTab('coding')"><span class="tab-icon">💻</span>Coding</div>
+  <div class="tab" onclick="showTab('design')"><span class="tab-icon">🏗️</span>System Design</div>
+</div>
+
+<!-- OVERVIEW PANEL -->
+<div class="panel active" id="panel-overview">
+  <div class="section-title">🗺️ Full Interview Process at StubHub</div>
+  <p class="section-desc">Six-stage process for Senior SWE roles, confirmed across multiple 2025–2026 candidate writeups (LinkJob, Blind, Glassdoor Feb 2026). The cadence is typically one round per week. Note: communication can be inconsistent — Blind reports of recruiters forgetting calls or going silent are common, so push for clear scheduling.</p>
+
+  <div class="process">
+    <div class="process-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Recruiter Screen</div>
+      <div class="step-detail">~30 min. Background, tech fit, level alignment.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Online Assessment</div>
+      <div class="step-detail">Codility · 1 Q · 60–70 min · LeetCode medium</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Hiring Manager</div>
+      <div class="step-detail">~45–60 min. Project deep dive, business framing.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Pair Coding</div>
+      <div class="step-detail">60–90 min. Build a small system, incremental follow-ups.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">5</div>
+      <div class="step-title">System Design</div>
+      <div class="step-detail">60 min. Notifications/recs scale design.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">6</div>
+      <div class="step-title">Director / Behavioral</div>
+      <div class="step-detail">Intense, interruption-heavy, business-driven.</div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">🎯 The Two Roles You Applied For</div>
+  <div class="role-grid">
+    <div class="role-card a">
+      <h4>🟠 Sr SWE — Supply Integrations</h4>
+      <div class="role-loc">Seattle, WA · Hybrid (3 in / 2 remote) · $200K–$250K</div>
+      <p><strong>Backend-focused.</strong> Build enterprise-grade, high-throughput systems for large-ticket sellers. Focus on automation, APIs that move inventory at marketplace speed, and integrating external seller systems.</p>
+      <ul>
+        <li>5–6+ yrs, Java/C# strong preference</li>
+        <li>Distributed systems, databases, data processing</li>
+        <li>Integration & API design — partner-facing</li>
+        <li>No React requirement listed (backend role)</li>
+      </ul>
+    </div>
+    <div class="role-card b">
+      <h4>🔵 Sr SWE — Supply Core (Fullstack)</h4>
+      <div class="role-loc">Aliso Viejo, CA / NY / Seattle · Hybrid · $200K–$250K</div>
+      <p><strong>Fullstack.</strong> Same team mission (seller inventory lifecycle), but spans frontend + backend. Core seller UIs for managing tickets, paired with backend services and large dynamic datasets.</p>
+      <ul>
+        <li>5–6+ yrs, Java/C# + <strong>2+ yrs React</strong></li>
+        <li>Both backend services AND user-facing UI</li>
+        <li>Seller workflow / inventory management UX</li>
+        <li>Frontend round may appear in panel</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎫</span><span class="card-title">About StubHub</span></div>
+      <p>StubHub is the world's largest secondary ticket marketplace, with 300M+ tickets/year across 195 countries. Two-sided marketplace: buyers (fans) and sellers (individuals + pro brokers). The Supply org you're joining serves <em>sellers</em> — making it effortless to onboard, list, and manage inventory through APIs and automation. Recent focus: scale, data migration, international expansion via viagogo.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">What StubHub Looks For</span></div>
+      <ul>
+        <li><strong>Business framing first</strong> — every answer ties to impact, $, or users</li>
+        <li>Clean, readable implementation > clever tricks</li>
+        <li>OOD chops (strategy pattern, extensibility)</li>
+        <li>Sound commercial judgment (not just technical)</li>
+        <li>Distributed systems literacy at scale</li>
+        <li>Mentorship & ownership end-to-end</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">Recruiter Notes (Blind / Glassdoor)</span></div>
+      <ul>
+        <li>Communication can be inconsistent — sometimes 2+ wks between rounds</li>
+        <li>Recruiter has been known to dive into project details, not just logistics — be ready</li>
+        <li>HM mentioned in email may differ from actual interviewer</li>
+        <li>Push politely for next-step clarity at end of every call</li>
+        <li>Director round is notably tougher than rest — pressure-tests thinking</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>💡 Cross-Cutting Theme (most important)</h3>
+    <p>Across all 6 rounds, the strongest signal from 2026 candidate writeups: <strong>StubHub interviewers reward business-impact framing over pure technical depth.</strong> Don't just say what you built — say what problem it solved, why the business cared, what changed measurably. If you describe architecture without the "why this matters" layer, your answer reads as incomplete even if technically correct.</p>
+  </div>
+</div>
+
+<!-- RECRUITER PANEL -->
+<div class="panel" id="panel-recruiter">
+  <div class="section-title">📞 Recruiter Call <span class="priority">Your Round in 20 Min</span></div>
+  <p class="section-desc">A ~30-minute conversation. Mostly logistics + fit, but at StubHub the recruiter sometimes goes deeper than expected — there are Blind reports of recruiters asking candidates to walk through a project in detail. <strong>Treat this as a mini hiring-manager screen, not just paperwork.</strong></p>
+
+  <div class="warn-box">
+    <h3>🚨 Critical Warning (from a 2025 Blind post)</h3>
+    <p>One candidate reported being asked to walk through a project they fully owned for 15+ minutes on the recruiter call — and was rejected because the answer wasn't crisp. <strong>Have ONE project ready to talk through in 2 min, 5 min, and 15 min versions.</strong> Lead with the business problem, then the technical decision, then your specific contribution and the measurable result.</p>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 What They'll Almost Certainly Ask</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">⭐ Opening Question</div>
+      <div class="q-text">"Tell me about yourself and what drew you to StubHub."</div>
+      <div class="q-tip">💡 Keep it tight (90 seconds): current role → relevant scope (distributed systems / marketplace / scale) → why StubHub specifically. Mention you applied to <strong>both Supply Integrations and Supply Core</strong> — frame it as genuine interest in the Supply org's mission of automating seller inventory at scale, not "I'll take whatever."</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🎯 Why StubHub / Why This Team</div>
+      <div class="q-text">"Why are you interested in the Supply team specifically?"</div>
+      <div class="q-tip">💡 Strong answer hooks: (1) Two-sided marketplaces are hard — supply-side problems compound with demand-side spikes. (2) The Supply team's stated mission is "simplify life for large-ticket sellers via automation and APIs" — that's classic platform engineering work. (3) StubHub operates at real scale: 300M+ tickets, 195 countries, peak event spikes. Reference the actual JD language back at them.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">📖 Project Walkthrough <span class="priority med">High likelihood</span></div>
+      <div class="q-text">"Walk me through a project you fully owned end-to-end."</div>
+      <div class="q-tip">💡 Pick a project that mirrors Supply work: distributed system, API integration, high-throughput data, or seller/partner-facing tooling. Structure: <strong>Problem (with business stakes) → Your specific role → Key technical decision + tradeoff → Result (numbers if possible).</strong> Avoid "we did X" — say "I decided X."</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🛠️ Tech Stack Alignment</div>
+      <div class="q-text">"What's your experience with Java / C# / distributed systems?"</div>
+      <div class="q-tip">💡 Both JDs explicitly call out <strong>Java and C#</strong> as primary languages. For Supply Core also: <strong>React 2+ years</strong>. Be honest about depth in each — they're trying to confirm you can ramp without 3 months of language learning. If you're stronger in one, say so and explain the related transferable experience.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">📍 Logistics</div>
+      <div class="q-text">"Are you ok with hybrid 3 days/week in Seattle (or Aliso Viejo / NY for Supply Core)?"</div>
+      <div class="q-tip">💡 You're in Spokane — Seattle hybrid means relocation or a tough weekly commute. Be ready with a clear answer. If you're willing to relocate, say so clearly with a timeline. If you'd negotiate, frame as "let's discuss what flexibility looks like" rather than pushing back hard on the first call.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">💰 Compensation Expectations</div>
+      <div class="q-text">"What are you looking for compensation-wise?"</div>
+      <div class="q-tip">💡 Published band is <strong>$200K–$250K base + equity + 401k + benefits</strong>. Safe answer: "I'm looking for total comp in line with senior level at companies of StubHub's scale — base in your published range plus equity sounds reasonable, but I'd like to learn more about the role before committing to a number." Don't anchor low.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🕒 Timeline & Other Process</div>
+      <div class="q-text">"Are you interviewing elsewhere? What's your timeline?"</div>
+      <div class="q-tip">💡 Honesty + light urgency works best. "I'm in process with [vague: a few other companies], and I'm looking to make a decision in the next 4–6 weeks. StubHub is high on my list because [specific Supply reason]." Creates polite pressure without sounding desperate.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:12px;">🎤 Your 30-Second Opener (Practice Now)</div>
+
+  <div class="info-box">
+    <h3>📝 Template — Customize for Yourself</h3>
+    <p>"Thanks for taking the time. Quick context on me — I'm a senior software engineer with [X] years building [marketplace / distributed systems / fullstack platforms]. Most recently I [one impressive sentence about your biggest project]. I applied to StubHub because the Supply org's mission of simplifying inventory for large sellers via automation and APIs is exactly the kind of high-throughput platform work I want to go deeper on. I'm interested in both the Supply Integrations and Supply Core roles — happy to discuss which fits best."</p>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Do's and Don'ts for the Next 20 Minutes</h3>
+    <ul>
+      <li><strong>Do:</strong> Have a glass of water, your resume, the two JDs, and a notes page open</li>
+      <li><strong>Do:</strong> Smile when you start — your voice changes. Recruiters notice energy</li>
+      <li><strong>Do:</strong> Use the recruiter's name once or twice; mirror their pace</li>
+      <li><strong>Do:</strong> Ask "What does your timeline look like for this role?" before you end the call</li>
+      <li><strong>Don't:</strong> Volunteer salary expectations first — let them name the band, then react</li>
+      <li><strong>Don't:</strong> Trash-talk current/past employers — even subtly. Recruiters relay this</li>
+      <li><strong>Don't:</strong> Say "I'm flexible" on location without thinking — be specific</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask the Recruiter</div>
+  <p class="section-desc">Recruiters love thoughtful questions — they signal you're serious and they need this info to sell you to the team.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · The Role Itself</div>
+      <div class="q-text">"Between Supply Integrations and Supply Core (Fullstack), which one has more urgency right now, and what would the deciding factor be in steering me toward one?"</div>
+      <div class="q-tip">💡 Shows you're thinking strategically about fit, not just collecting any offer. Also surfaces useful intel about team needs.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · The Team</div>
+      <div class="q-text">"Can you tell me about the hiring manager and the team I'd be joining — what kind of engineer thrives there?"</div>
+      <div class="q-tip">💡 Standard but valuable. Recruiter's answer tells you what to emphasize in the HM round.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Process Specifics</div>
+      <div class="q-text">"What does the rest of the interview loop look like, and is there anything specific I should prepare for the coding or system design rounds?"</div>
+      <div class="q-tip">💡 Recruiters often give away the system design topic or coding format if you ask directly. Worth trying.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Hybrid Reality</div>
+      <div class="q-text">"How strict is the 3-days-in-office policy in practice, and is there flexibility on the location split between Seattle / Aliso Viejo / NY for the Supply Core role?"</div>
+      <div class="q-tip">💡 Critical for you given Spokane. Better to surface this Day 1 than after onsite.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Timeline & Next Steps</div>
+      <div class="q-text">"What's your target timeline to fill these roles, and when would I hear back about next steps?"</div>
+      <div class="q-tip">💡 Sets a clear expectation. StubHub recruiters have a reputation for slow follow-ups — anchor a date now so you can politely check in later.</div>
+    </div>
+  </div>
+</div>
+
+<!-- BEHAVIORAL PANEL -->
+<div class="panel" id="panel-behavioral">
+  <div class="section-title">💬 Behavioral / Director Round</div>
+  <p class="section-desc">The final round at StubHub is typically with a <strong>Director</strong> and is described in 2026 candidate writeups as "intense" — frequent interruptions, alternative-solution challenges, business-strategy questions, and even "propose a new idea and explain how it'd make money." This is NOT a soft round.</p>
+
+  <div class="star-box">
+    <h3>📐 Use STAR — But With a Business Layer at the Top</h3>
+    <div class="star-grid">
+      <div class="star-cell">
+        <div class="star-letter">S</div>
+        <div class="star-word">SITUATION</div>
+        <div class="star-desc">Set the scene briefly — including the <em>business stakes</em>, not just technical context.</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">T</div>
+        <div class="star-word">TASK</div>
+        <div class="star-desc">What were YOU specifically responsible for? What was the desired outcome?</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">A</div>
+        <div class="star-word">ACTION</div>
+        <div class="star-desc">Decisions YOU made — including tradeoffs and alternatives you rejected and why.</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">R</div>
+        <div class="star-word">RESULT</div>
+        <div class="star-desc">Measurable outcome — $ saved, latency cut, users impacted. Numbers matter.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from LinkJob 2026 + Glassdoor)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">📖 Project Deep Dive (Almost Guaranteed)</div>
+      <div class="q-text">"Walk me through one of your projects. What problem were you solving and why did the business care?"</div>
+      <div class="q-tip">💡 Be ready for interruptions. Don't get flustered when they cut in. Expect "Why didn't you do X?" or "Did you consider caching?" — sometimes the suggestion won't fit your context, but answer it seriously anyway, then defend your choice.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">⚡ Conflict / Disagreement</div>
+      <div class="q-text">"Tell me about a time you disagreed with a teammate or manager on a technical approach."</div>
+      <div class="q-tip">💡 Show structured disagreement: understood their view, presented data, found common ground or escalated cleanly. Avoid "I was right and they were wrong" framing.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">💼 Business Impact</div>
+      <div class="q-text">"What business value did your work bring? How would you have monetized or scaled it further?"</div>
+      <div class="q-tip">💡 This is the StubHub-defining question. Have one project where you can tie engineering decisions to revenue, retention, or cost saved. Practice the "if we'd had more time, here's how I'd extend it" angle.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🌱 Failure & Learning</div>
+      <div class="q-text">"Tell me about a time something you built failed or didn't deliver expected results."</div>
+      <div class="q-tip">💡 Pick a real failure with a real lesson. Show ownership, not blame. End with what you'd do differently and what you've applied since.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">💡 Open-Ended Idea</div>
+      <div class="q-text">"Pitch me a new idea — something StubHub could build — and explain how you'd make it successful."</div>
+      <div class="q-tip">💡 Reported by 2026 candidate. Prep ONE pitch in advance: a Supply-side idea (e.g., "AI-assisted pricing for individual sellers," or "API for ticket brokers to sync inventory from N primary sources at once"). Frame as: problem → user → solution → why now → success metric.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:12px;">🎯 How to Prepare</div>
+
+  <div class="tips">
+    <h3>🔑 StubHub-Specific Preparation Tips</h3>
+    <ul>
+      <li><strong>Build a story bank of 5–6 STAR stories:</strong> ownership, conflict, failure, scale, mentorship, ambiguity. Each adaptable to multiple questions.</li>
+      <li><strong>Tag every story with business impact:</strong> $ saved, users affected, latency, retention. If you can't quantify it, the story is weaker for StubHub.</li>
+      <li><strong>Practice surviving interruptions:</strong> If interrupted, pause, answer the new question fully, then ask "Want me to go back to where I was?" Don't get rattled.</li>
+      <li><strong>Top-down explanations always:</strong> Start with the problem & the why, then zoom into architecture, then code-level details — never reverse.</li>
+      <li><strong>Have ONE pitch ready</strong> for "give me a new idea." Don't improvise this — too high-stakes.</li>
+      <li><strong>Know StubHub's business model cold:</strong> they take a service + buyer fee on each sale. Supply-side fraud, broker integrations, and primary partner relationships are core.</li>
+    </ul>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title">Do</span></div>
+      <ul>
+        <li>Open every story with the business problem, not the tech</li>
+        <li>Say "I" not "we" — they're hiring you, not your team</li>
+        <li>Quantify outcomes whenever possible</li>
+        <li>Stay calm under interruption; assume good intent</li>
+        <li>Reference StubHub's actual challenges (data migration, scale spikes, broker integrations)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">❌</span><span class="card-title">Avoid</span></div>
+      <ul>
+        <li>Architecture details before the "why this matters" frame</li>
+        <li>Vague answers ("a challenging project at my last job...")</li>
+        <li>Defensive responses to alternative-solution questions</li>
+        <li>Saying "I don't know" without a follow-up of "but here's how I'd find out"</li>
+        <li>Pure technical pride without commercial framing</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Behavioral Round</div>
+  <p class="section-desc">In the Director round, smart questions signal seniority. Use these to probe what success looks like and where the real challenges sit.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Defining Success</div>
+      <div class="q-text">"What does success look like for a Senior Engineer on the Supply team at the 6-month and 12-month mark — and what's the biggest indicator that someone is going to struggle?"</div>
+      <div class="q-tip">💡 The "struggle" half of the question is the real prize — Directors will tell you the actual failure modes, which tells you exactly what the team values.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · The Real Challenges</div>
+      <div class="q-text">"You mentioned [X] earlier — what are the biggest unsolved problems on the Supply side right now where a senior engineer could actually move the needle?"</div>
+      <div class="q-tip">💡 Forces the Director to describe real work, not platitudes. Their answer becomes ammunition for your follow-up conversations and offer negotiation.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Tech & Architecture Direction</div>
+      <div class="q-text">"From a Director's view, where is the Supply platform going architecturally over the next 18 months? Any major migrations, modernizations, or rebuilds being considered?"</div>
+      <div class="q-tip">💡 Signals you think in years not sprints. Also useful intel for the system design round if you have it later.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Cross-Org Influence</div>
+      <div class="q-text">"How does the Supply team work with the Consumer side, Data, and Trust & Safety? Are there well-defined interfaces or is it more ad-hoc?"</div>
+      <div class="q-tip">💡 Surfaces real organizational dynamics. Cross-functional pain is where senior engineers earn their keep.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Leadership & Growth</div>
+      <div class="q-text">"How do you grow Senior engineers toward Staff at StubHub — is the path more technical depth, broader influence, or both? What's the most recent example?"</div>
+      <div class="q-tip">💡 Subtle signal that you're thinking about progression. If they can't name a recent Staff promo from their org, that's data too.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODING PANEL -->
+<div class="panel" id="panel-coding">
+  <div class="section-title">💻 Coding Rounds (OA + Pair Coding)</div>
+  <p class="section-desc">StubHub has TWO coding stages: a <strong>Codility online assessment</strong> early, and a <strong>60–90 min pair coding round</strong> later. They test different things. The OA is correctness-focused LeetCode-medium; the pair coding is about building a small system iteratively with clean OOD.</p>
+
+  <div class="info-box">
+    <h3>📋 Stage A: Codility OA</h3>
+    <ul>
+      <li><strong>Format:</strong> 1 question, 60–70 minutes, multiple test runs allowed before submission</li>
+      <li><strong>Difficulty:</strong> LeetCode medium — arrays, hashmaps, sorting, string manipulation</li>
+      <li><strong>What matters:</strong> correctness + edge cases. Not speed, not cleverness.</li>
+      <li><strong>Hot tip from 2026 candidate:</strong> "The problem is often very close to a real LeetCode question." Run through Codility's medium-tier sample problems.</li>
+    </ul>
+  </div>
+
+  <div class="info-box">
+    <h3>📋 Stage B: Pair Coding (Live, 60–90 min)</h3>
+    <ul>
+      <li><strong>Style:</strong> Build a small system incrementally — interviewer adds requirements one at a time</li>
+      <li><strong>Format:</strong> Collaborative, conversational. Looks more like work than LeetCode.</li>
+      <li><strong>Focus:</strong> OOD, clean code, extensibility patterns (Strategy, Factory), <strong>not</strong> algorithm tricks</li>
+      <li><strong>Real 2026 example:</strong> Build a Notification Engine — given Events (city, time) and Customers (city, birthday), select relevant events. Then add: same-city filter → birthday proximity → top-K nearest by coordinates → cheapest via external API → combine multiple filters extensibly</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Real Question Patterns (from LinkJob 2026 + Glassdoor)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🔔 Notification / Recommendation Engine <span class="priority med">Pair Coding (Recent)</span></div>
+      <div class="q-text">Given Event(city, time, price) and Customer(city, birthday, coords), build a system that filters and ranks relevant events. Incremental follow-ups add: top-K nearest, cheapest via API, combining filters.</div>
+      <div class="q-tip">💡 Winning approach (from a successful 2026 candidate): start simple, then refactor as follow-ups arrive. Introduce a <strong>Filter interface (Strategy pattern)</strong> when "combine multiple filters" comes up. Swap sort for <strong>heap</strong> when "top-K" appears. Talk through your refactors out loud.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🔤 String / Data Manipulation</div>
+      <div class="q-text">Parse, split, transform structured strings — e.g., ticket IDs, event tags, seat sections. Classic data-cleaning style.</div>
+      <div class="q-tip">💡 Multiple Glassdoor reports mention string manipulation in OAs. Standard: split/strip/join, char counting, anagram-style transforms, parsing structured input.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🏗️ Small Service Design + Implement</div>
+      <div class="q-text">From Feb 2026 Glassdoor: "90 minute codepair where you design and implement something that represents a small service."</div>
+      <div class="q-tip">💡 Halfway between system design and coding. Spend the first 10 minutes on data model + interfaces. Don't just start typing.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">📊 Top-K / Streaming</div>
+      <div class="q-text">Older Glassdoor: "Given a stream of incoming tweets and a machine that can only store one tweet at a time, write a function that..." — reservoir sampling / streaming-stats family.</div>
+      <div class="q-tip">💡 Less common now but worth knowing. Reservoir sampling, running median, top-K heaps — these come up because they map to real StubHub streaming workloads (price updates, inventory changes).</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🔄 Refactoring Asks</div>
+      <div class="q-text">"Now refactor that for readability / extensibility / performance." Sometimes asked 2–3 times.</div>
+      <div class="q-tip">💡 Don't take it personally. They want to see how you respond to feedback. Common refactors: extract interface → strategy pattern → swap data structure for the access pattern.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips (Pair Coding Specifically)</h3>
+    <ul>
+      <li><strong>Start simple, refactor when asked:</strong> Don't over-engineer Round 1. Build the dumb working version, then upgrade as follow-ups arrive.</li>
+      <li><strong>Know your OOD patterns cold:</strong> Strategy, Factory, Observer, Decorator. Names matter — they convey seniority.</li>
+      <li><strong>Talk while you code:</strong> Narrate decisions, especially tradeoffs. Silent coding kills your signal.</li>
+      <li><strong>Ask before you assume:</strong> "Should I assume coords are always populated?" "What's the failure mode if the external API times out?" These questions are evaluated positively.</li>
+      <li><strong>Language:</strong> Java or C# best matches the role; Python is acceptable but signals less alignment with the stack.</li>
+      <li><strong>Test as you go:</strong> Walk through 1–2 inputs by hand before saying "done." Bug-catching mid-flight reads as senior.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Coding Round</div>
+  <p class="section-desc">The pair coding interviewer is likely a future peer — a senior engineer on the Supply team. Use these to learn what daily engineering life actually looks like.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Code Quality Bar</div>
+      <div class="q-text">"What's the team's expectation around code review, test coverage, and documentation? How does that work in practice on Supply?"</div>
+      <div class="q-tip">💡 Tells you whether the team values craft or moves fast-and-loose. As a Senior engineer you'll be enforcing this standard.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · The Languages in Practice</div>
+      <div class="q-text">"The JD mentions Java and C# — what's the actual split on the Supply team? Are there services in one and not the other, or is it mixed?"</div>
+      <div class="q-tip">💡 Practical signal. If they say "we're consolidating onto X" that's a strategic data point about where the team's heading.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Dev Workflow</div>
+      <div class="q-text">"What's the local dev experience like — can I run the Supply services on my laptop, or is there a heavy cloud-dev environment? How fast is the CI/CD loop?"</div>
+      <div class="q-tip">💡 Dev experience is a real productivity tax. If they can't answer cleanly, that tells you the DX has gaps — which could be your first impact area.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · On-Call</div>
+      <div class="q-text">"What does on-call look like for the Supply team? How often does it fire, and what kinds of issues come up most?"</div>
+      <div class="q-tip">💡 On-call quality is a leading indicator of system health. Frequent fires = tech debt or operational gaps. Quiet on-call = mature system. Both are useful to know.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Who You'd Work With</div>
+      <div class="q-text">"Who would I be pairing with most in this role? What kinds of engineers are on the team right now?"</div>
+      <div class="q-tip">💡 Future-colleague visibility. Their answer reveals team composition, seniority mix, and whether you'd be the most senior IC or one of many.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN PANEL -->
+<div class="panel" id="panel-design">
+  <div class="section-title">🏗️ System Design Round</div>
+  <p class="section-desc">A standalone 60-minute round. 2026 candidates report a clear pattern: design a system tied to StubHub's real business — typically <strong>notifications, recommendations, or inventory management</strong>. Glassdoor Feb 2026 candidate warned the prompt can be over-scoped — the interviewer may dump 3–4 product requirements and expect you to drive scope yourself.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor Feb 2026 + LinkJob)</h3>
+    <ul>
+      <li><strong>Duration:</strong> 60 minutes</li>
+      <li><strong>Theme:</strong> Notifications, recommendations, or marketplace inventory at scale</li>
+      <li><strong>Setup:</strong> Interviewer reads/pastes product requirements — sometimes 3–4 of them. <em>You</em> must clarify scope, what's already built vs. what you're designing.</li>
+      <li><strong>Drives:</strong> Failure handling, retries, scale, dependency outage scenarios</li>
+      <li><strong>Style:</strong> Guided but candidate-driven. They'll hint occasionally, but you own the design</li>
+    </ul>
+  </div>
+
+  <div class="warn-box">
+    <h3>⚠️ Scope-Management Warning (Feb 2026 Glassdoor)</h3>
+    <p>One 2026 candidate explicitly called out: the interviewer "copied and pasted in four product requirements and read them word for word" — and the candidate then struggled because they weren't sure which parts were existing services they could call vs. things they needed to design. <strong>Spend your first 5–8 minutes aggressively clarifying scope.</strong> Ask: "Is X an existing service I can assume?" "Are we designing the data pipeline, the API, or both?" Don't start architecting until scope is locked.</p>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from 2026 candidate reports)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">📧 Event Recommendation Notification System <span class="priority med">Most Common 2026</span></div>
+      <div class="q-text">Design a system that filters events and sends relevant email/push notifications to users at scale. Include: filtering pipeline, batch vs. real-time, retry/failure handling, monitoring.</div>
+      <div class="q-tip">💡 Building blocks: User profile service → Event catalog → Matching/scoring engine → Notification dispatcher (Kafka queue) → Channel adapters (email/SMS/push) → Delivery tracking + retries. Discuss DLQ, idempotency, and what happens when the email provider is down.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🎫 Ticket Inventory / Listing System <span class="priority med">Supply-Relevant</span></div>
+      <div class="q-text">Design the system that lets sellers upload, update, and manage ticket inventory across millions of listings — with consistency guarantees so no ticket is double-sold.</div>
+      <div class="q-tip">💡 Highly likely given your Supply role. Cover: write path (validation, fraud check, ledger), read path (search, filters, caching), <strong>concurrency control to prevent double-sells</strong> (optimistic locking, distributed lock, or atomic state-machine transitions), event-sourcing for audit trail.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🔌 Partner Integration / Supply API</div>
+      <div class="q-text">Design an API that lets large ticket brokers sync inventory from their inventory management systems (IMS) into StubHub — bidirectionally, in near-real-time, across 100+ partners.</div>
+      <div class="q-tip">💡 Especially relevant for Supply Integrations. Cover: pull vs. push (webhooks + polling fallback), partner authentication, rate limits per partner, schema mapping, partner-specific failure isolation, replayable events.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">📈 Holiday Spike Scalability</div>
+      <div class="q-text">How would you scale StubHub for a 10x spike during a Super Bowl / Taylor Swift tour drop?</div>
+      <div class="q-tip">💡 Standard scalability playbook: CDN for read traffic, horizontal scale on app tier, read replicas + caching (Redis) on DB tier, async job queues for non-critical writes, circuit breakers and graceful degradation, virtual waiting room for checkout.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🗄️ Database Schema for Booking System</div>
+      <div class="q-text">Design the schema for users, sellers, listings, transactions, payments, refunds. Show relationships, indexes, how you'd handle concurrent purchases.</div>
+      <div class="q-tip">💡 SQL preferred. Don't forget: soft deletes for audit, event log table for state transitions, indexes on hot query paths (event_id + status), and explicit unique constraints to prevent double-allocation.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Think marketplace, not generic CRUD:</strong> StubHub is two-sided. Always ask "who's the user — buyer or seller?" and design for both.</li>
+      <li><strong>Lock scope before architecting:</strong> Spend 5–8 min on clarifying questions. This isn't optional given the Feb 2026 warning.</li>
+      <li><strong>Sketch always:</strong> Boxes-and-arrows on a shared whiteboard (Excalidraw, the platform's built-in tool, or paper held up to camera).</li>
+      <li><strong>Drive the conversation toward failure modes:</strong> Retries, idempotency, DLQ, partial failures. StubHub specifically asks about "what if dependencies go down" — be ready.</li>
+      <li><strong>Numbers matter:</strong> Estimate QPS, storage, payload size early. "Let's assume 1M users × 100 events/day = 100M emails/day → ~1200 QPS peak" anchors the rest of the design.</li>
+      <li><strong>Reference real StubHub challenges:</strong> data migration (mentioned by interviewers as current pain), Black Friday-style spikes, fraud protection — bonus points for awareness.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — System Design Round</div>
+  <p class="section-desc">The system design interviewer is likely a senior or staff engineer — future peer or skip-level. Ask things that signal strategic thinking about the platform.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Current Architecture</div>
+      <div class="q-text">"Where is StubHub's Supply platform today on the monolith-to-microservices spectrum, and what's the strategic direction over the next year or two?"</div>
+      <div class="q-tip">💡 Frames you as someone thinking about architecture trajectory. Their answer is also useful intel for negotiating scope of your future work.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · The Hardest Supply Problem</div>
+      <div class="q-text">"What's the hardest unsolved system design problem on the Supply side right now? Where would a new senior engineer have the most leverage?"</div>
+      <div class="q-tip">💡 Direct, specific, and self-serving in the best way — their answer tells you exactly what to emphasize in your own background.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Data Migration</div>
+      <div class="q-text">"One candidate mentioned data migration as a current Supply challenge — is that still active? What does it look like at this point?"</div>
+      <div class="q-tip">💡 Shows you did real research from candidate reports. Migration work is classic senior-engineer territory and they'll perk up if you've thought about it.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Cross-Team Dependencies</div>
+      <div class="q-text">"How tightly does the Supply platform interact with Trust & Safety, Payments, and the Consumer side? Are those well-defined service boundaries or more interleaved?"</div>
+      <div class="q-tip">💡 Signals you understand a marketplace is a federation of systems, not a monolith. Surfaces real organizational dynamics.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · International / viagogo</div>
+      <div class="q-text">"StubHub serves 195 countries with viagogo. From a Supply perspective, how much of the codebase is shared across markets vs. region-specific — and is that something a senior engineer would touch?"</div>
+      <div class="q-tip">💡 Very few candidates will ask this. International + regulatory + multi-currency is real complexity, and asking signals you think about platform scope, not just features.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(name) {
+    const names = ['overview','recruiter','behavioral','coding','design'];
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + name);
+    });
+  }
+</script>
+</body>
+</html>

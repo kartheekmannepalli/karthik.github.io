@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hotel-tax-mcp — How Your MCP Server Works</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #181b24;
+    --panel2: #1f2330;
+    --border: #2c3140;
+    --text: #e7eaf0;
+    --muted: #9aa3b5;
+    --blue: #5b9dff;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --purple: #c084fc;
+    --pink: #f472b6;
+    --yellow: #fde047;
+    --mono: "SF Mono", "JetBrains Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 2rem; font-weight: 700; }
+  h1 .accent { color: var(--blue); }
+  .subtitle { color: var(--muted); margin-top: 8px; max-width: 640px; }
+  section { margin-top: 64px; }
+  h2 { font-size: 1.4rem; margin-bottom: 4px; }
+  h2 .num { color: var(--blue); font-family: var(--mono); font-size: 1rem; margin-right: 8px; }
+  .lede { color: var(--muted); margin-bottom: 24px; max-width: 720px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+  code, .mono { font-family: var(--mono); font-size: 0.85em; }
+  .pill {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: 0.75rem; font-family: var(--mono); border: 1px solid;
+  }
+  .pill.blue { color: var(--blue); border-color: var(--blue); background: rgba(91,157,255,.08); }
+  .pill.green { color: var(--green); border-color: var(--green); background: rgba(74,222,128,.08); }
+  .pill.orange { color: var(--orange); border-color: var(--orange); background: rgba(251,146,60,.08); }
+  .pill.purple { color: var(--purple); border-color: var(--purple); background: rgba(192,132,252,.08); }
+
+  /* ---- protocol stack ---- */
+  .stack { display: flex; flex-direction: column; gap: 8px; max-width: 560px; margin: 0 auto; }
+  .layer {
+    border-radius: 10px; padding: 14px 20px; display: flex;
+    justify-content: space-between; align-items: center; gap: 12px;
+    border: 1px solid var(--border);
+  }
+  .layer b { font-size: 0.95rem; }
+  .layer span { color: var(--muted); font-size: 0.8rem; text-align: right; }
+  .l1 { background: linear-gradient(90deg, rgba(192,132,252,.16), rgba(192,132,252,.05)); border-color: rgba(192,132,252,.4); }
+  .l2 { background: linear-gradient(90deg, rgba(91,157,255,.16), rgba(91,157,255,.05)); border-color: rgba(91,157,255,.4); }
+  .l3 { background: linear-gradient(90deg, rgba(74,222,128,.16), rgba(74,222,128,.05)); border-color: rgba(74,222,128,.4); }
+  .l4 { background: linear-gradient(90deg, rgba(251,146,60,.16), rgba(251,146,60,.05)); border-color: rgba(251,146,60,.4); }
+
+  /* ---- architecture boxes ---- */
+  .arch { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; justify-content: center; }
+  .arch-box {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; min-width: 150px; flex: 1; max-width: 220px; text-align: center;
+  }
+  .arch-box .icon { font-size: 1.6rem; }
+  .arch-box b { display: block; margin-top: 6px; font-size: 0.9rem; }
+  .arch-box small { color: var(--muted); font-size: 0.75rem; display: block; margin-top: 4px; }
+  .arrow-h {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 6px; color: var(--blue); min-width: 70px;
+  }
+  .arrow-h .lbl { font-size: 0.65rem; color: var(--muted); font-family: var(--mono); text-align: center; }
+  .arrow-h svg { display: block; }
+
+  /* ---- sequence diagram ---- */
+  .seq { position: relative; padding: 12px 0; overflow-x: auto; }
+  .seq-inner { min-width: 700px; }
+  .seq-heads { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; margin-bottom: 4px; }
+  .seq-head {
+    display: inline-block; padding: 8px 18px; border-radius: 10px; font-weight: 600;
+    font-size: 0.85rem; border: 1px solid var(--border); background: var(--panel2);
+  }
+  .seq-head.client { border-color: rgba(192,132,252,.5); color: var(--purple); }
+  .seq-head.server { border-color: rgba(91,157,255,.5); color: var(--blue); }
+  .seq-head.code { border-color: rgba(74,222,128,.5); color: var(--green); }
+  .seq-body { position: relative; }
+  .seq-lines { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; }
+  .seq-lines div { border-left: 2px dashed var(--border); margin-left: 50%; height: 100%; }
+  .msg { position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; height: 56px; align-items: center; }
+  .msg .m {
+    position: relative; height: 2px; margin: 0 8px;
+  }
+  .msg .m.right { background: linear-gradient(90deg, transparent, currentColor 12%); }
+  .msg .m.left { background: linear-gradient(270deg, transparent, currentColor 12%); }
+  .msg .m.right::after {
+    content: ""; position: absolute; right: -1px; top: -5px;
+    border: 6px solid transparent; border-left-color: currentColor;
+  }
+  .msg .m.left::after {
+    content: ""; position: absolute; left: -1px; top: -5px;
+    border: 6px solid transparent; border-right-color: currentColor;
+  }
+  .msg .m .t {
+    position: absolute; top: -22px; left: 0; right: 0; text-align: center;
+    font-family: var(--mono); font-size: 0.72rem; white-space: nowrap;
+  }
+  .msg .m .d {
+    position: absolute; top: 6px; left: 0; right: 0; text-align: center;
+    font-size: 0.7rem; color: var(--muted); white-space: nowrap;
+  }
+  .c-purple { color: var(--purple); } .c-blue { color: var(--blue); }
+  .c-green { color: var(--green); } .c-orange { color: var(--orange); } .c-pink { color: var(--pink); }
+  .span2 { grid-column: 1 / 3; } .span23 { grid-column: 2 / 4; }
+
+  /* ---- json panels ---- */
+  .json-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  @media (max-width: 760px) { .json-row { grid-template-columns: 1fr; } }
+  .json-panel { background: #12141c; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .json-panel header {
+    padding: 8px 14px; font-size: 0.75rem; font-family: var(--mono);
+    border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;
+  }
+  .json-panel pre {
+    padding: 14px; font-family: var(--mono); font-size: 0.74rem; line-height: 1.55;
+    overflow-x: auto; color: #c5ccda;
+  }
+  .k { color: var(--blue); } .s { color: var(--green); } .n { color: var(--orange); } .cm { color: #5b657a; }
+
+  /* ---- spring flow ---- */
+  .flow { display: flex; flex-direction: column; gap: 0; max-width: 760px; margin: 0 auto; }
+  .flow-step { display: flex; gap: 16px; align-items: flex-start; }
+  .flow-rail { display: flex; flex-direction: column; align-items: center; width: 36px; flex-shrink: 0; }
+  .flow-dot {
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-family: var(--mono); font-size: 0.85rem;
+    border: 2px solid var(--blue); color: var(--blue); background: var(--panel); z-index: 1;
+  }
+  .flow-line { width: 2px; flex: 1; background: var(--border); min-height: 28px; }
+  .flow-card {
+    flex: 1; background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 14px;
+  }
+  .flow-card b { font-size: 0.9rem; }
+  .flow-card .cls { font-family: var(--mono); font-size: 0.72rem; color: var(--purple); display: block; margin-top: 2px; }
+  .flow-card p { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  .flow-card.you { border-color: rgba(74,222,128,.5); }
+  .flow-card.you .cls { color: var(--green); }
+  .tag-you {
+    float: right; font-size: 0.65rem; font-family: var(--mono); color: var(--green);
+    border: 1px solid rgba(74,222,128,.5); padding: 1px 8px; border-radius: 999px;
+  }
+  .tag-fw {
+    float: right; font-size: 0.65rem; font-family: var(--mono); color: var(--muted);
+    border: 1px solid var(--border); padding: 1px 8px; border-radius: 999px;
+  }
+
+  /* ---- annotation map ---- */
+  .ann { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .ann-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .ann-card .at { font-family: var(--mono); color: var(--yellow); font-size: 0.85rem; }
+  .ann-card p { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  .ann-card .maps { margin-top: 8px; font-size: 0.72rem; font-family: var(--mono); color: var(--blue); }
+
+  /* ---- transports ---- */
+  .transports { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .tr-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; position: relative; }
+  .tr-card.active { border-color: var(--green); box-shadow: 0 0 0 1px var(--green); }
+  .tr-card .badge {
+    position: absolute; top: -10px; right: 12px; background: var(--green); color: #06270f;
+    font-size: 0.65rem; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+  }
+  .tr-card h3 { font-size: 0.95rem; }
+  .tr-card .how { font-family: var(--mono); font-size: 0.72rem; color: var(--blue); margin-top: 4px; }
+  .tr-card p { color: var(--muted); font-size: 0.78rem; margin-top: 8px; }
+
+  /* ---- alternatives table ---- */
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; }
+  td b { font-size: 0.86rem; }
+  td .lang { font-family: var(--mono); font-size: 0.7rem; color: var(--purple); }
+  tr.hl td { background: rgba(74,222,128,.05); }
+  .good { color: var(--green); } .meh { color: var(--orange); }
+
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .tool-chip {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .tool-chip code { color: var(--green); font-size: 0.78rem; }
+  .tool-chip small { display: block; color: var(--muted); font-size: 0.72rem; margin-top: 2px; }
+
+  footer { margin-top: 72px; color: var(--muted); font-size: 0.75rem; text-align: center; }
+
+  /* ---- sse deep dive ---- */
+  .verb-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .verb-card { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .verb-card .verb {
+    font-family: var(--mono); font-weight: 700; font-size: 0.9rem; padding: 3px 12px;
+    border-radius: 6px; display: inline-block;
+  }
+  .verb-card .verb.post { background: rgba(91,157,255,.15); color: var(--blue); }
+  .verb-card .verb.get { background: rgba(74,222,128,.15); color: var(--green); }
+  .verb-card .verb.del { background: rgba(244,114,182,.15); color: var(--pink); }
+  .verb-card h3 { font-size: 0.92rem; margin-top: 10px; }
+  .verb-card p { color: var(--muted); font-size: 0.78rem; margin-top: 6px; }
+
+  .decision { max-width: 720px; margin: 0 auto; }
+  .dec-node {
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 18px; text-align: center; font-size: 0.85rem;
+  }
+  .dec-node.q { border-color: rgba(253,224,71,.5); }
+  .dec-node .mono-s { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); }
+  .dec-split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 0; }
+  .dec-branch { display: flex; flex-direction: column; align-items: center; }
+  .dec-arrow { display: flex; flex-direction: column; align-items: center; padding: 4px 0; }
+  .dec-arrow .lab { font-size: 0.68rem; font-family: var(--mono); padding: 1px 10px; border-radius: 999px; margin-bottom: 2px; }
+  .dec-arrow svg { display: block; }
+  .dec-leaf { border-radius: 10px; padding: 14px 16px; width: 100%; font-size: 0.78rem; }
+  .dec-leaf b { display: block; font-size: 0.85rem; margin-bottom: 4px; }
+  .dec-leaf.json { background: rgba(91,157,255,.08); border: 1px solid rgba(91,157,255,.45); }
+  .dec-leaf.sse { background: rgba(251,146,60,.08); border: 1px solid rgba(251,146,60,.45); }
+  .dec-leaf small { color: var(--muted); }
+
+  .sse-anatomy pre { padding: 14px; font-family: var(--mono); font-size: 0.74rem; line-height: 1.7; overflow-x: auto; color: #c5ccda; }
+  .sse-note { font-size: 0.7rem; color: var(--muted); font-style: italic; }
+  .timeline-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .timeline-compare { grid-template-columns: 1fr; } .dec-split { grid-template-columns: 1fr; } }
+  .tl { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .tl h4 { font-size: 0.85rem; margin-bottom: 12px; }
+  .tl .conn {
+    border-left: 3px solid; padding: 6px 0 6px 14px; margin-left: 6px;
+  }
+  .tl .conn.blue { border-color: var(--blue); } .tl .conn.orange { border-color: var(--orange); }
+  .tl .ev { font-family: var(--mono); font-size: 0.72rem; padding: 3px 0; }
+  .tl .ev .dir { display: inline-block; width: 18px; }
+  .tl .open-close { font-size: 0.68rem; color: var(--muted); font-style: italic; padding: 2px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>How <span class="accent">hotel-tax-mcp</span> Works</h1>
+  <p class="subtitle">Your Spring AI MCP server, explained — the protocols underneath, the path from HTTP request to tool response, and other ways to build the same thing.</p>
+  <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+    <span class="pill blue">Spring Boot 3.3.5</span>
+    <span class="pill purple">Spring AI 1.1.7</span>
+    <span class="pill green">Streamable HTTP @ /mcp</span>
+    <span class="pill orange">Java 21</span>
+  </div>
+
+  <!-- ============ 1. PROTOCOL STACK ============ -->
+  <section>
+    <h2><span class="num">01</span>The Protocol Stack</h2>
+    <p class="lede">MCP is not a new wire format — it's <b>JSON-RPC 2.0</b> messages with MCP-defined methods, carried over a transport. Your server uses the <b>Streamable HTTP</b> transport: one endpoint, <code>POST /mcp</code>.</p>
+    <div class="card">
+      <div class="stack">
+        <div class="layer l1"><b>MCP Semantics</b><span>initialize · tools/list · tools/call</span></div>
+        <div class="layer l2"><b>JSON-RPC 2.0</b><span>{"jsonrpc":"2.0", "method":…, "id":…}</span></div>
+        <div class="layer l3"><b>Streamable HTTP</b><span>POST /mcp → JSON or SSE stream back</span></div>
+        <div class="layer l4"><b>HTTP/1.1 · TCP</b><span>port 8080, embedded Tomcat</span></div>
+      </div>
+      <p style="text-align:center; color:var(--muted); font-size:0.78rem; margin-top:18px;">
+        Each layer wraps the one below it. The client never calls your Java methods directly — it sends JSON-RPC envelopes that Spring AI translates into method calls.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 2. ARCHITECTURE ============ -->
+  <section>
+    <h2><span class="num">02</span>Your Project at a Glance</h2>
+    <p class="lede">Clean layering: a tools facade with <code>@Tool</code> annotations, a service with business logic, and a repository that loads JSON files at startup.</p>
+    <div class="card">
+      <div class="arch">
+        <div class="arch-box" style="border-color:rgba(192,132,252,.5)">
+          <div class="icon">🤖</div><b>MCP Client</b>
+          <small>Claude / IDE / any LLM host</small>
+        </div>
+        <div class="arrow-h">
+          <svg width="60" height="14"><line x1="0" y1="7" x2="50" y2="7" stroke="currentColor" stroke-width="2"/><polygon points="50,1 60,7 50,13" fill="currentColor"/></svg>
+          <span class="lbl">POST /mcp<br>JSON-RPC</span>
+        </div>
+        <div class="arch-box" style="border-color:rgba(91,157,255,.5)">
+          <div class="icon">🌐</div><b>Spring AI MCP Server</b>
+          <small>webmvc starter · auto-configured</small>
+        </div>
+        <div class="arrow-h">
+          <svg width="60" height="14"><line x1="0" y1="7" x2="50" y2="7" stroke="currentColor" stroke-width="2"/><polygon points="50,1 60,7 50,13" fill="currentColor"/></svg>
+          <span class="lbl">reflection<br>call</span>
+        </div>
+        <div class="arch-box" style="border-color:rgba(74,222,128,.5)">
+          <div class="icon">🛠️</div><b>HotelTaxTools</b>
+          <small>6 × @Tool methods</small>
+        </div>
+        <div class="arrow-h">
+          <svg width="60" height="14"><line x1="0" y1="7" x2="50" y2="7" stroke="currentColor" stroke-width="2"/><polygon points="50,1 60,7 50,13" fill="currentColor"/></svg>
+          <span class="lbl">java<br>calls</span>
+        </div>
+        <div class="arch-box" style="border-color:rgba(251,146,60,.5)">
+          <div class="icon">📦</div><b>Service → Repository</b>
+          <small>hotels.json · taxes.json · fees.json</small>
+        </div>
+      </div>
+
+      <div class="tools-grid" style="margin-top:24px;">
+        <div class="tool-chip"><code>list_hotels</code><small>filter by city / country</small></div>
+        <div class="tool-chip"><code>get_hotel</code><small>lookup by id</small></div>
+        <div class="tool-chip"><code>get_tax_rules</code><small>taxes for a hotel</small></div>
+        <div class="tool-chip"><code>get_fee_rules</code><small>mandatory fees for a hotel</small></div>
+        <div class="tool-chip"><code>calculate_total_cost</code><small>subtotal + taxes + fees</small></div>
+        <div class="tool-chip"><code>search_by_tax_type</code><small>hotels by tax type</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. SESSION LIFECYCLE ============ -->
+  <section>
+    <h2><span class="num">03</span>The MCP Conversation</h2>
+    <p class="lede">Every session follows the same three-phase dance: handshake, discovery, invocation. All three are <code>POST /mcp</code> requests.</p>
+    <div class="card seq">
+      <div class="seq-inner">
+        <div class="seq-heads">
+          <div><span class="seq-head client">MCP Client</span></div>
+          <div><span class="seq-head server">Spring AI Server :8080</span></div>
+          <div><span class="seq-head code">Your @Tool Code</span></div>
+        </div>
+        <div class="seq-body">
+          <div class="seq-lines"><div></div><div></div><div></div></div>
+
+          <div class="msg"><div class="m right span2 c-purple"><span class="t">initialize</span><span class="d">protocol version + client capabilities</span></div></div>
+          <div class="msg"><div class="m left span2 c-blue"><span class="t">← capabilities + Mcp-Session-Id</span><span class="d">"hotel-tax-mcp v0.1.0, I have tools"</span></div></div>
+          <div class="msg"><div class="m right span2 c-purple"><span class="t">notifications/initialized</span><span class="d">handshake complete</span></div></div>
+
+          <div class="msg"><div class="m right span2 c-purple"><span class="t">tools/list</span><span class="d">"what can you do?"</span></div></div>
+          <div class="msg"><div class="m left span2 c-blue"><span class="t">← 6 tools + JSON Schemas</span><span class="d">names, descriptions, parameter schemas</span></div></div>
+
+          <div class="msg"><div class="m right span2 c-orange"><span class="t">tools/call · calculate_total_cost</span><span class="d">{hotelId:"H001", nightlyRate:200, nights:3}</span></div></div>
+          <div class="msg"><div class="m right span23 c-green"><span class="t">calculateTotalCost(…)</span><span class="d">validate args → invoke method</span></div></div>
+          <div class="msg"><div class="m left span23 c-green"><span class="t">← CostBreakdown record</span><span class="d">service computes, Jackson serializes</span></div></div>
+          <div class="msg"><div class="m left span2 c-orange"><span class="t">← result.content[]</span><span class="d">JSON-RPC response with same id</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. WIRE FORMAT ============ -->
+  <section>
+    <h2><span class="num">04</span>On the Wire</h2>
+    <p class="lede">What a tool call actually looks like as HTTP traffic.</p>
+    <div class="json-row">
+      <div class="json-panel">
+        <header><span class="c-orange">→ REQUEST</span><span>POST /mcp</span></header>
+<pre><span class="cm">POST /mcp HTTP/1.1
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: a1b2c3…</span>
+
+{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">7</span>,
+  <span class="k">"method"</span>: <span class="s">"tools/call"</span>,
+  <span class="k">"params"</span>: {
+    <span class="k">"name"</span>: <span class="s">"calculate_total_cost"</span>,
+    <span class="k">"arguments"</span>: {
+      <span class="k">"hotelId"</span>: <span class="s">"H001"</span>,
+      <span class="k">"nightlyRate"</span>: <span class="n">200</span>,
+      <span class="k">"nights"</span>: <span class="n">3</span>
+    }
+  }
+}</pre>
+      </div>
+      <div class="json-panel">
+        <header><span class="c-green">← RESPONSE</span><span>200 OK</span></header>
+<pre><span class="cm">HTTP/1.1 200 OK
+Content-Type: application/json</span>
+
+{
+  <span class="k">"jsonrpc"</span>: <span class="s">"2.0"</span>,
+  <span class="k">"id"</span>: <span class="n">7</span>,
+  <span class="k">"result"</span>: {
+    <span class="k">"content"</span>: [{
+      <span class="k">"type"</span>: <span class="s">"text"</span>,
+      <span class="k">"text"</span>: <span class="s">"{\"subtotal\":600.0,
+        \"taxes\":78.0,\"fees\":45.0,
+        \"grandTotal\":723.0,
+        \"currency\":\"USD\"}"</span>
+    }],
+    <span class="k">"isError"</span>: <span class="n">false</span>
+  }
+}</pre>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:0.8rem; margin-top:12px;">The <code>id</code> ties response to request. The server may answer with plain JSON or upgrade to an SSE stream (that's the "streamable" part — useful for progress updates on long-running tools).</p>
+  </section>
+
+  <!-- ============ 5. INSIDE SPRING AI ============ -->
+  <section>
+    <h2><span class="num">05</span>Inside Spring AI: Request → Response</h2>
+    <p class="lede">What happens between Tomcat accepting the socket and your method running. You wrote steps 6–7; the starter auto-configures everything else.</p>
+    <div class="card">
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">1</div><div class="flow-line"></div></div>
+          <div class="flow-card"><span class="tag-fw">framework</span><b>Embedded Tomcat</b><span class="cls">server.port: 8080</span><p>Accepts the TCP connection, parses HTTP.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">2</div><div class="flow-line"></div></div>
+          <div class="flow-card"><span class="tag-fw">framework</span><b>Spring MVC RouterFunction</b><span class="cls">mapped to /mcp by the starter</span><p>Routes the POST to the MCP transport instead of a normal @RestController.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">3</div><div class="flow-line"></div></div>
+          <div class="flow-card"><span class="tag-fw">MCP Java SDK</span><b>Streamable HTTP Transport</b><span class="cls">WebMvcStreamableServerTransportProvider</span><p>Validates the Mcp-Session-Id header, deserializes the body into a JSON-RPC message, decides JSON vs SSE response.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">4</div><div class="flow-line"></div></div>
+          <div class="flow-card"><span class="tag-fw">MCP Java SDK</span><b>McpSyncServer — method dispatch</b><span class="cls">io.modelcontextprotocol.sdk</span><p>Reads <code>"method": "tools/call"</code> and routes to the registered tool handler by name.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">5</div><div class="flow-line"></div></div>
+          <div class="flow-card"><span class="tag-fw">Spring AI</span><b>ToolCallbackProvider lookup</b><span class="cls">MethodToolCallbackProvider (your McpToolsConfig bean)</span><p>Finds the callback for <code>calculate_total_cost</code>; validates arguments against the JSON Schema generated from your method signature.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">6</div><div class="flow-line"></div></div>
+          <div class="flow-card you"><span class="tag-you">your code</span><b>@Tool method invoked</b><span class="cls">HotelTaxTools.calculateTotalCost(hotelId, nightlyRate, nights)</span><p>Arguments bound from JSON via reflection. Plain Java from here on.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">7</div><div class="flow-line"></div></div>
+          <div class="flow-card you"><span class="tag-you">your code</span><b>Service + Repository</b><span class="cls">HotelTaxService.calculate() → HotelDataRepository</span><p>Business logic over in-memory maps loaded from classpath JSON at @PostConstruct.</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">8</div></div>
+          <div class="flow-card"><span class="tag-fw">framework</span><b>Serialize &amp; reply</b><span class="cls">Jackson → result.content[] → JSON-RPC envelope</span><p>Your <code>CostBreakdown</code> record becomes JSON text content; exceptions become <code>isError: true</code> instead of HTTP 500.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ann" style="margin-top:24px;">
+      <div class="ann-card">
+        <span class="at">@Tool(name, description)</span>
+        <p>Marks a method as an MCP tool. The description is what the LLM reads to decide <em>when</em> to call it.</p>
+        <div class="maps">→ becomes an entry in tools/list</div>
+      </div>
+      <div class="ann-card">
+        <span class="at">@ToolParam(description, required)</span>
+        <p>Documents each parameter. Types + annotations are converted to a JSON Schema automatically.</p>
+        <div class="maps">→ becomes inputSchema.properties</div>
+      </div>
+      <div class="ann-card">
+        <span class="at">ToolCallbackProvider bean</span>
+        <p>The bridge. The starter scans this bean and registers every tool with the MCP server at startup.</p>
+        <div class="maps">→ McpToolsConfig.hotelTools()</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. TRANSPORTS ============ -->
+  <section>
+    <h2><span class="num">06</span>One Codebase, Three Transports</h2>
+    <p class="lede">Your tool code never changes — only configuration. You already have two of these wired up.</p>
+    <div class="transports">
+      <div class="tr-card active">
+        <span class="badge">YOUR DEFAULT</span>
+        <h3>Streamable HTTP</h3>
+        <div class="how">protocol: STREAMABLE → POST /mcp</div>
+        <p>The current spec (2025-03-26+). Single endpoint, stateless-friendly, can stream via SSE when needed. Best for remote/production servers.</p>
+      </div>
+      <div class="tr-card">
+        <h3>STDIO</h3>
+        <div class="how">application-stdio.yml → stdin/stdout</div>
+        <p>JSON-RPC over process pipes. No network at all — the client launches your JAR as a subprocess. Best for local desktop integrations. Note your logging is redirected to a file so stdout stays clean.</p>
+      </div>
+      <div class="tr-card">
+        <h3>HTTP + SSE <span style="color:var(--muted); font-weight:400; font-size:.7rem;">(legacy)</span></h3>
+        <div class="how">GET /sse + POST /mcp/message</div>
+        <p>The older two-endpoint transport, deprecated in favor of Streamable HTTP. Still seen in older clients and tutorials.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. SSE vs STREAMABLE DEEP DIVE ============ -->
+  <section>
+    <h2><span class="num">07</span>Streamable HTTP vs SSE — What's Actually Happening</h2>
+    <p class="lede"><b>SSE (Server-Sent Events)</b> is not a separate protocol from HTTP — it's a normal HTTP <em>response</em> that the server keeps open and writes to over time, instead of replying once and closing. "Returning an SSE" means: same request, but the answer arrives as a stream of events.</p>
+
+    <div class="card sse-anatomy" style="margin-bottom:24px;">
+      <div class="json-row" style="margin-top:0;">
+        <div class="json-panel">
+          <header><span class="c-blue">NORMAL HTTP RESPONSE</span><span>one shot</span></header>
+<pre><span class="cm">HTTP/1.1 200 OK</span>
+<span class="k">Content-Type:</span> <span class="s">application/json</span>
+
+{ <span class="k">"jsonrpc"</span>:<span class="s">"2.0"</span>, <span class="k">"id"</span>:<span class="n">7</span>, <span class="k">"result"</span>:{…} }
+
+<span class="sse-note">← body complete, connection done.</span></pre>
+        </div>
+        <div class="json-panel">
+          <header><span class="c-orange">SSE RESPONSE</span><span>stays open, drip-feeds events</span></header>
+<pre><span class="cm">HTTP/1.1 200 OK</span>
+<span class="k">Content-Type:</span> <span class="s">text/event-stream</span>
+
+<span class="c-orange">event:</span> message
+<span class="c-orange">data:</span> {"method":"notifications/progress",…}
+
+<span class="sse-note">…seconds pass, connection still open…</span>
+
+<span class="c-orange">event:</span> message
+<span class="c-orange">data:</span> {"jsonrpc":"2.0","id":7,"result":{…}}
+
+<span class="sse-note">← final result delivered, server closes stream.</span></pre>
+        </div>
+      </div>
+      <p style="color:var(--muted); font-size:0.8rem; margin-top:14px;">An SSE body is just lines of <code>event:</code> / <code>data:</code> separated by blank lines. It's one-directional: server → client only. The client can never send data up an SSE stream — it always uses a new POST for that.</p>
+    </div>
+
+    <h3 style="font-size:1.05rem; margin-bottom:4px;">How <code>/mcp</code> decides: JSON or SSE?</h3>
+    <p class="lede" style="margin-bottom:16px;">Every client POST declares <code>Accept: application/json, text/event-stream</code> — meaning "I can handle either." The <b>server picks per request</b>:</p>
+    <div class="card" style="margin-bottom:24px;">
+      <div class="decision">
+        <div class="dec-node q"><span class="mono-s">POST /mcp</span> &nbsp;arrives with a JSON-RPC request<br><b>Does the server need to send anything before the final result?</b></div>
+        <div class="dec-split">
+          <div class="dec-branch">
+            <div class="dec-arrow">
+              <span class="lab" style="color:var(--blue); border:1px solid rgba(91,157,255,.5);">NO — quick tool call</span>
+              <svg width="14" height="26"><line x1="7" y1="0" x2="7" y2="18" stroke="#5b9dff" stroke-width="2"/><polygon points="1,18 13,18 7,26" fill="#5b9dff"/></svg>
+            </div>
+            <div class="dec-leaf json">
+              <b>Reply with plain JSON</b>
+              <code>Content-Type: application/json</code><br>
+              <small>Single response body, connection closes. This is what your fast tax-lookup tools get.</small>
+            </div>
+          </div>
+          <div class="dec-branch">
+            <div class="dec-arrow">
+              <span class="lab" style="color:var(--orange); border:1px solid rgba(251,146,60,.5);">YES — progress / long-running</span>
+              <svg width="14" height="26"><line x1="7" y1="0" x2="7" y2="18" stroke="#fb923c" stroke-width="2"/><polygon points="1,18 13,18 7,26" fill="#fb923c"/></svg>
+            </div>
+            <div class="dec-leaf sse">
+              <b>Upgrade the response to SSE</b>
+              <code>Content-Type: text/event-stream</code><br>
+              <small>Stream progress notifications as events, finish with the JSON-RPC result, then close. Same connection, same request.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="color:var(--muted); font-size:0.78rem; margin-top:18px; text-align:center;">Key insight: in Streamable HTTP, SSE is not a separate channel — it's an <b>optional response format for a single POST</b>. The <code>keep-alive-interval: 30s</code> in your YAML sends heartbeat pings so proxies don't kill idle streams.</p>
+    </div>
+
+    <h3 style="font-size:1.05rem; margin-bottom:4px;">The three verbs of <code>/mcp</code></h3>
+    <p class="lede" style="margin-bottom:16px;">One endpoint, three behaviors depending on HTTP method:</p>
+    <div class="verb-row" style="margin-bottom:24px;">
+      <div class="verb-card">
+        <span class="verb post">POST /mcp</span>
+        <h3>Client → Server messages</h3>
+        <p>Every request, response, and notification the client sends. Server replies with JSON <em>or</em> an SSE stream (above). This is the workhorse — a basic server needs nothing else.</p>
+      </div>
+      <div class="verb-card">
+        <span class="verb get">GET /mcp</span>
+        <h3>Standing listening stream (optional)</h3>
+        <p>Client opens a long-lived SSE stream so the <em>server</em> can push unsolicited messages anytime — e.g. <code>tools/list_changed</code> notifications or sampling requests. Not tied to any POST.</p>
+      </div>
+      <div class="verb-card">
+        <span class="verb del">DELETE /mcp</span>
+        <h3>End session</h3>
+        <p>Client sends its <code>Mcp-Session-Id</code> header to terminate the session and let the server free resources.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:1.05rem; margin-bottom:4px;">Streamable HTTP vs the legacy "HTTP+SSE" transport</h3>
+    <p class="lede" style="margin-bottom:16px;">The old transport's confusing trait: you POSTed to one URL but the answer came back on a <em>different</em>, permanently-open SSE connection. Streamable HTTP fixed this.</p>
+    <div class="card">
+      <div class="timeline-compare">
+        <div class="tl">
+          <h4>🟢 Streamable HTTP <span style="color:var(--muted); font-weight:400;">(yours, spec 2025+)</span></h4>
+          <div class="conn blue">
+            <div class="open-close">connection #1 opens</div>
+            <div class="ev c-purple"><span class="dir">→</span>POST /mcp &nbsp;{tools/call}</div>
+            <div class="ev c-blue"><span class="dir">←</span>response (JSON or SSE)</div>
+            <div class="open-close">connection #1 closes</div>
+          </div>
+          <div class="conn blue" style="margin-top:10px;">
+            <div class="open-close">connection #2 opens</div>
+            <div class="ev c-purple"><span class="dir">→</span>POST /mcp &nbsp;{tools/call}</div>
+            <div class="ev c-blue"><span class="dir">←</span>response</div>
+            <div class="open-close">connection #2 closes</div>
+          </div>
+          <p style="color:var(--muted); font-size:0.74rem; margin-top:10px;">Request and response share one connection. Stateless-friendly → works behind load balancers, serverless, easy to scale.</p>
+        </div>
+        <div class="tl">
+          <h4>🟠 HTTP + SSE <span style="color:var(--muted); font-weight:400;">(legacy, deprecated)</span></h4>
+          <div class="conn orange">
+            <div class="open-close">SSE connection opens at startup… stays open for the whole session</div>
+            <div class="ev c-purple"><span class="dir">→</span>GET /sse</div>
+            <div class="ev c-orange"><span class="dir">←</span>event: endpoint (where to POST)</div>
+            <div class="ev c-orange"><span class="dir">←</span>response to call #1 &nbsp;<span class="sse-note">(!)</span></div>
+            <div class="ev c-orange"><span class="dir">←</span>response to call #2 &nbsp;<span class="sse-note">(!)</span></div>
+          </div>
+          <div class="conn orange" style="margin-top:10px;">
+            <div class="ev c-purple"><span class="dir">→</span>POST /mcp/message {call #1} <span class="sse-note">← 202 Accepted, empty</span></div>
+            <div class="ev c-purple"><span class="dir">→</span>POST /mcp/message {call #2} <span class="sse-note">← 202 Accepted, empty</span></div>
+          </div>
+          <p style="color:var(--muted); font-size:0.74rem; margin-top:10px;">Two endpoints; <b>all</b> results arrive on the separate SSE channel. Server must hold one open connection per client forever → hard to scale, breaks on reconnect.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. ALTERNATIVES ============ -->
+  <section>
+    <h2><span class="num">08</span>Alternatives for an HTTP-based MCP Server</h2>
+    <p class="lede">Same protocol, different stacks. Anything that speaks JSON-RPC over Streamable HTTP is a valid MCP server.</p>
+    <div class="card" style="padding:0; overflow-x:auto;">
+      <table>
+        <thead><tr><th>Stack</th><th>How tools are defined</th><th>Best when</th></tr></thead>
+        <tbody>
+          <tr class="hl">
+            <td><b>Spring AI (WebMVC)</b><div class="lang">Java · what you use</div></td>
+            <td><code>@Tool</code> methods + starter auto-config, servlet/Tomcat threading</td>
+            <td class="good">You're in the Spring ecosystem; blocking I/O is fine</td>
+          </tr>
+          <tr>
+            <td><b>Spring AI (WebFlux)</b><div class="lang">Java</div></td>
+            <td>Same <code>@Tool</code> code, swap to <code>mcp-server-webflux</code> starter (Netty, reactive)</td>
+            <td>High-concurrency streaming, non-blocking stack</td>
+          </tr>
+          <tr>
+            <td><b>MCP Java SDK (no Spring)</b><div class="lang">Java</div></td>
+            <td>Manual: build <code>McpServer</code>, register tool specs + schemas yourself</td>
+            <td>Minimal dependencies; you want full control</td>
+          </tr>
+          <tr>
+            <td><b>Quarkus MCP Server</b><div class="lang">Java / Kotlin</div></td>
+            <td><code>@Tool</code> annotations, native-image friendly</td>
+            <td>Fast startup, GraalVM native, container-first</td>
+          </tr>
+          <tr>
+            <td><b>FastMCP / official Python SDK</b><div class="lang">Python</div></td>
+            <td><code>@mcp.tool()</code> decorators; schemas inferred from type hints</td>
+            <td class="good">Fastest prototyping; smallest code footprint</td>
+          </tr>
+          <tr>
+            <td><b>TypeScript SDK</b><div class="lang">Node.js</div></td>
+            <td><code>server.tool(name, zodSchema, handler)</code> with Express/Hono</td>
+            <td>JS shops; easy deploy to serverless/edge</td>
+          </tr>
+          <tr>
+            <td><b>C# / Go / Kotlin SDKs</b><div class="lang">other official SDKs</div></td>
+            <td>Language-idiomatic tool registration over the same transports</td>
+            <td>Matching your existing service language</td>
+          </tr>
+          <tr>
+            <td><b>API gateways / generators</b><div class="lang">e.g. OpenAPI → MCP</div></td>
+            <td>Generate MCP tools automatically from an existing OpenAPI/REST spec</td>
+            <td class="meh">Wrapping existing APIs without writing server code</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--muted); font-size:0.8rem; margin-top:14px;">
+      The trade-off axis: <b>annotation-driven frameworks</b> (Spring AI, Quarkus, FastMCP) hide the protocol and generate schemas for you, while <b>raw SDKs</b> give control at the cost of boilerplate. The wire protocol is identical in every case — clients can't tell them apart.
+    </p>
+  </section>
+
+  <footer>Generated from analysis of <code>hotel-tax-mcp</code> · Spring Boot 3.3.5 · Spring AI 1.1.7 · MCP Streamable HTTP</footer>
+</div>
+</body>
+</html>

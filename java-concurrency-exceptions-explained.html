@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Refresher — Exceptions · Threads · ExecutorService · Future</title>
+<style>
+  :root{
+    --bg:#0f1419; --card:#1a2129; --ink:#e8edf2; --muted:#8b9bab;
+    --blue:#4da3ff; --green:#3ddc84; --orange:#ffb648; --red:#ff6b6b; --purple:#b388ff; --teal:#26c6da;
+    --mono:'SF Mono',Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.55;padding:40px 20px}
+  .wrap{max-width:1100px;margin:0 auto}
+  h1{font-size:30px;margin-bottom:6px}
+  .sub{color:var(--muted);margin-bottom:14px}
+  nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px}
+  nav a{font-size:13px;color:var(--ink);text-decoration:none;background:var(--card);border:1px solid #2a3441;padding:6px 14px;border-radius:20px}
+  nav a:hover{border-color:var(--blue)}
+  section{margin-bottom:64px}
+  h2{font-size:23px;margin-bottom:6px}
+  .lead{color:var(--muted);font-size:14.5px;margin-bottom:18px;max-width:850px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  @media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:14px;padding:18px;border:1px solid #2a3441}
+  .card h3{font-size:15px;margin-bottom:8px}
+  .card p{font-size:13px;color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;margin-bottom:8px}
+  .t-blue{background:#15314e;color:var(--blue)} .t-green{background:#143626;color:var(--green)}
+  .t-orange{background:#3d2d12;color:var(--orange)} .t-red{background:#3d1a1a;color:var(--red)}
+  .t-purple{background:#2a1f45;color:var(--purple)} .t-teal{background:#0f3338;color:var(--teal)}
+  code{font-family:var(--mono);font-size:12px;background:#0b0f14;padding:1px 6px;border-radius:5px}
+  pre{font-family:var(--mono);font-size:12px;background:#0b0f14;border:1px solid #2a3441;border-radius:10px;padding:14px;overflow-x:auto;margin-top:10px;line-height:1.6}
+  pre code{background:none;padding:0}
+  .k{color:var(--purple)} .s{color:var(--green)} .c{color:#5c6b7a} .f{color:var(--blue)} .o{color:var(--orange)}
+  svg{max-width:100%;height:auto;display:block;margin:0 auto}
+  .svgbox{background:var(--card);border:1px solid #2a3441;border-radius:14px;padding:18px;margin-bottom:16px}
+  .rule{display:flex;gap:12px;background:var(--card);border:1px solid #2a3441;border-left:4px solid var(--teal);border-radius:10px;padding:12px 14px;margin-bottom:10px;align-items:flex-start}
+  .rule.warn{border-left-color:var(--orange)}
+  .rule .ico{font-size:17px;line-height:1.3}
+  .rule b{font-size:13px}
+  .rule p{font-size:12.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #2a3441}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  ul.mini{list-style:none;font-size:13px}
+  ul.mini li{padding:3px 0}
+  .check{color:var(--green)} .cross{color:var(--red)}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:50px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>☕ Java Refresher</h1>
+<p class="sub">Exceptions · Threads · ExecutorService · Callable + Future — one page to recollect it all.</p>
+<nav>
+  <a href="#exceptions">🧨 Exceptions</a>
+  <a href="#threads">🧵 Threads &amp; sync</a>
+  <a href="#coord">⏸️ sleep · wait · join</a>
+  <a href="#toolbox">🧰 Concurrency toolbox</a>
+  <a href="#executor">⚙️ ExecutorService</a>
+  <a href="#future">🔮 Callable + Future</a>
+  <a href="#decide">🗺️ Which one when</a>
+</nav>
+
+<!-- ════════════════════ EXCEPTIONS ════════════════════ -->
+<section id="exceptions">
+  <h2>🧨 Exceptions</h2>
+  <p class="lead">Everything throwable inherits from <code>Throwable</code>. The only split that matters day-to-day: <b>checked</b> (compiler forces you to handle or declare) vs <b>unchecked</b> (RuntimeException — your code's bugs, free to propagate).</p>
+
+  <div class="svgbox">
+    <svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b9bab" stroke-width="1.5"/></marker></defs>
+      <rect x="310" y="12" width="160" height="40" rx="9" fill="#212b36" stroke="#4da3ff"/>
+      <text x="390" y="37" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">Throwable</text>
+      <rect x="90" y="95" width="190" height="52" rx="9" fill="#212b36" stroke="#ff6b6b"/>
+      <text x="185" y="116" text-anchor="middle" fill="#ff6b6b" font-size="13" font-weight="bold">Error 💀</text>
+      <text x="185" y="134" text-anchor="middle" fill="#8b9bab" font-size="10">OutOfMemoryError… never catch</text>
+      <rect x="490" y="95" width="190" height="52" rx="9" fill="#212b36" stroke="#ffb648"/>
+      <text x="585" y="116" text-anchor="middle" fill="#ffb648" font-size="13" font-weight="bold">Exception</text>
+      <text x="585" y="134" text-anchor="middle" fill="#8b9bab" font-size="10">recoverable conditions</text>
+      <rect x="350" y="195" width="200" height="60" rx="9" fill="#143626" stroke="#3ddc84"/>
+      <text x="450" y="216" text-anchor="middle" fill="#3ddc84" font-size="12" font-weight="bold">CHECKED ✓</text>
+      <text x="450" y="232" text-anchor="middle" fill="#8b9bab" font-size="10">IOException, SQLException</text>
+      <text x="450" y="246" text-anchor="middle" fill="#8b9bab" font-size="10">must catch or declare throws</text>
+      <rect x="580" y="195" width="190" height="60" rx="9" fill="#2a1f45" stroke="#b388ff"/>
+      <text x="675" y="216" text-anchor="middle" fill="#b388ff" font-size="12" font-weight="bold">UNCHECKED</text>
+      <text x="675" y="232" text-anchor="middle" fill="#8b9bab" font-size="10">RuntimeException: NPE,</text>
+      <text x="675" y="246" text-anchor="middle" fill="#8b9bab" font-size="10">IllegalArgument, IndexOOB</text>
+      <line x1="350" y1="52" x2="200" y2="93" stroke="#8b9bab" marker-end="url(#a)"/>
+      <line x1="430" y1="52" x2="570" y2="93" stroke="#8b9bab" marker-end="url(#a)"/>
+      <line x1="555" y1="147" x2="465" y2="193" stroke="#8b9bab" marker-end="url(#a)"/>
+      <line x1="615" y1="147" x2="665" y2="193" stroke="#8b9bab" marker-end="url(#a)"/>
+      <text x="120" y="285" fill="#8b9bab" font-size="11">Rule of thumb: caller can recover → checked · programming bug → unchecked</text>
+    </svg>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-green">try / catch / finally — the flow</span>
+      <pre><span class="k">try</span> {
+    riskyIO();                  <span class="c">// may throw</span>
+} <span class="k">catch</span> (FileNotFoundException e) {  <span class="c">// specific first</span>
+    log(e);
+} <span class="k">catch</span> (IOException e) {            <span class="c">// broader after</span>
+    <span class="k">throw new</span> UncheckedIOException(e); <span class="c">// wrap &amp; rethrow</span>
+} <span class="k">finally</span> {
+    cleanup();   <span class="c">// ALWAYS runs — even on return/throw</span>
+}</pre>
+      <p style="margin-top:8px">Order matters: a broader catch above a narrower one is a compile error. <code>finally</code> runs no matter what (except <code>System.exit</code> / JVM death).</p>
+    </div>
+    <div class="card">
+      <span class="tag t-teal">try-with-resources — the modern cleanup</span>
+      <pre><span class="k">try</span> (BufferedReader r = Files.newBufferedReader(p)) {
+    <span class="k">return</span> r.readLine();
+}   <span class="c">// r.close() called automatically, even on throw</span></pre>
+      <p style="margin-top:8px">Anything implementing <code>AutoCloseable</code> goes in the parentheses. Replaces 90% of <code>finally</code> blocks. Multiple resources close in reverse order.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-purple">Writing a custom exception — the right way</span>
+      <pre><span class="k">public class</span> <span class="f">OrderNotFoundException</span> <span class="k">extends</span> RuntimeException {
+    <span class="k">public</span> OrderNotFoundException(String msg) {
+        <span class="f">super</span>(msg);              <span class="c">// getMessage() for free</span>
+    }
+    <span class="k">public</span> OrderNotFoundException(String msg, Throwable cause) {
+        <span class="f">super</span>(msg, cause);       <span class="c">// keep the cause chain!</span>
+    }
+}</pre>
+      <p style="margin-top:8px">Pass the message to <code>super()</code> — never store your own mutable message field. Always offer a <code>(msg, cause)</code> constructor so stack traces stay connected.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-orange">Classic pitfalls</span>
+      <ul class="mini">
+        <li><span class="cross">✘</span> <code>catch (Exception e) {}</code> — swallowing silently</li>
+        <li><span class="cross">✘</span> Catch-log-rethrow at every layer → duplicate noise</li>
+        <li><span class="cross">✘</span> <code>throw new X(e.getMessage())</code> — loses the cause; pass <code>e</code> itself</li>
+        <li><span class="cross">✘</span> Exceptions for control flow — they're ~1000× slower than an <code>if</code></li>
+        <li><span class="check">✔</span> Catch late, throw early, handle once</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ THREADS ════════════════════ -->
+<section id="threads">
+  <h2>🧵 Threads &amp; Synchronization</h2>
+  <p class="lead">A <code>Thread</code> is the worker; a <code>Runnable</code> is the task. Keep them separate: implement <code>Runnable</code> (or use a lambda), hand it to a Thread or — better — an executor.</p>
+
+  <div class="svgbox">
+    <svg viewBox="0 0 780 175" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <defs><marker id="b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b9bab" stroke-width="1.5"/></marker></defs>
+      <text x="390" y="20" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">Thread lifecycle</text>
+      <rect x="20" y="58" width="105" height="44" rx="22" fill="#212b36" stroke="#8b9bab"/><text x="72" y="84" text-anchor="middle" fill="#e8edf2" font-size="12">NEW</text>
+      <rect x="185" y="58" width="115" height="44" rx="22" fill="#15314e" stroke="#4da3ff"/><text x="242" y="84" text-anchor="middle" fill="#4da3ff" font-size="12">RUNNABLE</text>
+      <rect x="360" y="58" width="110" height="44" rx="22" fill="#143626" stroke="#3ddc84"/><text x="415" y="84" text-anchor="middle" fill="#3ddc84" font-size="12">RUNNING</text>
+      <rect x="530" y="58" width="125" height="44" rx="22" fill="#3d2d12" stroke="#ffb648"/><text x="592" y="78" text-anchor="middle" fill="#ffb648" font-size="11">BLOCKED / WAITING</text><text x="592" y="93" text-anchor="middle" fill="#8b9bab" font-size="9">lock · wait() · join() · sleep()</text>
+      <rect x="655" y="128" width="110" height="40" rx="20" fill="#3d1a1a" stroke="#ff6b6b"/><text x="710" y="152" text-anchor="middle" fill="#ff6b6b" font-size="12">TERMINATED</text>
+      <line x1="125" y1="80" x2="183" y2="80" stroke="#8b9bab" marker-end="url(#b)"/><text x="154" y="72" text-anchor="middle" fill="#8b9bab" font-size="10">start()</text>
+      <line x1="300" y1="80" x2="358" y2="80" stroke="#8b9bab" marker-end="url(#b)"/><text x="329" y="72" text-anchor="middle" fill="#8b9bab" font-size="10">scheduler</text>
+      <line x1="470" y1="72" x2="528" y2="72" stroke="#8b9bab" marker-end="url(#b)"/>
+      <line x1="528" y1="92" x2="470" y2="92" stroke="#8b9bab" marker-end="url(#b)"/><text x="499" y="110" text-anchor="middle" fill="#8b9bab" font-size="9">notify / unlock</text>
+      <line x1="455" y1="102" x2="655" y2="143" stroke="#8b9bab" marker-end="url(#b)"/><text x="545" y="135" text-anchor="middle" fill="#8b9bab" font-size="10">run() returns</text>
+      <text x="72" y="125" text-anchor="middle" fill="#8b9bab" font-size="9">start() twice → IllegalThreadStateException</text>
+    </svg>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-green">Creating threads ✓ preferred</span>
+      <pre><span class="c">// task = Runnable (lambda), worker = Thread</span>
+Runnable task = () -&gt; System.out.println(
+        Thread.currentThread().getName());
+
+Thread t = <span class="k">new</span> Thread(task, <span class="s">"worker-1"</span>);
+t.start();   <span class="c">// NOT t.run() — run() executes on the CURRENT thread!</span>
+t.join();    <span class="c">// wait for it to finish</span></pre>
+      <p style="margin-top:8px"><code>implements Runnable</code> beats <code>extends Thread</code>: keeps your superclass slot free, separates the task from the machinery, and works with executors.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-orange">The #1 beginner bug</span>
+      <pre>t.run();    <span class="cross">✘</span> <span class="c">runs synchronously on the caller</span>
+t.start();  <span class="check">✔</span> <span class="c">JVM creates a new OS thread → calls run()</span></pre>
+      <ul class="mini" style="margin-top:8px">
+        <li>🔹 <code>start()</code> can be called <b>once</b> per Thread object</li>
+        <li>🔹 Daemon threads (<code>setDaemon(true)</code>) die when main exits</li>
+        <li>🔹 No <code>join()</code> → main may finish before workers</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="font-size:17px;margin:26px 0 6px">🔒 synchronized — one lock per object</h3>
+  <p class="lead">Every Java object has one built-in lock (its <i>monitor</i>). <code>synchronized</code> means "acquire that lock first". Only one thread can hold a given monitor at a time — everyone else queues.</p>
+
+  <div class="svgbox">
+    <svg viewBox="0 0 780 190" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <text x="390" y="20" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">These three are the SAME lock</text>
+      <rect x="30" y="48" width="220" height="56" rx="9" fill="#212b36" stroke="#ffb648"/>
+      <text x="140" y="72" text-anchor="middle" fill="#ffb648" font-size="11" font-family="monospace">synchronized void m()</text>
+      <text x="140" y="90" text-anchor="middle" fill="#8b9bab" font-size="10">= synchronized(this)</text>
+      <rect x="280" y="48" width="220" height="56" rx="9" fill="#212b36" stroke="#ffb648"/>
+      <text x="390" y="72" text-anchor="middle" fill="#ffb648" font-size="11" font-family="monospace">synchronized(this) { … }</text>
+      <text x="390" y="90" text-anchor="middle" fill="#8b9bab" font-size="10">block form — can be narrower</text>
+      <rect x="530" y="48" width="220" height="56" rx="9" fill="#212b36" stroke="#ffb648"/>
+      <text x="640" y="72" text-anchor="middle" fill="#ffb648" font-size="11" font-family="monospace">synchronized(obj) { … }</text>
+      <text x="640" y="90" text-anchor="middle" fill="#8b9bab" font-size="10">same lock IF obj == this</text>
+      <rect x="315" y="135" width="150" height="44" rx="12" fill="#3d1a1a" stroke="#ff6b6b"/>
+      <text x="390" y="155" text-anchor="middle" fill="#ff6b6b" font-size="16">🔒 this</text>
+      <text x="390" y="171" text-anchor="middle" fill="#ff6b6b" font-size="9">one monitor per object</text>
+      <line x1="140" y1="104" x2="360" y2="140" stroke="#ff6b6b" stroke-dasharray="4"/>
+      <line x1="390" y1="104" x2="390" y2="133" stroke="#ff6b6b" stroke-dasharray="4"/>
+      <line x1="640" y1="104" x2="420" y2="140" stroke="#ff6b6b" stroke-dasharray="4"/>
+    </svg>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-blue">Canonical example — a safe counter</span>
+      <pre><span class="k">class</span> <span class="f">Counter</span> {
+    <span class="k">private int</span> count = <span class="o">0</span>;
+    <span class="k">public synchronized void</span> increment() { count++; }
+    <span class="k">public synchronized int</span>  get()       { <span class="k">return</span> count; }
+}
+<span class="c">// without synchronized: count++ is read→add→write,</span>
+<span class="c">// two threads interleave and updates get lost (race condition)</span></pre>
+    </div>
+    <div class="card">
+      <span class="tag t-teal">Remember</span>
+      <ul class="mini">
+        <li>🔑 Lock is on the <b>object</b>, never on the method — two synchronized methods of one object block each other</li>
+        <li>🔑 <code>static synchronized</code> locks the <b>Class</b> object — a different lock entirely</li>
+        <li>🔑 <code>synchronized</code> gives <b>mutual exclusion + visibility</b>; <code>volatile</code> gives visibility only</li>
+        <li>🔑 Deadlock recipe: two threads acquiring two locks in opposite order — always lock in a consistent order</li>
+        <li>🔑 Often skip all this: <code>AtomicInteger</code>, <code>ConcurrentHashMap</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ SLEEP / WAIT / JOIN ════════════════════ -->
+<section id="coord">
+  <h2>⏸️ sleep · wait · join · interrupt</h2>
+  <p class="lead">Four ways a thread pauses — they look similar but live in different worlds: <code>sleep</code>/<code>join</code> are <b>Thread</b> methods, <code>wait</code>/<code>notify</code> are <b>Object</b> methods tied to the monitor lock.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <table>
+      <tr><th></th><th>Belongs to</th><th>Needs the lock?</th><th>Releases the lock?</th><th>Wakes up when</th><th>Typical use</th></tr>
+      <tr><td><code>sleep(ms)</code></td><td>Thread (static)</td><td>No</td><td><span class="cross">✘ keeps it!</span></td><td>timer expires / interrupt</td><td>throttle, retry backoff</td></tr>
+      <tr><td><code>wait()</code></td><td>Object</td><td><span class="check">✔ must hold it</span></td><td><span class="check">✔ releases it</span></td><td><code>notify()</code> / timeout / interrupt</td><td>wait for a condition</td></tr>
+      <tr><td><code>join()</code></td><td>Thread (instance)</td><td>No</td><td>—</td><td>that thread terminates</td><td>wait for a worker to finish</td></tr>
+      <tr><td><code>yield()</code></td><td>Thread (static)</td><td>No</td><td>—</td><td>just a scheduler hint</td><td>almost never — don't rely on it</td></tr>
+    </table>
+    <p style="margin-top:10px;font-size:12.5px;color:var(--muted)">💡 The interview classic: <b>sleep keeps the lock, wait releases it</b>. That's why <code>wait()</code> must be on Object — it's part of the monitor mechanics, not the thread.</p>
+  </div>
+
+  <div class="svgbox">
+    <svg viewBox="0 0 780 270" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <defs><marker id="d" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b9bab" stroke-width="1.5"/></marker></defs>
+      <text x="390" y="20" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">wait / notify — producer &amp; consumer sharing one monitor</text>
+      <line x1="120" y1="50" x2="120" y2="230" stroke="#4da3ff" stroke-width="3"/>
+      <text x="120" y="248" text-anchor="middle" fill="#8b9bab" font-size="10">consumer</text>
+      <line x1="660" y1="50" x2="660" y2="230" stroke="#3ddc84" stroke-width="3"/>
+      <text x="660" y="248" text-anchor="middle" fill="#8b9bab" font-size="10">producer</text>
+      <rect x="320" y="45" width="140" height="40" rx="10" fill="#3d1a1a" stroke="#ff6b6b"/>
+      <text x="390" y="62" text-anchor="middle" fill="#ff6b6b" font-size="12">🔒 queue monitor</text>
+      <text x="390" y="77" text-anchor="middle" fill="#8b9bab" font-size="9">one lock, shared</text>
+      <rect x="130" y="100" width="180" height="30" rx="6" fill="#15314e" stroke="#4da3ff"/>
+      <text x="220" y="119" text-anchor="middle" fill="#4da3ff" font-size="10" font-family="monospace">while(queue.isEmpty()) wait()</text>
+      <text x="222" y="146" fill="#8b9bab" font-size="9">→ releases 🔒, goes to WAITING</text>
+      <rect x="470" y="130" width="180" height="30" rx="6" fill="#143626" stroke="#3ddc84"/>
+      <text x="560" y="149" text-anchor="middle" fill="#3ddc84" font-size="10" font-family="monospace">queue.add(x); notifyAll()</text>
+      <line x1="468" y1="160" x2="240" y2="180" stroke="#3ddc84" stroke-dasharray="4" marker-end="url(#d)"/>
+      <text x="360" y="185" text-anchor="middle" fill="#3ddc84" font-size="10">📣 wake up!</text>
+      <rect x="130" y="190" width="200" height="30" rx="6" fill="#15314e" stroke="#4da3ff"/>
+      <text x="230" y="209" text-anchor="middle" fill="#4da3ff" font-size="10" font-family="monospace">re-acquires 🔒 → rechecks → take()</text>
+      <text x="488" y="195" fill="#8b9bab" font-size="9">notify() wakes ONE waiter (random)</text>
+      <text x="488" y="209" fill="#8b9bab" font-size="9">notifyAll() wakes ALL → they recheck</text>
+    </svg>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-blue">wait / notify — the canonical shape</span>
+      <pre><span class="k">synchronized</span> (queue) {                <span class="c">// MUST hold the lock</span>
+    <span class="k">while</span> (queue.isEmpty())            <span class="c">// while, NEVER if</span>
+        queue.wait();                  <span class="c">// releases lock, parks</span>
+    item = queue.remove();
+}
+
+<span class="k">synchronized</span> (queue) {                <span class="c">// producer side</span>
+    queue.add(item);
+    queue.notifyAll();                 <span class="c">// safer than notify()</span>
+}</pre>
+      <p style="margin-top:8px">Three iron rules: ① call inside <code>synchronized</code> on the <i>same</i> object or get <code>IllegalMonitorStateException</code> ② loop on the condition — <b>spurious wakeups</b> are real ③ prefer <code>notifyAll()</code>. In practice: just use <code>BlockingQueue</code> and skip all this.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-purple">join &amp; interrupt</span>
+      <pre>Thread worker = <span class="k">new</span> Thread(task);
+worker.start();
+worker.join(<span class="o">5000</span>);          <span class="c">// wait ≤5s for it to die</span>
+
+worker.interrupt();          <span class="c">// polite stop request —</span>
+                             <span class="c">// just sets a flag</span>
+<span class="c">// inside the worker:</span>
+<span class="k">while</span> (!Thread.currentThread().isInterrupted()) {
+    <span class="k">try</span> { doChunk(); Thread.sleep(<span class="o">100</span>); }
+    <span class="k">catch</span> (InterruptedException e) {
+        Thread.currentThread().interrupt();  <span class="c">// restore flag</span>
+        <span class="k">break</span>;
+    }
+}</pre>
+      <p style="margin-top:8px">There is no safe "kill thread" in Java (<code>stop()</code> is deprecated for good reason). Interruption is cooperative: blocking calls (<code>sleep</code>, <code>wait</code>, <code>join</code>) throw <code>InterruptedException</code> and <b>clear the flag</b> — restore it before swallowing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ CONCURRENCY TOOLBOX ════════════════════ -->
+<section id="toolbox">
+  <h2>🧰 Concurrency toolbox</h2>
+  <p class="lead">Visibility, atomicity, and the <code>java.util.concurrent</code> classes that replace hand-rolled wait/notify code.</p>
+
+  <h3 style="font-size:17px;margin:0 0 6px">👁️ volatile vs synchronized vs Atomic</h3>
+  <div class="svgbox">
+    <svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <text x="390" y="20" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">Why threads see stale values: per-core caches</text>
+      <rect x="60" y="45" width="180" height="70" rx="10" fill="#15314e" stroke="#4da3ff"/>
+      <text x="150" y="68" text-anchor="middle" fill="#4da3ff" font-size="11" font-weight="bold">Thread A (core 1)</text>
+      <rect x="85" y="78" width="130" height="26" rx="6" fill="#0b0f14" stroke="#2a3441"/>
+      <text x="150" y="95" text-anchor="middle" fill="#ffb648" font-size="10" font-family="monospace">cache: flag = true</text>
+      <rect x="540" y="45" width="180" height="70" rx="10" fill="#2a1f45" stroke="#b388ff"/>
+      <text x="630" y="68" text-anchor="middle" fill="#b388ff" font-size="11" font-weight="bold">Thread B (core 2)</text>
+      <rect x="565" y="78" width="130" height="26" rx="6" fill="#0b0f14" stroke="#2a3441"/>
+      <text x="630" y="95" text-anchor="middle" fill="#ff6b6b" font-size="10" font-family="monospace">cache: flag = false ⚠️</text>
+      <rect x="290" y="135" width="200" height="46" rx="10" fill="#212b36" stroke="#8b9bab"/>
+      <text x="390" y="155" text-anchor="middle" fill="#e8edf2" font-size="11" font-weight="bold">main memory</text>
+      <text x="390" y="171" text-anchor="middle" fill="#8b9bab" font-size="10" font-family="monospace">flag = true</text>
+      <line x1="170" y1="115" x2="320" y2="135" stroke="#8b9bab" stroke-dasharray="4"/>
+      <line x1="610" y1="115" x2="460" y2="135" stroke="#8b9bab" stroke-dasharray="4"/>
+      <text x="390" y="125" text-anchor="middle" fill="#3ddc84" font-size="10">volatile = always read/write through to main memory + ordering guarantee</text>
+    </svg>
+  </div>
+
+  <div class="grid g3">
+    <div class="card">
+      <span class="tag t-blue">volatile</span>
+      <pre><span class="k">private volatile boolean</span> running = <span class="k">true</span>;
+<span class="c">// writer:</span> running = <span class="k">false</span>;
+<span class="c">// reader loop sees it immediately</span></pre>
+      <p>Visibility only — <b>not</b> atomic. Perfect for flags. <code>volatile int count++</code> is still a race (read+add+write).</p>
+    </div>
+    <div class="card">
+      <span class="tag t-green">Atomic*</span>
+      <pre>AtomicInteger hits = <span class="k">new</span> AtomicInteger();
+hits.incrementAndGet();      <span class="c">// lock-free CAS</span>
+hits.compareAndSet(<span class="o">5</span>, <span class="o">10</span>);</pre>
+      <p>Visibility + atomicity for a single variable, no locks (compare-and-swap). Also <code>AtomicLong</code>, <code>AtomicReference</code>, <code>LongAdder</code> for hot counters.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-orange">synchronized / Lock</span>
+      <pre><span class="k">synchronized</span> (this) {
+    balance -= amt;        <span class="c">// multi-step</span>
+    audit.add(entry);      <span class="c">// invariant across fields</span>
+}</pre>
+      <p>Visibility + atomicity for <b>compound</b> actions spanning multiple variables. The heavyweight option — use when invariants involve more than one field.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:17px;margin:26px 0 6px">🔐 ReentrantLock — synchronized with superpowers</h3>
+  <div class="grid g2">
+    <div class="card">
+      <pre><span class="k">private final</span> ReentrantLock lock = <span class="k">new</span> ReentrantLock();
+
+lock.lock();
+<span class="k">try</span> { doCriticalWork(); }
+<span class="k">finally</span> { lock.unlock(); }   <span class="c">// ALWAYS in finally</span>
+
+<span class="c">// what synchronized can't do:</span>
+<span class="k">if</span> (lock.tryLock(<span class="o">2</span>, TimeUnit.SECONDS)) { … }  <span class="c">// give up</span>
+lock.lockInterruptibly();                       <span class="c">// cancellable</span></pre>
+    </div>
+    <div class="card">
+      <h3>When to upgrade from synchronized</h3>
+      <ul class="mini">
+        <li>⏲️ <b>tryLock with timeout</b> — avoid waiting forever (deadlock escape hatch)</li>
+        <li>🛑 <b>lockInterruptibly</b> — waiting thread can be cancelled</li>
+        <li>⚖️ <b>Fairness</b> — <code>new ReentrantLock(true)</code> = FIFO, no starvation</li>
+        <li>📖 <b>ReadWriteLock</b> — many concurrent readers, exclusive writer</li>
+        <li>🔔 <b>Condition</b> — <code>lock.newCondition()</code>: multiple wait-sets per lock (wait/notify allows only one)</li>
+      </ul>
+      <p style="margin-top:6px">Default to <code>synchronized</code>; reach for <code>ReentrantLock</code> only when you need one of these.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:17px;margin:26px 0 6px">🚦 Coordination utilities — stop hand-rolling wait/notify</h3>
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-teal">CountDownLatch — "wait until N things happen"</span>
+      <pre>CountDownLatch ready = <span class="k">new</span> CountDownLatch(<span class="o">3</span>);
+<span class="c">// 3 workers each call:</span>  ready.countDown();
+ready.await();   <span class="c">// main unblocks when count hits 0</span>
+<span class="c">// one-shot: cannot be reset</span></pre>
+    </div>
+    <div class="card">
+      <span class="tag t-teal">CyclicBarrier — "everyone meets here"</span>
+      <pre>CyclicBarrier barrier = <span class="k">new</span> CyclicBarrier(<span class="o">3</span>,
+        () -&gt; merge());      <span class="c">// runs when all arrive</span>
+<span class="c">// each worker:</span> barrier.await();
+<span class="c">// reusable — resets after each round</span></pre>
+    </div>
+    <div class="card">
+      <span class="tag t-teal">Semaphore — "at most N at a time"</span>
+      <pre>Semaphore permits = <span class="k">new</span> Semaphore(<span class="o">10</span>);
+permits.acquire();           <span class="c">// blocks if 10 in use</span>
+<span class="k">try</span> { callRateLimitedApi(); }
+<span class="k">finally</span> { permits.release(); }</pre>
+    </div>
+    <div class="card">
+      <span class="tag t-teal">BlockingQueue — producer/consumer, solved</span>
+      <pre>BlockingQueue&lt;Job&gt; q = <span class="k">new</span> ArrayBlockingQueue&lt;&gt;(<span class="o">100</span>);
+q.put(job);     <span class="c">// blocks when full  (producer)</span>
+Job j = q.take(); <span class="c">// blocks when empty (consumer)</span>
+<span class="c">// all the wait/notify logic, built in &amp; correct</span></pre>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>🗃️ Thread-safe collections &amp; ThreadLocal</h3>
+    <table>
+      <tr><th>Instead of</th><th>Use</th><th>Why</th></tr>
+      <tr><td><code>HashMap</code> + sync</td><td><code>ConcurrentHashMap</code></td><td>lock-striped, atomic <code>computeIfAbsent()</code>, never locks the whole map</td></tr>
+      <tr><td><code>Collections.synchronizedList</code></td><td><code>CopyOnWriteArrayList</code></td><td>read-heavy lists; iterators never throw ConcurrentModificationException</td></tr>
+      <tr><td>shared <code>SimpleDateFormat</code> 😱</td><td><code>ThreadLocal</code> / <code>DateTimeFormatter</code></td><td><code>ThreadLocal.withInitial(...)</code> gives each thread its own copy — remember <code>remove()</code> in pools to avoid leaks</td></tr>
+      <tr><td>shared mutable state</td><td>immutable objects</td><td>the best concurrency strategy is having nothing to synchronize</td></tr>
+    </table>
+  </div>
+
+  <h3 style="font-size:17px;margin:26px 0 6px">💀 Deadlock — the circular wait</h3>
+  <div class="svgbox">
+    <svg viewBox="0 0 780 210" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <defs><marker id="e" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#ff6b6b" stroke-width="1.5"/></marker><marker id="f" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#3ddc84" stroke-width="1.5"/></marker></defs>
+      <rect x="80" y="55" width="150" height="50" rx="10" fill="#15314e" stroke="#4da3ff"/>
+      <text x="155" y="76" text-anchor="middle" fill="#4da3ff" font-size="12" font-weight="bold">Thread A</text>
+      <text x="155" y="93" text-anchor="middle" fill="#8b9bab" font-size="10">holds 🔒1, wants 🔒2</text>
+      <rect x="550" y="55" width="150" height="50" rx="10" fill="#2a1f45" stroke="#b388ff"/>
+      <text x="625" y="76" text-anchor="middle" fill="#b388ff" font-size="12" font-weight="bold">Thread B</text>
+      <text x="625" y="93" text-anchor="middle" fill="#8b9bab" font-size="10">holds 🔒2, wants 🔒1</text>
+      <rect x="340" y="30" width="100" height="36" rx="8" fill="#3d1a1a" stroke="#ff6b6b"/><text x="390" y="53" text-anchor="middle" fill="#ff6b6b" font-size="12">🔒 lock 1</text>
+      <rect x="340" y="95" width="100" height="36" rx="8" fill="#3d1a1a" stroke="#ff6b6b"/><text x="390" y="118" text-anchor="middle" fill="#ff6b6b" font-size="12">🔒 lock 2</text>
+      <line x1="230" y1="70" x2="338" y2="50" stroke="#3ddc84" marker-end="url(#f)"/><text x="280" y="48" text-anchor="middle" fill="#3ddc84" font-size="9">holds</text>
+      <line x1="230" y1="95" x2="338" y2="110" stroke="#ff6b6b" stroke-dasharray="4" marker-end="url(#e)"/><text x="280" y="118" text-anchor="middle" fill="#ff6b6b" font-size="9">waits ⏳</text>
+      <line x1="550" y1="95" x2="442" y2="115" stroke="#3ddc84" marker-end="url(#f)"/><text x="500" y="125" text-anchor="middle" fill="#3ddc84" font-size="9">holds</text>
+      <line x1="550" y1="70" x2="442" y2="52" stroke="#ff6b6b" stroke-dasharray="4" marker-end="url(#e)"/><text x="500" y="45" text-anchor="middle" fill="#ff6b6b" font-size="9">waits ⏳</text>
+      <text x="390" y="170" text-anchor="middle" fill="#ff6b6b" font-size="11" font-weight="bold">Both wait forever — circular dependency 💀</text>
+      <text x="390" y="192" text-anchor="middle" fill="#8b9bab" font-size="10">Fixes: always acquire locks in the same global order · tryLock with timeout · one lock instead of two</text>
+    </svg>
+  </div>
+  <div class="rule warn"><span class="ico">🔍</span><div><b>Diagnosing a live deadlock</b><p><code>jstack &lt;pid&gt;</code> (or <code>jcmd &lt;pid&gt; Thread.print</code>) prints all stacks and literally says <i>"Found one Java-level deadlock"</i> with the lock cycle. Related diseases: <b>livelock</b> (threads keep reacting, no progress) and <b>starvation</b> (low-priority thread never gets the lock — fair locks fix it).</p></div></div>
+</section>
+
+<!-- ════════════════════ EXECUTORSERVICE ════════════════════ -->
+<section id="executor">
+  <h2>⚙️ ExecutorService</h2>
+  <p class="lead">Creating a thread per task is expensive (~1 MB stack each, OS calls). An executor keeps a <b>pool of reusable threads</b> pulling tasks off a <b>queue</b>. You submit tasks; it handles the threads.</p>
+
+  <div class="svgbox">
+    <svg viewBox="0 0 780 235" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <text x="390" y="20" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">Producer → Queue → Pool</text>
+      <rect x="20" y="60" width="130" height="120" rx="10" fill="#212b36" stroke="#4da3ff"/>
+      <text x="85" y="85" text-anchor="middle" fill="#4da3ff" font-size="12" font-weight="bold">your code</text>
+      <text x="85" y="110" text-anchor="middle" fill="#e8edf2" font-size="10" font-family="monospace">execute(task)</text>
+      <text x="85" y="128" text-anchor="middle" fill="#e8edf2" font-size="10" font-family="monospace">submit(task)</text>
+      <text x="85" y="155" text-anchor="middle" fill="#8b9bab" font-size="9">returns immediately</text>
+      <rect x="210" y="75" width="210" height="90" rx="10" fill="#3d2d12" stroke="#ffb648"/>
+      <text x="315" y="98" text-anchor="middle" fill="#ffb648" font-size="12" font-weight="bold">work queue 📥</text>
+      <g font-size="9" fill="#0b0f14">
+        <rect x="228" y="112" width="36" height="20" rx="4" fill="#ffb648"/><text x="246" y="126" text-anchor="middle">t₃</text>
+        <rect x="270" y="112" width="36" height="20" rx="4" fill="#ffb648"/><text x="288" y="126" text-anchor="middle">t₄</text>
+        <rect x="312" y="112" width="36" height="20" rx="4" fill="#ffb648"/><text x="330" y="126" text-anchor="middle">t₅</text>
+      </g>
+      <text x="315" y="152" text-anchor="middle" fill="#8b9bab" font-size="9">tasks wait here when all threads busy</text>
+      <rect x="480" y="50" width="280" height="140" rx="10" fill="#143626" stroke="#3ddc84"/>
+      <text x="620" y="73" text-anchor="middle" fill="#3ddc84" font-size="12" font-weight="bold">thread pool ♻️ (fixed: N threads)</text>
+      <g font-size="9" fill="#3ddc84">
+        <rect x="500" y="88" width="70" height="24" rx="5" fill="#0f3322" stroke="#3ddc84"/><text x="535" y="104" text-anchor="middle">thread-1 ▶ t₁</text>
+        <rect x="585" y="88" width="70" height="24" rx="5" fill="#0f3322" stroke="#3ddc84"/><text x="620" y="104" text-anchor="middle">thread-2 ▶ t₂</text>
+        <rect x="670" y="88" width="70" height="24" rx="5" fill="#0f3322" stroke="#3ddc84"/><text x="705" y="104" text-anchor="middle">thread-3 idle</text>
+      </g>
+      <text x="620" y="140" text-anchor="middle" fill="#8b9bab" font-size="9">threads created once, reused for every task</text>
+      <text x="620" y="156" text-anchor="middle" fill="#8b9bab" font-size="9">finish a task → grab the next from the queue</text>
+      <line x1="150" y1="120" x2="208" y2="120" stroke="#8b9bab" marker-end="url(#b)"/>
+      <line x1="420" y1="120" x2="478" y2="120" stroke="#8b9bab" marker-end="url(#b)"/>
+      <text x="390" y="222" text-anchor="middle" fill="#8b9bab" font-size="10">shutdown(): stop accepting new tasks, finish the queue · shutdownNow(): interrupt everything, return unstarted tasks</text>
+    </svg>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <span class="tag t-green">The standard pattern</span>
+      <pre>ExecutorService pool = Executors.newFixedThreadPool(<span class="o">8</span>);
+<span class="k">try</span> {
+    <span class="k">for</span> (<span class="k">int</span> i = <span class="o">0</span>; i &lt; <span class="o">100</span>; i++)
+        pool.execute(() -&gt; doWork());   <span class="c">// fire &amp; forget</span>
+} <span class="k">finally</span> {
+    pool.shutdown();                      <span class="c">// graceful</span>
+    <span class="k">if</span> (!pool.awaitTermination(<span class="o">30</span>, TimeUnit.SECONDS))
+        pool.shutdownNow();               <span class="c">// force</span>
+}
+<span class="c">// Java 19+: try (var pool = …) { } — auto shutdown+await</span></pre>
+    </div>
+    <div class="card">
+      <span class="tag t-purple">Pool flavors</span>
+      <table>
+        <tr><th>Factory</th><th>Behavior</th></tr>
+        <tr><td><code>newFixedThreadPool(n)</code></td><td>n threads, unbounded queue — the default choice</td></tr>
+        <tr><td><code>newCachedThreadPool()</code></td><td>grows on demand, kills idle threads — bursty short tasks</td></tr>
+        <tr><td><code>newSingleThreadExecutor()</code></td><td>1 thread — tasks run in order</td></tr>
+        <tr><td><code>newScheduledThreadPool(n)</code></td><td>delayed / periodic tasks</td></tr>
+        <tr><td><code>newVirtualThreadPerTaskExecutor()</code></td><td>Java 21+ — a cheap virtual thread per task, great for blocking I/O</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:14px">
+    <div class="rule"><span class="ico">📏</span><div><b>Sizing rule of thumb</b><p>CPU-bound work → pool ≈ number of cores. I/O-bound work → much larger (threads mostly wait), or just use virtual threads on Java 21+.</p></div></div>
+    <div class="rule warn"><span class="ico">⚠️</span><div><b>Gotcha: execute() swallows nothing — it crashes the thread</b><p>An exception in <code>execute()</code> kills the worker (pool replaces it) and prints to stderr. With <code>submit()</code> the exception is captured inside the Future and is <i>silent</i> until you call <code>get()</code>. Always retrieve your futures.</p></div></div>
+  </div>
+</section>
+
+<!-- ════════════════════ FUTURE ════════════════════ -->
+<section id="future">
+  <h2>🔮 Callable + Future</h2>
+  <p class="lead"><code>Runnable</code> can't return anything. <code>Callable&lt;V&gt;</code> returns a value and may throw. <code>submit()</code> gives you back a <code>Future&lt;V&gt;</code> instantly — a claim ticket 🎟️ you redeem later with <code>get()</code>.</p>
+
+  <div class="svgbox">
+    <svg viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <text x="390" y="20" text-anchor="middle" fill="#e8edf2" font-size="14" font-weight="bold">The claim-ticket timeline</text>
+      <line x1="90" y1="55" x2="90" y2="225" stroke="#4da3ff" stroke-width="3"/>
+      <text x="90" y="245" text-anchor="middle" fill="#8b9bab" font-size="10">main thread</text>
+      <line x1="430" y1="80" x2="430" y2="160" stroke="#3ddc84" stroke-width="3"/>
+      <line x1="430" y1="55" x2="430" y2="80" stroke="#2a3441"/><line x1="430" y1="160" x2="430" y2="225" stroke="#2a3441"/>
+      <text x="430" y="245" text-anchor="middle" fill="#8b9bab" font-size="10">pool worker</text>
+      <line x1="95" y1="70" x2="425" y2="80" stroke="#8b9bab" marker-end="url(#b)"/>
+      <text x="255" y="62" text-anchor="middle" fill="#e8edf2" font-size="11" font-family="monospace">Future&lt;Report&gt; f = pool.submit(callable)</text>
+      <line x1="425" y1="86" x2="96" y2="96" stroke="#b388ff" stroke-dasharray="4" marker-end="url(#b)"/>
+      <text x="255" y="110" text-anchor="middle" fill="#b388ff" font-size="11">🎟️ Future returned immediately — main keeps going</text>
+      <rect x="450" y="95" width="170" height="42" rx="8" fill="#143626" stroke="#3ddc84"/>
+      <text x="535" y="113" text-anchor="middle" fill="#3ddc84" font-size="10" font-family="monospace">call() computing…</text>
+      <text x="535" y="128" text-anchor="middle" fill="#8b9bab" font-size="9">in parallel with main</text>
+      <rect x="100" y="125" width="180" height="26" rx="6" fill="#15314e" stroke="#4da3ff"/>
+      <text x="190" y="142" text-anchor="middle" fill="#4da3ff" font-size="10">main does other useful work…</text>
+      <rect x="100" y="162" width="180" height="40" rx="8" fill="#3d2d12" stroke="#ffb648"/>
+      <text x="190" y="179" text-anchor="middle" fill="#ffb648" font-size="11" font-family="monospace">f.get(5, SECONDS)</text>
+      <text x="190" y="194" text-anchor="middle" fill="#8b9bab" font-size="9">blocks ⏳ only if not done yet</text>
+      <line x1="428" y1="160" x2="285" y2="180" stroke="#3ddc84" marker-end="url(#b)"/>
+      <text x="360" y="195" text-anchor="middle" fill="#3ddc84" font-size="10">result ✅</text>
+      <text x="640" y="190" fill="#8b9bab" font-size="9">worker exception?</text>
+      <text x="640" y="204" fill="#ff6b6b" font-size="9">→ get() throws ExecutionException</text>
+      <text x="640" y="218" fill="#8b9bab" font-size="9">(real error = e.getCause())</text>
+    </svg>
+  </div>
+
+  <div class="grid g3">
+    <div class="card"><span class="tag t-blue">Runnable</span><pre><span class="k">void</span> run()</pre><p>No result, no checked exceptions. Use with <code>execute()</code>.</p></div>
+    <div class="card"><span class="tag t-green">Callable&lt;V&gt;</span><pre>V call() <span class="k">throws</span> Exception</pre><p>Returns a value, may throw. Use with <code>submit()</code>.</p></div>
+    <div class="card"><span class="tag t-purple">Future&lt;V&gt;</span><pre>get() · get(timeout)
+cancel() · isDone()</pre><p>The handle to a pending result.</p></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <span class="tag t-green">Fan-out / fan-in — the classic use</span>
+      <pre>List&lt;Callable&lt;Integer&gt;&gt; jobs = urls.stream()
+        .map(u -&gt; (Callable&lt;Integer&gt;) () -&gt; fetchSize(u))
+        .toList();
+
+<span class="c">// submit ALL, wait for ALL:</span>
+List&lt;Future&lt;Integer&gt;&gt; results = pool.invokeAll(jobs);
+
+<span class="k">int</span> total = <span class="o">0</span>;
+<span class="k">for</span> (Future&lt;Integer&gt; f : results)
+    total += f.get();   <span class="c">// all done already — no waiting</span></pre>
+      <p style="margin-top:8px">Submit everything <i>first</i>, then collect. Calling <code>get()</code> right after each <code>submit()</code> serializes the work — a classic mistake.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-teal">CompletableFuture — when blocking hurts</span>
+      <pre>CompletableFuture
+    .supplyAsync(() -&gt; fetchUser(id))      <span class="c">// async</span>
+    .thenApply(user -&gt; enrich(user))        <span class="c">// chain</span>
+    .thenAccept(u -&gt; render(u))             <span class="c">// consume</span>
+    .exceptionally(ex -&gt; { log(ex); <span class="k">return null</span>; });</pre>
+      <p style="margin-top:8px">Plain <code>Future.get()</code> blocks a thread. <code>CompletableFuture</code> lets you chain callbacks instead — compose, combine, recover, no blocking.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:14px">
+    <div class="rule warn"><span class="ico">⚠️</span><div><b>get() pitfalls to remember</b><p>Always prefer <code>get(timeout, unit)</code> — a hung task otherwise hangs you forever. <code>ExecutionException</code> wraps the real error (<code>getCause()</code>). On <code>InterruptedException</code>, restore the flag: <code>Thread.currentThread().interrupt()</code>.</p></div></div>
+  </div>
+</section>
+
+<!-- ════════════════════ DECISION ════════════════════ -->
+<section id="decide">
+  <h2>🗺️ Which one when</h2>
+  <div class="svgbox">
+    <svg viewBox="0 0 780 300" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">
+      <defs><marker id="c" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#8b9bab" stroke-width="1.5"/></marker></defs>
+      <rect x="290" y="15" width="200" height="44" rx="22" fill="#212b36" stroke="#4da3ff"/>
+      <text x="390" y="42" text-anchor="middle" fill="#e8edf2" font-size="13" font-weight="bold">Need concurrency?</text>
+      <rect x="60" y="110" width="200" height="50" rx="10" fill="#15314e" stroke="#4da3ff"/>
+      <text x="160" y="131" text-anchor="middle" fill="#4da3ff" font-size="12" font-weight="bold">One-off background job?</text>
+      <text x="160" y="148" text-anchor="middle" fill="#8b9bab" font-size="10">new Thread(runnable).start()</text>
+      <rect x="290" y="110" width="200" height="50" rx="10" fill="#143626" stroke="#3ddc84"/>
+      <text x="390" y="131" text-anchor="middle" fill="#3ddc84" font-size="12" font-weight="bold">Many tasks, no result?</text>
+      <text x="390" y="148" text-anchor="middle" fill="#8b9bab" font-size="10">ExecutorService.execute()</text>
+      <rect x="520" y="110" width="200" height="50" rx="10" fill="#2a1f45" stroke="#b388ff"/>
+      <text x="620" y="131" text-anchor="middle" fill="#b388ff" font-size="12" font-weight="bold">Need results back?</text>
+      <text x="620" y="148" text-anchor="middle" fill="#8b9bab" font-size="10">submit(Callable) → Future.get()</text>
+      <rect x="175" y="210" width="200" height="50" rx="10" fill="#0f3338" stroke="#26c6da"/>
+      <text x="275" y="231" text-anchor="middle" fill="#26c6da" font-size="12" font-weight="bold">Async pipelines / chaining?</text>
+      <text x="275" y="248" text-anchor="middle" fill="#8b9bab" font-size="10">CompletableFuture</text>
+      <rect x="405" y="210" width="200" height="50" rx="10" fill="#3d2d12" stroke="#ffb648"/>
+      <text x="505" y="231" text-anchor="middle" fill="#ffb648" font-size="12" font-weight="bold">Tons of blocking I/O? (21+)</text>
+      <text x="505" y="248" text-anchor="middle" fill="#8b9bab" font-size="10">virtual threads — one per task</text>
+      <line x1="330" y1="59" x2="180" y2="108" stroke="#8b9bab" marker-end="url(#c)"/>
+      <line x1="390" y1="59" x2="390" y2="108" stroke="#8b9bab" marker-end="url(#c)"/>
+      <line x1="450" y1="59" x2="600" y2="108" stroke="#8b9bab" marker-end="url(#c)"/>
+      <line x1="600" y1="160" x2="310" y2="208" stroke="#8b9bab" marker-end="url(#c)"/>
+      <line x1="620" y1="160" x2="530" y2="208" stroke="#8b9bab" marker-end="url(#c)"/>
+    </svg>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>30-second recall</h3>
+      <ul class="mini">
+        <li>🧨 Checked = compiler makes you deal with it; unchecked = RuntimeException, usually a bug</li>
+        <li>🧨 Custom exception = <code>super(msg, cause)</code>, nothing else</li>
+        <li>🧵 <code>start()</code> spawns; <code>run()</code> doesn't · prefer Runnable over extends Thread</li>
+        <li>🔒 Lock lives on the object; synchronized method ≡ <code>synchronized(this)</code></li>
+        <li>⏸️ sleep keeps the lock, wait releases it · wait in a <code>while</code> loop · join = wait for death</li>
+        <li>🛑 interrupt() is a request, not a kill — restore the flag after catching</li>
+        <li>👁️ volatile = visibility · Atomic = one-variable atomicity · synchronized = compound actions</li>
+        <li>🚦 Latch = wait for N · Barrier = meet up · Semaphore = at most N · BlockingQueue = producer/consumer</li>
+        <li>⚙️ Executor = queue + reusable threads · shutdown + awaitTermination</li>
+        <li>🔮 Callable returns, Future is the ticket, <code>get()</code> blocks — submit all, then collect</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Modern Java upgrades (since this code was written)</h3>
+      <ul class="mini">
+        <li>☕ Lambdas: <code>pool.execute(() -&gt; work())</code> — no more one-class-per-task</li>
+        <li>☕ try-with-resources on executors (19+) — auto shutdown</li>
+        <li>☕ Virtual threads (21+) — <code>Thread.ofVirtual()</code>, millions of cheap threads</li>
+        <li>☕ <code>CompletableFuture</code> (8+) replaces most raw Future juggling</li>
+        <li>☕ <code>Thread.getId()</code> deprecated → <code>threadId()</code> (19+)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>Java refresher · exceptions → threads → executors → futures</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Senior Engineer's Lexicon</title>
+<style>
+  :root {
+    --indigo: #4f46e5;
+    --indigo-deep: #3730a3;
+    --indigo-light: #eef2ff;
+    --violet: #6d28d9;
+    --teal: #0f766e;
+    --amber: #d97706;
+    --green: #2d7a4f;
+    --red: #b91c1c;
+    --blue: #2c6fad;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --highlight: #fde68a;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    /* category accents */
+    --c-reliability: #b91c1c;
+    --c-consistency: #0f766e;
+    --c-scale: #d97706;
+    --c-architecture: #6d28d9;
+    --c-ops: #2d7a4f;
+    --c-engineering: #2c6fad;
+    --c-process: #4f46e5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+    color: var(--text);
+    line-height: 1.5;
+    padding-bottom: 48px;
+  }
+  code { font-family: 'SF Mono', Monaco, Consolas, monospace; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #3730a3 55%, #0f766e 130%);
+    color: white;
+    padding: 32px 40px 26px;
+    position: relative;
+  }
+  .header::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, #6d28d9 0%, #0f766e 100%); }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .icon { font-size: 2rem; }
+  .header h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.01em; }
+  .header-sub { font-size: 0.92rem; opacity: 0.9; max-width: 640px; }
+
+  /* Controls */
+  .controls {
+    background: white;
+    margin: 22px 32px 0;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 12px;
+    z-index: 10;
+  }
+  .search-wrap { flex: 1; min-width: 240px; position: relative; }
+  .search-wrap::before {
+    content: '\2315';
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 17px; color: var(--muted); pointer-events: none;
+  }
+  #search {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    font-size: 0.9rem;
+    background: var(--gray);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  #search:focus { border-color: var(--indigo); background: white; box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
+  #search::placeholder { color: var(--muted); }
+
+  .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill {
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 7px 13px;
+    background: var(--gray);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .pill:hover { border-color: var(--indigo); color: var(--indigo); }
+  .pill.active { background: var(--indigo); border-color: var(--indigo); color: white; }
+
+  .stats { font-size: 0.8rem; color: var(--muted); margin: 14px 32px 0; }
+  .stats strong { color: var(--text); font-weight: 700; }
+
+  /* Category sections */
+  .cat-section { margin: 26px 32px 0; }
+  .cat-section.hidden { display: none; }
+  .cat-head {
+    display: flex; align-items: baseline; gap: 11px;
+    margin-bottom: 14px; padding-bottom: 9px;
+    border-bottom: 2px solid var(--border);
+  }
+  .cat-emoji { font-size: 1.3rem; }
+  .cat-head h2 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+  .cat-count { margin-left: auto; font-size: 0.74rem; font-weight: 600; color: var(--muted); align-self: center; }
+  .cat-section[data-cat="reliability"]  .cat-head { border-bottom-color: var(--c-reliability); }
+  .cat-section[data-cat="consistency"]  .cat-head { border-bottom-color: var(--c-consistency); }
+  .cat-section[data-cat="scale"]        .cat-head { border-bottom-color: var(--c-scale); }
+  .cat-section[data-cat="architecture"] .cat-head { border-bottom-color: var(--c-architecture); }
+  .cat-section[data-cat="ops"]          .cat-head { border-bottom-color: var(--c-ops); }
+  .cat-section[data-cat="engineering"]  .cat-head { border-bottom-color: var(--c-engineering); }
+  .cat-section[data-cat="process"]      .cat-head { border-bottom-color: var(--c-process); }
+  .cat-section[data-cat="reliability"]  .cat-head h2 { color: var(--c-reliability); }
+  .cat-section[data-cat="consistency"]  .cat-head h2 { color: var(--c-consistency); }
+  .cat-section[data-cat="scale"]        .cat-head h2 { color: var(--c-scale); }
+  .cat-section[data-cat="architecture"] .cat-head h2 { color: var(--c-architecture); }
+  .cat-section[data-cat="ops"]          .cat-head h2 { color: var(--c-ops); }
+  .cat-section[data-cat="engineering"]  .cat-head h2 { color: var(--c-engineering); }
+  .cat-section[data-cat="process"]      .cat-head h2 { color: var(--c-process); }
+
+  /* Card grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+    margin: 0;
+  }
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--muted);
+    border-radius: 10px;
+    padding: 15px 17px 17px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+  .card.hidden { display: none; }
+
+  .card[data-cat="reliability"]  { border-left-color: var(--c-reliability); }
+  .card[data-cat="consistency"]  { border-left-color: var(--c-consistency); }
+  .card[data-cat="scale"]        { border-left-color: var(--c-scale); }
+  .card[data-cat="architecture"] { border-left-color: var(--c-architecture); }
+  .card[data-cat="ops"]          { border-left-color: var(--c-ops); }
+  .card[data-cat="engineering"]  { border-left-color: var(--c-engineering); }
+  .card[data-cat="process"]      { border-left-color: var(--c-process); }
+
+  .card-cat {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .card-cat::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .card[data-cat="reliability"]  .card-cat, .card[data-cat="reliability"]  .card-cat::before { color: var(--c-reliability); }
+  .card[data-cat="consistency"]  .card-cat, .card[data-cat="consistency"]  .card-cat::before { color: var(--c-consistency); }
+  .card[data-cat="scale"]        .card-cat, .card[data-cat="scale"]        .card-cat::before { color: var(--c-scale); }
+  .card[data-cat="architecture"] .card-cat, .card[data-cat="architecture"] .card-cat::before { color: var(--c-architecture); }
+  .card[data-cat="ops"]          .card-cat, .card[data-cat="ops"]          .card-cat::before { color: var(--c-ops); }
+  .card[data-cat="engineering"]  .card-cat, .card[data-cat="engineering"]  .card-cat::before { color: var(--c-engineering); }
+  .card[data-cat="process"]      .card-cat, .card[data-cat="process"]      .card-cat::before { color: var(--c-process); }
+  .card[data-cat="reliability"]  .card-cat::before { background: var(--c-reliability); }
+  .card[data-cat="consistency"]  .card-cat::before { background: var(--c-consistency); }
+  .card[data-cat="scale"]        .card-cat::before { background: var(--c-scale); }
+  .card[data-cat="architecture"] .card-cat::before { background: var(--c-architecture); }
+  .card[data-cat="ops"]          .card-cat::before { background: var(--c-ops); }
+  .card[data-cat="engineering"]  .card-cat::before { background: var(--c-engineering); }
+  .card[data-cat="process"]      .card-cat::before { background: var(--c-process); }
+
+  .term { font-size: 1.02rem; font-weight: 700; line-height: 1.2; color: var(--text); margin-bottom: 8px; }
+  .term em { font-style: normal; font-weight: 500; color: var(--muted); font-size: 0.76rem; display: block; margin-top: 3px; }
+
+  .meaning { color: #374151; line-height: 1.55; font-size: 0.85rem; flex: 1; }
+  .meaning .example {
+    display: block; margin-top: 11px; padding: 8px 11px;
+    background: var(--indigo-light);
+    border-left: 3px solid var(--indigo);
+    border-radius: 4px;
+    font-size: 0.78rem; line-height: 1.5; color: var(--indigo-deep); font-style: italic;
+  }
+  mark { background: var(--highlight); color: var(--text); padding: 0 2px; border-radius: 3px; }
+
+  .empty { text-align: center; padding: 70px 20px; color: var(--muted); font-size: 1rem; font-style: italic; display: none; margin: 12px 32px 0; }
+  .empty.show { display: block; }
+
+  footer { margin: 40px 32px 0; padding-top: 20px; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer em { font-style: italic; color: var(--text); }
+
+  @media (max-width: 720px) {
+    .header { padding: 24px 16px 18px; }
+    .controls, .stats, .cat-section, .empty, footer { margin-left: 12px; margin-right: 12px; }
+    .grid { grid-template-columns: 1fr; }
+    .controls { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="icon">📘</span>
+    <h1>The Senior Engineer's Lexicon</h1>
+  </div>
+  <p class="header-sub">Vocabulary that earns its keep in design reviews, RFCs, and architecture debates. Use these words when they sharpen meaning — and avoid them when plain language is clearer.</p>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Filter by term, category, or meaning…" autocomplete="off" autofocus>
+  </div>
+  <div class="filter-pills" id="pills">
+    <button class="pill active" data-cat="all">All</button>
+    <button class="pill" data-cat="reliability">Reliability</button>
+    <button class="pill" data-cat="consistency">Consistency</button>
+    <button class="pill" data-cat="scale">Scale</button>
+    <button class="pill" data-cat="architecture">Architecture</button>
+    <button class="pill" data-cat="ops">Ops</button>
+    <button class="pill" data-cat="engineering">Engineering</button>
+    <button class="pill" data-cat="process">Process</button>
+  </div>
+</div>
+
+<div class="stats"><strong id="count">0</strong> terms shown</div>
+
+<div id="sections"></div>
+<div class="empty" id="empty">No terms match that filter.</div>
+
+<footer>
+  <span>Use precisely · or not at all</span>
+  <span><em>Lexicon</em> · compiled 2026</span>
+</footer>
+
+<script>
+const DATA = [
+  // Reliability
+  { term: "Fault tolerance", cat: "reliability", catLabel: "Reliability", meaning: "The system's ability to keep functioning when components fail.", example: "We need fault tolerance at the AZ level — survive losing an entire availability zone." },
+  { term: "High availability", alt: "HA", cat: "reliability", catLabel: "Reliability", meaning: "Designed to minimize downtime, usually expressed in nines (99.9%, 99.99%). HA is the outcome; fault tolerance is one mechanism to achieve it." },
+  { term: "Resilience", cat: "reliability", catLabel: "Reliability", meaning: "Broader than fault tolerance — includes graceful degradation, recovery, and self-healing.", example: "The service is resilient to upstream timeouts." },
+  { term: "Blast radius", cat: "reliability", catLabel: "Reliability", meaning: "How much breaks when something fails.", example: "We isolated tenants to reduce blast radius." },
+  { term: "Failure domain", cat: "reliability", catLabel: "Reliability", meaning: "A boundary within which a single failure is contained (a rack, AZ, region). Good design minimizes overlap between failure domains." },
+  { term: "Graceful degradation", cat: "reliability", catLabel: "Reliability", meaning: "Reducing functionality instead of failing entirely.", example: "If recommendations are down, we serve the page without them." },
+  { term: "Circuit breaker", cat: "reliability", catLabel: "Reliability", meaning: "Stops calling a failing dependency to prevent cascading failure.", example: "The breaker tripped after 50% error rate." },
+  { term: "Backpressure", cat: "reliability", catLabel: "Reliability", meaning: "Signaling upstream to slow down when downstream is overwhelmed. Common in streaming and queue-based systems." },
+  { term: "Bulkheading", cat: "reliability", catLabel: "Reliability", meaning: "Isolating resources (thread pools, connection pools) so one bad tenant or dependency can't sink the whole ship." },
+  { term: "Cascading failure", cat: "reliability", catLabel: "Reliability", meaning: "One failure triggers the next. Retry storms are the classic cause." },
+  { term: "Thundering herd", cat: "reliability", catLabel: "Reliability", meaning: "Many clients hit the same resource simultaneously (e.g., cache expiry, service recovery). Mitigated with jitter and request coalescing." },
+
+  // Consistency
+  { term: "Consistency", cat: "consistency", catLabel: "Consistency", meaning: "Whether reads reflect recent writes. Has several flavors that get conflated — strong, eventual, causal, etc." },
+  { term: "Strong consistency", cat: "consistency", catLabel: "Consistency", meaning: "Every read sees the latest write. Expensive but simple to reason about." },
+  { term: "Eventual consistency", cat: "consistency", catLabel: "Consistency", meaning: "Reads will eventually converge; useful for AP systems where availability is prioritized." },
+  { term: "Read-your-writes", cat: "consistency", catLabel: "Consistency", meaning: "A client sees its own writes immediately, even if others don't yet." },
+  { term: "Monotonic reads", cat: "consistency", catLabel: "Consistency", meaning: "A client never sees data go backward in time." },
+  { term: "Causal consistency", cat: "consistency", catLabel: "Consistency", meaning: "Operations causally related appear in order to all observers." },
+  { term: "CAP theorem", cat: "consistency", catLabel: "Consistency", meaning: "In a partition, you choose Consistency or Availability. Often misquoted; in practice it's PACELC — during Partition: A vs C; Else: Latency vs Consistency." },
+  { term: "Linearizability", cat: "consistency", catLabel: "Consistency", meaning: "The strictest single-object consistency: operations appear instantaneous and in real-time order." },
+  { term: "Serializability", cat: "consistency", catLabel: "Consistency", meaning: "Multi-object transactional guarantee: the result is equivalent to some serial ordering of transactions." },
+  { term: "Isolation levels", cat: "consistency", catLabel: "Consistency", meaning: "Read uncommitted, read committed, repeatable read, serializable. Senior engineers know which their database actually provides — Postgres' \"repeatable read\" is snapshot isolation." },
+  { term: "Idempotency", cat: "consistency", catLabel: "Consistency", meaning: "Same operation, same result, no matter how many times you call it. Critical for retries.", example: "Make the endpoint idempotent with a client-provided key." },
+  { term: "Delivery semantics", alt: "exactly-once / at-least-once / at-most-once", cat: "consistency", catLabel: "Consistency", meaning: "True exactly-once is rare; usually you get at-least-once + idempotency." },
+
+  // Scale
+  { term: "Cardinality", cat: "scale", catLabel: "Scale", meaning: "The number of distinct values. High-cardinality fields (user_id) are expensive to index in metrics systems like Prometheus.", example: "Don't tag metrics with request_id — the cardinality will kill us." },
+  { term: "Throughput", cat: "scale", catLabel: "Scale", meaning: "Work done per unit time (requests/sec, MB/sec)." },
+  { term: "Latency", cat: "scale", catLabel: "Scale", meaning: "Time per operation. Always discussed in percentiles: p50, p95, p99, p99.9.", example: "The mean is lying; look at p99." },
+  { term: "Tail latency", cat: "scale", catLabel: "Scale", meaning: "The slow end of the distribution. At scale, tail latency dominates user experience because a single page makes many calls." },
+  { term: "Hot key", alt: "hot partition", cat: "scale", catLabel: "Scale", meaning: "A disproportionately accessed key that bottlenecks an otherwise-sharded system." },
+  { term: "Sharding", alt: "partitioning", cat: "scale", catLabel: "Scale", meaning: "Splitting data across nodes. Choosing a shard key is one of the highest-leverage decisions in a system." },
+  { term: "Horizontal vs vertical scaling", cat: "scale", catLabel: "Scale", meaning: "Add more machines vs bigger machines. Horizontal is the default answer above a certain scale." },
+  { term: "Saturation", cat: "scale", catLabel: "Scale", meaning: "How \"full\" a resource is (CPU, IO, connections). One of the four golden signals along with latency, traffic, and errors." },
+  { term: "Amplification", cat: "scale", catLabel: "Scale", meaning: "Read or write amplification: one logical op causes many physical ops. LSM trees have write amplification; some replication schemes have read amplification." },
+
+  // Architecture
+  { term: "Coupling & cohesion", cat: "architecture", catLabel: "Architecture", meaning: "Coupling: how dependent modules are on each other (want low). Cohesion: how related a module's responsibilities are (want high)." },
+  { term: "Loose coupling", cat: "architecture", catLabel: "Architecture", meaning: "Components can change independently. Achieved through stable interfaces, async messaging, versioned contracts." },
+  { term: "Eventual decomposition", cat: "architecture", catLabel: "Architecture", meaning: "When and how a monolith gets split. The senior move is usually to delay this longer than juniors expect." },
+  { term: "CQRS", alt: "Command Query Responsibility Segregation", cat: "architecture", catLabel: "Architecture", meaning: "Separate the write model from the read model. Useful when read and write loads diverge significantly." },
+  { term: "Event sourcing", cat: "architecture", catLabel: "Architecture", meaning: "Store the log of changes, derive state by replay. Powerful but heavy — most systems don't need it." },
+  { term: "Saga", cat: "architecture", catLabel: "Architecture", meaning: "A pattern for distributed transactions: a sequence of local transactions with compensating actions on failure." },
+  { term: "Two-phase commit", alt: "2PC", cat: "architecture", catLabel: "Architecture", meaning: "Coordinator-driven distributed transaction. Reliable until the coordinator dies. Avoided in modern systems." },
+  { term: "Quorum", cat: "architecture", catLabel: "Architecture", meaning: "Minimum number of nodes that must agree. R + W > N gives you strong consistency in Dynamo-style systems." },
+  { term: "Consensus", cat: "architecture", catLabel: "Architecture", meaning: "Getting distributed nodes to agree (Paxos, Raft). Hard, slow, necessary for things like leader election." },
+  { term: "Leader election", cat: "architecture", catLabel: "Architecture", meaning: "Picking one node to coordinate. Lots of subtle bugs live here — split brain, fencing, stale leaders." },
+  { term: "Split brain", cat: "architecture", catLabel: "Architecture", meaning: "Two nodes both think they're the leader. Resolved with fencing tokens or quorum." },
+
+  // Ops
+  { term: "SLI / SLO / SLA", cat: "ops", catLabel: "Ops", meaning: "Indicator (what you measure), Objective (your target), Agreement (the contract with consequences)." },
+  { term: "Error budget", cat: "ops", catLabel: "Ops", meaning: "The acceptable amount of unreliability per period. Used to balance velocity vs stability." },
+  { term: "Toil", cat: "ops", catLabel: "Ops", meaning: "Repetitive operational work that scales linearly with the service. Senior engineers measure it and engineer it down." },
+  { term: "Runbook", cat: "ops", catLabel: "Ops", meaning: "Documented procedure for handling an incident or routine operation." },
+  { term: "Observability", cat: "ops", catLabel: "Ops", meaning: "Can you ask new questions about the system without deploying new code? Comprises metrics, logs, and traces." },
+  { term: "Cardinality explosion", cat: "ops", catLabel: "Ops", meaning: "When high-cardinality dimensions blow up your metrics/logging bill. The reason you don't tag spans with user_id casually." },
+
+  // Engineering
+  { term: "API contract", cat: "engineering", catLabel: "Engineering", meaning: "The promise an interface makes. Breaking it is expensive at scale." },
+  { term: "Backward / forward compatibility", cat: "engineering", catLabel: "Engineering", meaning: "Old clients work with new servers / new clients work with old servers. Both matter for rolling deploys." },
+  { term: "Feature flag", cat: "engineering", catLabel: "Engineering", meaning: "Runtime toggle for code paths. Decouples deploy from release." },
+  { term: "Canary", cat: "engineering", catLabel: "Engineering", meaning: "Roll out to a small slice first to detect problems before full rollout." },
+  { term: "Blue/green deployment", cat: "engineering", catLabel: "Engineering", meaning: "Run two environments, swap traffic. Fast rollback at the cost of double infrastructure." },
+  { term: "Migration", cat: "engineering", catLabel: "Engineering", meaning: "Moving data, schema, or systems while live. Multi-phase: write-both, backfill, read-new, drop-old." },
+  { term: "Technical debt", cat: "engineering", catLabel: "Engineering", meaning: "Compounding cost of past shortcuts. Senior+ engineers frame it in business terms (slowdown, risk) rather than aesthetics." },
+  { term: "Yak shaving", cat: "engineering", catLabel: "Engineering", meaning: "The chain of incidental tasks you do before the real task. Useful word to flag when scope is bloating." },
+
+  // Process
+  { term: "RFC / design doc", cat: "process", catLabel: "Process", meaning: "The written artifact that drives architectural decisions. Staff+ engineers live in this format." },
+  { term: "ADR", alt: "Architecture Decision Record", cat: "process", catLabel: "Process", meaning: "Short doc capturing why a decision was made, not just what." },
+  { term: "Reversible vs irreversible", alt: "one-way door / two-way door", cat: "process", catLabel: "Process", meaning: "Spend deliberation proportional to reversibility. Two-way doors deserve fast decisions." },
+  { term: "Lift", cat: "process", catLabel: "Process", meaning: "The size of the engineering effort.", example: "That's a big lift." },
+  { term: "Surface area", cat: "process", catLabel: "Process", meaning: "The exposed complexity of an API or system.", example: "Let's keep the public surface area small." },
+  { term: "Leverage", cat: "process", catLabel: "Process", meaning: "Where small effort produces large outcome. Staff engineers optimize for this constantly." },
+];
+
+const container = document.getElementById('sections');
+const search = document.getElementById('search');
+const pills = document.querySelectorAll('.pill');
+const count = document.getElementById('count');
+const empty = document.getElementById('empty');
+
+let activeCat = 'all';
+
+// Section order + emoji for each category
+const CATEGORIES = [
+  { cat: 'reliability',  label: 'Reliability',  emoji: '\u{1F6E1}\uFE0F' },
+  { cat: 'consistency',  label: 'Consistency',  emoji: '\u2696\uFE0F' },
+  { cat: 'scale',        label: 'Scale',        emoji: '\u{1F4C8}' },
+  { cat: 'architecture', label: 'Architecture', emoji: '\u{1F3D7}\uFE0F' },
+  { cat: 'ops',          label: 'Ops',          emoji: '\u{1F527}' },
+  { cat: 'engineering',  label: 'Engineering',  emoji: '\u2699\uFE0F' },
+  { cat: 'process',      label: 'Process',      emoji: '\u{1F4CB}' },
+];
+
+function cardInner(row, q) {
+  const term = q ? highlight(row.term, q) : row.term;
+  const alt = row.alt ? `<em>also: ${q ? highlight(row.alt, q) : row.alt}</em>` : '';
+  const cat = q ? highlight(row.catLabel, q) : row.catLabel;
+  const meaning = q ? highlight(row.meaning, q) : row.meaning;
+  const example = row.example
+    ? `<span class="example">"${q ? highlight(row.example, q) : row.example}"</span>`
+    : '';
+  return `<div class="card-cat">${cat}</div>` +
+         `<div class="term">${term}${alt}</div>` +
+         `<div class="meaning">${meaning}${example}</div>`;
+}
+
+function render() {
+  CATEGORIES.forEach(c => {
+    const rows = DATA.map((r, i) => ({ r, i })).filter(x => x.r.cat === c.cat);
+    if (!rows.length) return;
+
+    const section = document.createElement('section');
+    section.className = 'cat-section';
+    section.dataset.cat = c.cat;
+    section.innerHTML =
+      `<div class="cat-head"><span class="cat-emoji">${c.emoji}</span>` +
+      `<h2>${c.label}</h2><span class="cat-count"></span></div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    rows.forEach(({ r, i }) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.cat = r.cat;
+      card.dataset.index = i;
+      card.innerHTML = cardInner(r, '');
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+  applyFilter();
+}
+
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function highlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${escapeRegex(query)})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+function applyFilter() {
+  const q = search.value.trim().toLowerCase();
+  let totalVisible = 0;
+
+  document.querySelectorAll('.cat-section').forEach(section => {
+    let sectionVisible = 0;
+    section.querySelectorAll('.card').forEach(card => {
+      const i = parseInt(card.dataset.index);
+      const row = DATA[i];
+      const haystack = [row.term, row.alt || '', row.catLabel, row.meaning, row.example || ''].join(' ').toLowerCase();
+      const matchesCat = activeCat === 'all' || row.cat === activeCat;
+      const matchesSearch = !q || haystack.includes(q);
+      const show = matchesCat && matchesSearch;
+
+      card.classList.toggle('hidden', !show);
+      if (show) {
+        sectionVisible++;
+        totalVisible++;
+        card.innerHTML = cardInner(row, q);
+      }
+    });
+
+    section.classList.toggle('hidden', sectionVisible === 0);
+    const cc = section.querySelector('.cat-count');
+    if (cc) cc.textContent = sectionVisible + (sectionVisible === 1 ? ' term' : ' terms');
+  });
+
+  count.textContent = totalVisible;
+  empty.classList.toggle('show', totalVisible === 0);
+}
+
+search.addEventListener('input', applyFilter);
+
+pills.forEach(p => {
+  p.addEventListener('click', () => {
+    pills.forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    activeCat = p.dataset.cat;
+    applyFilter();
+  });
+});
+
+// keyboard shortcut: '/' focuses search
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== search) {
+    e.preventDefault();
+    search.focus();
+  }
+  if (e.key === 'Escape' && document.activeElement === search) {
+    search.value = '';
+    applyFilter();
+    search.blur();
+  }
+});
+
+render();
+</script>
+</body>
+</html>

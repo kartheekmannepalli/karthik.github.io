@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fetch — System Design Solutions</title>
+<style>
+  :root{
+    --bg:#0b1120; --panel:#111a2e; --card:#16213a; --line:#243352;
+    --txt:#e2e8f0; --mut:#8da2c0; --dim:#5b6e8f;
+    --red:#f87171; --amber:#fbbf24; --green:#34d399; --purple:#c084fc; --blue:#60a5fa; --cyan:#22d3ee;
+    --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,'Segoe UI',Inter,Roboto,sans-serif;padding-bottom:60px}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+  header{padding:30px 0 14px;text-align:center}
+  header h1{font-size:24px;font-weight:800}
+  header p{color:var(--mut);font-size:13.5px;margin-top:4px}
+  /* tabs */
+  nav{position:sticky;top:0;z-index:50;background:rgba(11,17,32,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 0}
+  .tabs{display:flex;gap:8px;max-width:1060px;margin:0 auto;padding:0 20px;overflow-x:auto}
+  .tab{flex:1;min-width:150px;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--mut);
+       border-radius:10px;padding:8px 12px;cursor:pointer;font:600 12.5px/1.3 inherit;transition:.15s}
+  .tab small{display:block;font-weight:500;font-size:10.5px;color:var(--dim);margin-top:2px}
+  .tab.active{color:#fff;border-color:var(--ac);box-shadow:inset 0 0 0 1px var(--ac)}
+  .tab.active small{color:var(--ac)}
+  .tab:hover{border-color:var(--ac)}
+  /* sections */
+  section{display:none;padding-top:24px}
+  section.show{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  .qhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .qhead h2{font-size:20px;font-weight:800}
+  .badge{font:700 11px/1 inherit;padding:5px 10px;border-radius:99px;border:1px solid}
+  .prompt{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--ac);border-radius:10px;
+          padding:12px 16px;color:var(--mut);font-size:13.5px;margin:10px 0 20px}
+  .prompt b{color:var(--txt)}
+  h3.label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:24px 0 10px;display:flex;align-items:center;gap:8px}
+  h3.label::after{content:'';flex:1;height:1px;background:var(--line)}
+  /* diagram */
+  .diagram{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 10px}
+  svg{width:100%;height:auto;display:block}
+  svg text{font-family:-apple-system,'Segoe UI',sans-serif}
+  /* flow steps */
+  .steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .step{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 13px 6px 7px;font-size:12.5px;color:var(--mut)}
+  .step b{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--ac);color:#0b1120;font-size:11px;align-items:center;justify-content:center;flex:none}
+  .step strong{color:var(--txt);font-weight:600}
+  /* code */
+  pre{background:#0d1526;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow-x:auto;
+      font:12.5px/1.65 var(--mono);color:#c9d6ea}
+  .k{color:#c792ea}.s{color:#a5d6a7}.c{color:#5b6e8f;font-style:italic}.t{color:#82aaff}.a{color:#f9c859}.n{color:#f78c6c}
+  /* gotchas + followups */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:10px}
+  .gotcha{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--red);border-radius:10px;padding:12px 14px}
+  .gotcha h4{font-size:13px;margin-bottom:4px}
+  .gotcha p{font-size:12.5px;color:var(--mut)}
+  .fu{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .fu h4{font-size:13px;color:var(--cyan);margin-bottom:4px}
+  .fu h4::before{content:'↳ ';color:var(--dim)}
+  .fu p{font-size:12.5px;color:var(--mut)}
+  .fu p b{color:var(--txt)}
+  /* two-col */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media(max-width:840px){.cols{grid-template-columns:1fr}}
+  /* framework strip */
+  .framework{margin:34px 0 8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .framework h3{font-size:13px;margin-bottom:10px;color:var(--txt)}
+  .fsteps{display:flex;flex-wrap:wrap;gap:6px}
+  .fsteps span{font-size:11.5px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 11px}
+  .fsteps span b{color:var(--blue)}
+  /* per-question accent */
+  #q1{--ac:var(--red)} #q2{--ac:var(--amber)} #q3{--ac:var(--green)} #q4{--ac:var(--purple)} #q5{--ac:var(--blue)}
+  .t1{--ac:var(--red)} .t2{--ac:var(--amber)} .t3{--ac:var(--green)} .t4{--ac:var(--purple)} .t5{--ac:var(--blue)}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <h1>Fetch · System Design Round — 5 Solutions</h1>
+  <p>Architecture, structure to follow, Java/Spring snippets, and the gotchas interviewers probe</p>
+</header>
+
+<nav><div class="tabs">
+  <button class="tab t1 active" onclick="go(1)">🔴 Receipt Processing<small>Very High · Confirmed</small></button>
+  <button class="tab t2" onclick="go(2)">🟡 Points Ledger<small>High · Core Domain</small></button>
+  <button class="tab t3" onclick="go(3)">🟢 Super Bowl Spike<small>High · Scaling</small></button>
+  <button class="tab t4" onclick="go(4)">🟣 Offer Recommendations<small>Med-High · Personalization</small></button>
+  <button class="tab t5" onclick="go(5)">🔵 Multi-Source Ingestion<small>Medium · Extensibility</small></button>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ============ Q1 RECEIPT PROCESSING ============ -->
+<section id="q1" class="show">
+  <div class="qhead"><h2>Design the Receipt Processing Backend</h2>
+    <span class="badge" style="color:var(--red);border-color:var(--red)">VERY HIGH · CONFIRMED ON GLASSDOOR</span></div>
+  <div class="prompt">Photo upload → extract items → match offers → award points. <b>5M receipts/day, zero double-awarding, even under failures.</b></div>
+
+  <h3 class="label">Architecture — async pipeline</h3>
+  <div class="diagram">
+  <svg viewBox="0 0 980 330" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ar1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L8,4.5 L0,9" fill="none" stroke="#8da2c0" stroke-width="1.6"/></marker></defs>
+    <g font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">
+      <!-- row 1 -->
+      <rect x="20" y="30" width="110" height="52" rx="10" fill="#16213a" stroke="#f87171"/>
+      <text x="75" y="52">📱 User App</text><text x="75" y="70" font-size="10.5" fill="#8da2c0" font-weight="400">photo upload</text>
+      <rect x="195" y="30" width="130" height="52" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="260" y="52">API Gateway</text><text x="260" y="70" font-size="10.5" fill="#8da2c0" font-weight="400">auth · rate limit</text>
+      <rect x="390" y="30" width="120" height="52" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="450" y="52">🗄️ S3</text><text x="450" y="70" font-size="10.5" fill="#8da2c0" font-weight="400">raw images</text>
+      <!-- row 2 -->
+      <rect x="195" y="145" width="130" height="52" rx="10" fill="#16213a" stroke="#fbbf24"/>
+      <text x="260" y="167">📬 SQS Queue</text><text x="260" y="185" font-size="10.5" fill="#8da2c0" font-weight="400">absorbs bursts</text>
+      <rect x="390" y="145" width="120" height="52" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="450" y="167">OCR Worker</text><text x="450" y="185" font-size="10.5" fill="#8da2c0" font-weight="400">parse items</text>
+      <rect x="565" y="145" width="150" height="52" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="640" y="167">Offer Matcher</text><text x="640" y="185" font-size="10.5" fill="#8da2c0" font-weight="400">items → offers</text>
+      <rect x="775" y="145" width="180" height="52" rx="10" fill="#16213a" stroke="#f87171" stroke-width="1.6"/>
+      <text x="865" y="167">💰 Points Ledger</text><text x="865" y="185" font-size="10.5" fill="#f87171" font-weight="400">idempotency key!</text>
+      <!-- row 3 -->
+      <rect x="390" y="258" width="120" height="46" rx="10" fill="#16213a" stroke="#243352" stroke-dasharray="4 3"/>
+      <text x="450" y="278">☠️ DLQ</text><text x="450" y="294" font-size="10.5" fill="#8da2c0" font-weight="400">manual review</text>
+      <rect x="565" y="258" width="150" height="46" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="640" y="278">⚡ Redis</text><text x="640" y="294" font-size="10.5" fill="#8da2c0" font-weight="400">active offer catalog</text>
+      <rect x="775" y="258" width="180" height="46" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="865" y="278">🐘 PostgreSQL</text><text x="865" y="294" font-size="10.5" fill="#8da2c0" font-weight="400">append-only ledger</text>
+    </g>
+    <g stroke="#8da2c0" stroke-width="1.4" fill="none" marker-end="url(#ar1)">
+      <line x1="130" y1="56" x2="190" y2="56"/>
+      <line x1="325" y1="48" x2="385" y2="48"/>
+      <line x1="260" y1="82" x2="260" y2="140"/>
+      <line x1="325" y1="171" x2="385" y2="171"/>
+      <line x1="510" y1="171" x2="560" y2="171"/>
+      <line x1="715" y1="171" x2="770" y2="171"/>
+      <path d="M450,82 L450,140" stroke-dasharray="4 3"/>
+      <path d="M450,197 L450,253" stroke-dasharray="4 3"/>
+      <line x1="640" y1="253" x2="640" y2="202"/>
+      <line x1="865" y1="197" x2="865" y2="253"/>
+    </g>
+    <g font-size="10.5" fill="#5b6e8f">
+      <text x="350" y="40">store image</text>
+      <text x="270" y="115">enqueue {userId, s3Key}</text>
+      <text x="458" y="112">fetch img</text>
+      <text x="458" y="230">parse fail ×3</text>
+      <text x="222" y="20" fill="#34d399">✓ return 202 "Processing…" immediately</text>
+    </g>
+  </svg>
+  <div class="steps">
+    <div class="step"><b>1</b><strong>Upload</strong>&nbsp;→ S3, enqueue, return 202</div>
+    <div class="step"><b>2</b><strong>OCR</strong>&nbsp;worker pulls from SQS</div>
+    <div class="step"><b>3</b><strong>Match</strong>&nbsp;vs Redis-cached catalog</div>
+    <div class="step"><b>4</b><strong>Award</strong>&nbsp;idempotent ledger insert</div>
+    <div class="step"><b>5</b><strong>Notify</strong>&nbsp;push "You earned 250 pts"</div>
+  </div>
+  </div>
+
+  <div class="cols" style="margin-top:24px">
+  <div>
+  <h3 class="label">Key code — idempotent consumer</h3>
+<pre><span class="a">@SqsListener</span>(<span class="s">"receipt-processing"</span>)
+<span class="a">@Transactional</span>
+<span class="k">public void</span> process(<span class="t">ReceiptMessage</span> msg) {
+  <span class="t">ParsedReceipt</span> r = ocr.parse(msg.s3Key());
+  <span class="t">List</span>&lt;<span class="t">OfferMatch</span>&gt; hits = matcher.match(r.items());
+
+  <span class="c">// receipt hash = natural idempotency key</span>
+  <span class="t">String</span> idemKey = sha256(msg.userId() + r.retailer()
+                          + r.date() + r.total());
+
+  <span class="c">// SQS = at-least-once ⇒ consumer must dedupe</span>
+  <span class="k">int</span> n = jdbc.update(<span class="s">"""
+    INSERT INTO points_ledger
+      (idem_key, user_id, points, receipt_id)
+    VALUES (?,?,?,?)
+    ON CONFLICT (idem_key) DO NOTHING"""</span>,
+    idemKey, msg.userId(), total(hits), r.id());
+
+  <span class="k">if</span> (n == <span class="n">0</span>) log.info(<span class="s">"dup redelivery — skipped"</span>);
+}</pre>
+  </div>
+  <div>
+  <h3 class="label">⚠️ Gotchas</h3>
+  <div class="grid" style="grid-template-columns:1fr">
+    <div class="gotcha"><h4>Exactly-once is a myth</h4><p>SQS is at-least-once. Don't claim exactly-once delivery — claim <b>at-least-once + idempotent consumer</b>. That's the answer they want.</p></div>
+    <div class="gotcha"><h4>Sync vs async — say why</h4><p>5M/day ≈ 60/sec avg, 10× at peak. OCR takes seconds → blocking HTTP would melt. Queue decouples ingest rate from process rate.</p></div>
+    <div class="gotcha"><h4>Where dedupe lives</h4><p>DB unique constraint, not app memory — survives worker crashes and multiple instances. Hash the receipt content, not the upload event.</p></div>
+    <div class="gotcha"><h4>Poison messages</h4><p>Unparseable receipt retried forever blocks the queue. maxReceiveCount=3 → DLQ → human review + user notified.</p></div>
+  </div>
+  </div>
+  </div>
+
+  <h3 class="label">Follow-ups to expect</h3>
+  <div class="grid">
+    <div class="fu"><h4>What if OCR is slow/down?</h4><p>Circuit breaker → receipts stay queued, nothing lost. User sees <b>"Processing"</b> status.</p></div>
+    <div class="fu"><h4>How does the user know it's done?</h4><p>Push notification / websocket; or app polls a <b>status endpoint</b> backed by receipt state machine: UPLOADED→PARSED→AWARDED.</p></div>
+    <div class="fu"><h4>Same receipt scanned twice?</h4><p>Same content hash → same idem_key → second insert no-ops. <b>Fraud, not failure</b> — also flag the user.</p></div>
+    <div class="fu"><h4>Scale OCR workers?</h4><p>Autoscale on <b>queue depth</b> (ApproximateNumberOfMessages), not CPU.</p></div>
+  </div>
+</section>
+
+<!-- ============ Q2 POINTS LEDGER ============ -->
+<section id="q2">
+  <div class="qhead"><h2>Design the Points Ledger System</h2>
+    <span class="badge" style="color:var(--amber);border-color:var(--amber)">HIGH · POINTS = MONEY</span></div>
+  <div class="prompt">20M users. <b>No double-award, atomic redemptions (never negative), full audit trail, balance reconstructable at any point in time.</b></div>
+
+  <h3 class="label">Architecture — event-sourced ledger</h3>
+  <div class="diagram">
+  <svg viewBox="0 0 980 300" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L8,4.5 L0,9" fill="none" stroke="#8da2c0" stroke-width="1.6"/></marker></defs>
+    <g font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">
+      <rect x="20" y="40" width="130" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="85" y="61">Award flow</text><text x="85" y="78" font-size="10.5" fill="#8da2c0" font-weight="400">receipt pipeline</text>
+      <rect x="20" y="170" width="130" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="85" y="191">Redeem API</text><text x="85" y="208" font-size="10.5" fill="#8da2c0" font-weight="400">gift cards</text>
+      <rect x="230" y="100" width="160" height="56" rx="10" fill="#16213a" stroke="#fbbf24" stroke-width="1.6"/>
+      <text x="310" y="122">Ledger Service</text><text x="310" y="140" font-size="10.5" fill="#fbbf24" font-weight="400">idempotency + guard</text>
+      <rect x="470" y="92" width="200" height="70" rx="10" fill="#16213a" stroke="#fbbf24" stroke-width="1.6"/>
+      <text x="570" y="116">📜 ledger_events</text>
+      <text x="570" y="134" font-size="10.5" fill="#f87171" font-weight="600">APPEND-ONLY · no UPDATE ever</text>
+      <text x="570" y="150" font-size="10.5" fill="#8da2c0" font-weight="400">(user_id, delta, type, idem_key, ts)</text>
+      <rect x="760" y="40" width="195" height="52" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="857" y="61">⚡ balance_view</text><text x="857" y="79" font-size="10.5" fill="#8da2c0" font-weight="400">materialized · async refresh</text>
+      <rect x="760" y="160" width="195" height="52" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="857" y="181">🕰️ Replay / Audit</text><text x="857" y="199" font-size="10.5" fill="#8da2c0" font-weight="400">balance @ any timestamp</text>
+      <rect x="470" y="220" width="200" height="46" rx="10" fill="#16213a" stroke="#243352" stroke-dasharray="4 3"/>
+      <text x="570" y="240">Brand partner billing</text><text x="570" y="256" font-size="10.5" fill="#8da2c0" font-weight="400">reconciliation job</text>
+    </g>
+    <g stroke="#8da2c0" stroke-width="1.4" fill="none" marker-end="url(#ar2)">
+      <path d="M150,65 C195,65 185,115 225,120"/>
+      <path d="M150,195 C195,195 185,145 225,138"/>
+      <line x1="390" y1="128" x2="465" y2="128"/>
+      <path d="M670,110 C715,100 715,72 755,68" stroke-dasharray="4 3"/>
+      <path d="M670,145 C715,155 715,182 755,186"/>
+      <path d="M570,162 L570,215" stroke-dasharray="4 3"/>
+    </g>
+    <g font-size="10.5" fill="#5b6e8f">
+      <text x="160" y="50">+delta</text><text x="160" y="225">−delta</text>
+      <text x="700" y="55">CDC / async project</text>
+      <text x="700" y="200">SUM(delta) WHERE ts ≤ T</text>
+      <text x="430" y="118">INSERT only</text>
+    </g>
+  </svg>
+  <div class="steps">
+    <div class="step"><b>1</b><strong>Every change = INSERT</strong>&nbsp;+award / −redeem</div>
+    <div class="step"><b>2</b><strong>idem_key unique</strong>&nbsp;blocks double-award</div>
+    <div class="step"><b>3</b><strong>Balance = SUM(delta)</strong>&nbsp;derived, not stored truth</div>
+    <div class="step"><b>4</b><strong>Reads</strong>&nbsp;hit async materialized view</div>
+    <div class="step"><b>5</b><strong>Audit</strong>&nbsp;replay events to any timestamp</div>
+  </div>
+  </div>
+
+  <div class="cols" style="margin-top:24px">
+  <div>
+  <h3 class="label">Key code — atomic redemption</h3>
+<pre><span class="c">// guard + insert in ONE statement — no read-then-write race</span>
+<span class="k">public void</span> redeem(<span class="k">long</span> userId, <span class="k">long</span> pts, <span class="t">String</span> idemKey) {
+  <span class="k">int</span> n = jdbc.update(<span class="s">"""
+    INSERT INTO ledger_events (user_id, delta, type, idem_key)
+    SELECT ?, -?, 'REDEEM', ?
+    WHERE (SELECT COALESCE(SUM(delta),0)
+           FROM ledger_events WHERE user_id = ?) >= ?
+    ON CONFLICT (idem_key) DO NOTHING"""</span>,
+    userId, pts, idemKey, userId, pts);
+
+  <span class="k">if</span> (n == <span class="n">0</span>) <span class="k">throw new</span> <span class="t">InsufficientPointsException</span>();
+}
+<span class="c">// concurrent redeems on same user: SERIALIZABLE isolation
+// (or SELECT … FOR UPDATE on a user row) — pick one, say why</span></pre>
+  </div>
+  <div>
+  <h3 class="label">⚠️ Gotchas</h3>
+  <div class="grid" style="grid-template-columns:1fr">
+    <div class="gotcha"><h4>"Why not a balance column?"</h4><p>The guaranteed follow-up. Mutable balance = lost audit trail + race conditions (read-modify-write). Events give you both for free.</p></div>
+    <div class="gotcha"><h4>SUM over millions of rows?</h4><p>Don't recompute from t=0. <b>Periodic snapshots</b> + sum events since last snapshot. Materialized view serves reads.</p></div>
+    <div class="gotcha"><h4>Two redeems, same instant</h4><p>Two single-statement guards can both pass under READ COMMITTED. Need SERIALIZABLE, per-user advisory lock, or optimistic version check.</p></div>
+    <div class="gotcha"><h4>View lags the log</h4><p>Balance view is eventually consistent — fine for display, <b>never for redemption checks</b>. Redeem always validates against the event log.</p></div>
+  </div>
+  </div>
+  </div>
+
+  <h3 class="label">Follow-ups to expect</h3>
+  <div class="grid">
+    <div class="fu"><h4>Reverse a fraudulent award?</h4><p>Never delete — append a <b>compensating event</b> (−delta, type=REVERSAL, ref to original).</p></div>
+    <div class="fu"><h4>Balance on June 1st?</h4><p><b>SUM(delta) WHERE ts ≤ '2026-06-01'</b> — free time travel from append-only.</p></div>
+    <div class="fu"><h4>Shard at 20M users?</h4><p>Partition by <b>user_id</b> — all of a user's events co-located, balance query stays single-shard.</p></div>
+    <div class="fu"><h4>Partner billing correct?</h4><p>Nightly <b>reconciliation job</b>: sum awards per brand vs billed amount; mismatches alert.</p></div>
+  </div>
+</section>
+
+<!-- ============ Q3 SUPER BOWL SPIKE ============ -->
+<section id="q3">
+  <div class="qhead"><h2>Handle Super Bowl Sunday — 20× Traffic Spike</h2>
+    <span class="badge" style="color:var(--green);border-color:var(--green)">HIGH · REAL FETCH CAMPAIGN</span></div>
+  <div class="prompt">Millions scan snack receipts simultaneously. <b>No degradation, no data loss, no double-awards during the surge.</b></div>
+
+  <h3 class="label">Architecture — the queue absorbs, workers drain</h3>
+  <div class="diagram">
+  <svg viewBox="0 0 980 330" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ar3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L8,4.5 L0,9" fill="none" stroke="#8da2c0" stroke-width="1.6"/></marker></defs>
+    <g font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">
+      <rect x="20" y="80" width="120" height="56" rx="10" fill="#16213a" stroke="#34d399"/>
+      <text x="80" y="102">🏈 20× users</text><text x="80" y="120" font-size="10.5" fill="#8da2c0" font-weight="400">halftime surge</text>
+      <rect x="190" y="80" width="140" height="56" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="260" y="102">API Gateway</text><text x="260" y="120" font-size="10.5" fill="#8da2c0" font-weight="400">stateless → autoscale</text>
+      <rect x="385" y="64" width="180" height="88" rx="10" fill="#16213a" stroke="#34d399" stroke-width="1.8"/>
+      <text x="475" y="92">📬 SQS — the buffer</text>
+      <text x="475" y="111" font-size="10.5" fill="#34d399" font-weight="600">ingest 20× ≠ process 20×</text>
+      <text x="475" y="128" font-size="10.5" fill="#8da2c0" font-weight="400">depth grows, nothing drops</text>
+      <rect x="620" y="80" width="150" height="56" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="695" y="102">Workers</text><text x="695" y="120" font-size="10.5" fill="#8da2c0" font-weight="400">scale on queue depth</text>
+      <rect x="825" y="34" width="135" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="892" y="55">⚡ Redis</text><text x="892" y="72" font-size="10.5" fill="#8da2c0" font-weight="400">pre-warmed catalog</text>
+      <rect x="825" y="126" width="135" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="892" y="147">🐘 Postgres</text><text x="892" y="164" font-size="10.5" fill="#8da2c0" font-weight="400">+ read replicas</text>
+      <rect x="620" y="190" width="150" height="48" rx="10" fill="#16213a" stroke="#f87171" stroke-dasharray="4 3"/>
+      <text x="695" y="210">⛔ Circuit breaker</text><text x="695" y="226" font-size="10.5" fill="#8da2c0" font-weight="400">external OCR calls</text>
+    </g>
+    <g stroke="#8da2c0" stroke-width="1.4" fill="none" marker-end="url(#ar3)">
+      <line x1="140" y1="108" x2="185" y2="108"/>
+      <line x1="330" y1="108" x2="380" y2="108"/>
+      <line x1="565" y1="108" x2="615" y2="108"/>
+      <path d="M770,94 C800,84 800,66 820,62"/>
+      <path d="M770,122 C800,132 800,148 820,150"/>
+      <line x1="695" y1="136" x2="695" y2="185" stroke-dasharray="4 3"/>
+    </g>
+    <g font-size="10.5" fill="#5b6e8f">
+      <text x="345" y="98">202 fast</text>
+      <text x="160" y="98">scan!</text>
+    </g>
+    <!-- pre-game checklist -->
+    <g font-size="11.5" fill="#8da2c0">
+      <rect x="20" y="252" width="940" height="62" rx="10" fill="#0d1526" stroke="#243352"/>
+      <text x="38" y="276" fill="#34d399" font-weight="700" font-size="11">PRE-GAME (days before):</text>
+      <text x="38" y="298">✓ provision worker/Lambda concurrency  ✓ add RDS read replicas  ✓ pre-warm Redis with offer catalog  ✓ raise SQS/connection-pool limits  ✓ load test at 25×  ✓ queue-depth alarms + dashboards</text>
+    </g>
+  </svg>
+  <div class="steps">
+    <div class="step"><b>1</b><strong>Pre-scale</strong>&nbsp;before kickoff, not reactive</div>
+    <div class="step"><b>2</b><strong>Accept everything</strong>&nbsp;202 + queue, never reject</div>
+    <div class="step"><b>3</b><strong>Drain at own pace</strong>&nbsp;workers scale on depth</div>
+    <div class="step"><b>4</b><strong>Degrade gracefully</strong>&nbsp;"Processing…" not errors</div>
+    <div class="step"><b>5</b><strong>Idempotency holds</strong>&nbsp;dedupe unchanged at 20×</div>
+  </div>
+  </div>
+
+  <div class="cols" style="margin-top:24px">
+  <div>
+  <h3 class="label">Key code — protect the pipeline</h3>
+<pre><span class="c">// Resilience4j: OCR vendor slows down ≠ pipeline dies</span>
+<span class="a">@CircuitBreaker</span>(name = <span class="s">"ocr"</span>, fallbackMethod = <span class="s">"deferParse"</span>)
+<span class="a">@Bulkhead</span>(name = <span class="s">"ocr"</span>)  <span class="c">// cap concurrent calls</span>
+<span class="k">public</span> <span class="t">ParsedReceipt</span> parse(<span class="t">String</span> s3Key) {
+  <span class="k">return</span> ocrClient.parse(s3Key);
+}
+
+<span class="t">ParsedReceipt</span> deferParse(<span class="t">String</span> s3Key, <span class="t">Throwable</span> t) {
+  retryQueue.send(s3Key);          <span class="c">// never drop a receipt</span>
+  <span class="k">return</span> <span class="t">ParsedReceipt</span>.pending(); <span class="c">// user: "Processing…"</span>
+}</pre>
+<pre style="margin-top:10px"><span class="c"># scale consumers on backlog, not CPU</span>
+<span class="t">spring.cloud.aws.sqs.listener.max-concurrent-messages</span>: <span class="n">50</span>
+<span class="t">autoscaling.metric</span>: ApproximateNumberOfMessagesVisible</pre>
+  </div>
+  <div>
+  <h3 class="label">⚠️ Gotchas</h3>
+  <div class="grid" style="grid-template-columns:1fr">
+    <div class="gotcha"><h4>The DB is the real bottleneck</h4><p>You can scale workers infinitely — Postgres can't. Read replicas for catalog reads, writes throttled by worker concurrency. Don't let the queue drain faster than the DB can absorb.</p></div>
+    <div class="gotcha"><h4>Connection pool exhaustion</h4><p>50 workers × 10 connections = dead DB. Cap HikariCP pool, consider RDS Proxy / PgBouncer. Classic spike failure.</p></div>
+    <div class="gotcha"><h4>Don't cold-autoscale</h4><p>Reactive autoscaling lags minutes; the halftime spike is instant. Pre-provision — Fetch knows the date.</p></div>
+    <div class="gotcha"><h4>Name the tradeoff</h4><p>Strong consistency during peak vs <b>eventual consistency with guaranteed delivery</b>. Points arrive 5 min late > app down.</p></div>
+  </div>
+  </div>
+  </div>
+
+  <h3 class="label">Follow-ups to expect</h3>
+  <div class="grid">
+    <div class="fu"><h4>Queue backs up 30 min?</h4><p>Fine by design — uploads still accepted, UI shows pending. Alert on depth <b>trend</b>, scale workers, communicate in-app.</p></div>
+    <div class="fu"><h4>Redis dies at peak?</h4><p>Fallback to read replicas + local caffeine cache of hot offers. Matching slows; doesn't stop.</p></div>
+    <div class="fu"><h4>How do you know it worked?</h4><p>SLO: p99 receipt→points latency. Dashboards: queue depth, DLQ rate, DB CPU, award rate vs upload rate.</p></div>
+    <div class="fu"><h4>Cost of pre-scaling?</h4><p>Hours of over-provisioning vs revenue of the year's biggest campaign — trivially worth it. Scale down after.</p></div>
+  </div>
+</section>
+
+<!-- ============ Q4 OFFER RECOMMENDATIONS ============ -->
+<section id="q4">
+  <div class="qhead"><h2>Design the Offer Recommendation Engine</h2>
+    <span class="badge" style="color:var(--purple);border-color:var(--purple)">MED-HIGH · PERSONALIZATION</span></div>
+  <div class="prompt">Personalized offer feed for 20M users from purchase history. Offers change daily. <b>Home screen must load &lt; 200ms.</b></div>
+
+  <h3 class="label">Architecture — precompute offline, serve from cache</h3>
+  <div class="diagram">
+  <svg viewBox="0 0 980 340" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ar4" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L8,4.5 L0,9" fill="none" stroke="#8da2c0" stroke-width="1.6"/></marker></defs>
+    <!-- offline plane -->
+    <rect x="15" y="20" width="950" height="130" rx="12" fill="none" stroke="#243352" stroke-dasharray="5 4"/>
+    <text x="30" y="42" font-size="11" fill="#c084fc" font-weight="700">OFFLINE — nightly batch (hours are fine)</text>
+    <g font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">
+      <rect x="40" y="60" width="160" height="56" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="120" y="82">Purchase history</text><text x="120" y="100" font-size="10.5" fill="#8da2c0" font-weight="400">receipts warehouse</text>
+      <rect x="270" y="60" width="170" height="56" rx="10" fill="#16213a" stroke="#c084fc"/>
+      <text x="355" y="82">Scoring job</text><text x="355" y="100" font-size="10.5" fill="#8da2c0" font-weight="400">user × offer relevance</text>
+      <rect x="510" y="60" width="170" height="56" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="595" y="82">DynamoDB</text><text x="595" y="100" font-size="10.5" fill="#8da2c0" font-weight="400">scores by userId</text>
+      <rect x="750" y="60" width="190" height="56" rx="10" fill="#16213a" stroke="#c084fc" stroke-width="1.6"/>
+      <text x="845" y="82">⚡ Redis feed:{userId}</text><text x="845" y="100" font-size="10.5" fill="#8da2c0" font-weight="400">top-20 · TTL 24h</text>
+    </g>
+    <!-- online plane -->
+    <rect x="15" y="170" width="950" height="150" rx="12" fill="none" stroke="#243352" stroke-dasharray="5 4"/>
+    <text x="30" y="192" font-size="11" fill="#34d399" font-weight="700">ONLINE — request path (&lt;200ms budget)</text>
+    <g font-size="13" font-weight="600" fill="#e2e8f0" text-anchor="middle">
+      <rect x="40" y="215" width="120" height="56" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="100" y="237">📱 App</text><text x="100" y="255" font-size="10.5" fill="#8da2c0" font-weight="400">home screen</text>
+      <rect x="240" y="215" width="150" height="56" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="315" y="237">Feed API</text><text x="315" y="255" font-size="10.5" fill="#8da2c0" font-weight="400">Spring WebFlux</text>
+      <rect x="470" y="215" width="170" height="56" rx="10" fill="#16213a" stroke="#c084fc" stroke-width="1.6"/>
+      <text x="555" y="237">⚡ Redis GET</text><text x="555" y="255" font-size="10.5" fill="#8da2c0" font-weight="400">~1ms · pre-built feed</text>
+      <rect x="710" y="186" width="230" height="50" rx="10" fill="#16213a" stroke="#243352" stroke-dasharray="4 3"/>
+      <text x="825" y="207">cache miss → popular-by-region</text><text x="825" y="223" font-size="10.5" fill="#8da2c0" font-weight="400">fallback · never 500</text>
+      <rect x="710" y="252" width="230" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="825" y="273">A/B layer + frequency cap</text><text x="825" y="289" font-size="10.5" fill="#8da2c0" font-weight="400">10% experimental · ≤3 views/wk</text>
+    </g>
+    <g stroke="#8da2c0" stroke-width="1.4" fill="none" marker-end="url(#ar4)">
+      <line x1="200" y1="88" x2="265" y2="88"/>
+      <line x1="440" y1="88" x2="505" y2="88"/>
+      <line x1="680" y1="88" x2="745" y2="88"/>
+      <line x1="160" y1="243" x2="235" y2="243"/>
+      <line x1="390" y1="243" x2="465" y2="243"/>
+      <path d="M640,230 C670,222 670,213 705,211" stroke-dasharray="4 3"/>
+      <path d="M640,256 C670,264 670,273 705,275"/>
+    </g>
+    <g font-size="10.5" fill="#5b6e8f">
+      <text x="225" y="78">aggregate</text><text x="455" y="78">write scores</text><text x="697" y="78">top-20</text>
+      <text x="178" y="233">GET /feed</text>
+    </g>
+  </svg>
+  <div class="steps">
+    <div class="step"><b>1</b><strong>Nightly</strong>&nbsp;score user×offer pairs offline</div>
+    <div class="step"><b>2</b><strong>Materialize</strong>&nbsp;top-20 per user → Redis</div>
+    <div class="step"><b>3</b><strong>Serve</strong>&nbsp;one Redis GET, ~1ms</div>
+    <div class="step"><b>4</b><strong>Fallback</strong>&nbsp;regional popular on miss</div>
+    <div class="step"><b>5</b><strong>Filter</strong>&nbsp;frequency cap + A/B at edge</div>
+  </div>
+  </div>
+
+  <div class="cols" style="margin-top:24px">
+  <div>
+  <h3 class="label">Key code — serve path with fallback</h3>
+<pre><span class="a">@GetMapping</span>(<span class="s">"/feed"</span>)
+<span class="k">public</span> <span class="t">List</span>&lt;<span class="t">Offer</span>&gt; feed(<span class="a">@AuthenticationPrincipal</span> <span class="t">User</span> u) {
+  <span class="t">List</span>&lt;<span class="t">Offer</span>&gt; top = redis.opsForList()
+      .range(<span class="s">"feed:"</span> + u.id(), <span class="n">0</span>, <span class="n">19</span>);
+
+  <span class="k">if</span> (top == <span class="k">null</span> || top.isEmpty())          <span class="c">// new user / TTL miss</span>
+    top = popularOffers.byRegion(u.region()); <span class="c">// cheap, cached</span>
+
+  <span class="k">return</span> frequencyCap.filter(u.id(), top);   <span class="c">// ≤3 views/offer/wk</span>
+}
+
+<span class="c">// nightly: 20M users scored offline — NEVER on request:
+// 20M users × 10K offers = 200B pairs. That's the "why not
+// real-time?" answer.</span></pre>
+  </div>
+  <div>
+  <h3 class="label">⚠️ Gotchas</h3>
+  <div class="grid" style="grid-template-columns:1fr">
+    <div class="gotcha"><h4>"Why not score in real time?"</h4><p>The guaranteed follow-up. 200B user-offer pairs can't be ranked per-request in 200ms. Precompute; spend the latency budget on one cache read.</p></div>
+    <div class="gotcha"><h4>Cold start users</h4><p>No purchase history = no scores. Fallback chain: regional popular → global popular. Feed must never be empty.</p></div>
+    <div class="gotcha"><h4>Offer expires mid-day</h4><p>24h TTL means a dead offer can sit in feeds. Filter against an active-offer set at serve time — cheap SISMEMBER check.</p></div>
+    <div class="gotcha"><h4>Batch job fails overnight</h4><p>Yesterday's feed (stale) beats no feed. Keep TTL > job interval, alert on job lag, don't fail open to empty.</p></div>
+  </div>
+  </div>
+  </div>
+
+  <h3 class="label">Follow-ups to expect</h3>
+  <div class="grid">
+    <div class="fu"><h4>Make it fresher than 24h?</h4><p>Hybrid: batch base scores + <b>lightweight online re-rank</b> on today's scans (e.g. boost categories user scanned this morning).</p></div>
+    <div class="fu"><h4>Measure relevance?</h4><p>Offer click-through + scan-through rate per ranking variant — the A/B layer exists for exactly this.</p></div>
+    <div class="fu"><h4>Redis memory at 20M?</h4><p>20M × 20 offer IDs ≈ small. Store <b>IDs only</b>, hydrate offer details from a shared catalog cache.</p></div>
+    <div class="fu"><h4>Sponsored offers?</h4><p>Blend rule: ad slots injected at fixed positions post-ranking — keep relevance and revenue ranking separable.</p></div>
+  </div>
+</section>
+
+<!-- ============ Q5 MULTI-SOURCE INGESTION ============ -->
+<section id="q5">
+  <div class="qhead"><h2>Design Multi-Source Receipt Ingestion</h2>
+    <span class="badge" style="color:var(--blue);border-color:var(--blue)">MEDIUM · EXTENSIBILITY</span></div>
+  <div class="prompt">Photo, eReceipt (email), POS API, browser extension → <b>one unified pipeline, no duplicated business logic, no double-counting the same purchase.</b></div>
+
+  <h3 class="label">Architecture — adapters normalize, pipeline stays source-agnostic</h3>
+  <div class="diagram">
+  <svg viewBox="0 0 980 340" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ar5" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L8,4.5 L0,9" fill="none" stroke="#8da2c0" stroke-width="1.6"/></marker></defs>
+    <g font-size="12.5" font-weight="600" fill="#e2e8f0" text-anchor="middle">
+      <rect x="20" y="20" width="150" height="48" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="95" y="40">📷 Photo</text><text x="95" y="56" font-size="10" fill="#8da2c0" font-weight="400">S3 + OCR</text>
+      <rect x="20" y="96" width="150" height="48" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="95" y="116">📧 eReceipt</text><text x="95" y="132" font-size="10" fill="#8da2c0" font-weight="400">email parser</text>
+      <rect x="20" y="172" width="150" height="48" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="95" y="192">🏪 POS API</text><text x="95" y="208" font-size="10" fill="#8da2c0" font-weight="400">retailer webhook</text>
+      <rect x="20" y="248" width="150" height="48" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="95" y="268">🌐 Extension</text><text x="95" y="284" font-size="10" fill="#8da2c0" font-weight="400">browser postback</text>
+      <!-- adapters -->
+      <rect x="240" y="20" width="170" height="276" rx="12" fill="#0d1526" stroke="#60a5fa" stroke-width="1.6"/>
+      <text x="325" y="46" fill="#60a5fa">Adapters</text>
+      <text x="325" y="64" font-size="10.5" fill="#8da2c0" font-weight="400">source-specific code</text>
+      <text x="325" y="82" font-size="10.5" fill="#8da2c0" font-weight="400">lives here — ONLY here</text>
+      <rect x="258" y="100" width="134" height="34" rx="8" fill="#16213a" stroke="#243352"/><text x="325" y="121" font-size="11">PhotoAdapter</text>
+      <rect x="258" y="142" width="134" height="34" rx="8" fill="#16213a" stroke="#243352"/><text x="325" y="163" font-size="11">EmailAdapter</text>
+      <rect x="258" y="184" width="134" height="34" rx="8" fill="#16213a" stroke="#243352"/><text x="325" y="205" font-size="11">PosAdapter</text>
+      <rect x="258" y="226" width="134" height="34" rx="8" fill="#16213a" stroke="#243352"/><text x="325" y="247" font-size="11">ExtensionAdapter</text>
+      <!-- normalized -->
+      <rect x="480" y="118" width="180" height="80" rx="10" fill="#16213a" stroke="#60a5fa" stroke-width="1.8"/>
+      <text x="570" y="146">📨 One SQS topic</text>
+      <text x="570" y="164" font-size="10.5" fill="#60a5fa" font-weight="600">NormalizedReceipt v1</text>
+      <text x="570" y="180" font-size="10.5" fill="#8da2c0" font-weight="400">canonical schema</text>
+      <!-- downstream -->
+      <rect x="730" y="50" width="225" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="842" y="71">🧹 Dedup layer</text><text x="842" y="87" font-size="10.5" fill="#8da2c0" font-weight="400">hash(user+retailer+date+total)</text>
+      <rect x="730" y="132" width="225" height="50" rx="10" fill="#16213a" stroke="#243352"/>
+      <text x="842" y="153">⚙️ Shared pipeline</text><text x="842" y="169" font-size="10.5" fill="#8da2c0" font-weight="400">match offers → award points</text>
+      <rect x="730" y="214" width="225" height="50" rx="10" fill="#16213a" stroke="#243352" stroke-dasharray="4 3"/>
+      <text x="842" y="235">☠️ DLQ</text><text x="842" y="251" font-size="10.5" fill="#8da2c0" font-weight="400">parse failures → review</text>
+    </g>
+    <g stroke="#8da2c0" stroke-width="1.4" fill="none" marker-end="url(#ar5)">
+      <line x1="170" y1="44" x2="253" y2="113"/>
+      <line x1="170" y1="120" x2="253" y2="155"/>
+      <line x1="170" y1="196" x2="253" y2="199"/>
+      <line x1="170" y1="272" x2="253" y2="245"/>
+      <line x1="410" y1="158" x2="475" y2="158"/>
+      <path d="M660,140 C690,128 690,82 725,76"/>
+      <line x1="842" y1="100" x2="842" y2="127"/>
+      <path d="M842,182 L842,209" stroke-dasharray="4 3"/>
+    </g>
+    <g font-size="10.5" fill="#5b6e8f">
+      <text x="442" y="148">publish</text>
+      <text x="190" y="320" fill="#34d399">➕ 5th source tomorrow? Write one adapter. Zero pipeline changes.</text>
+    </g>
+  </svg>
+  <div class="steps">
+    <div class="step"><b>1</b><strong>Adapter per source</strong>&nbsp;isolates messy formats</div>
+    <div class="step"><b>2</b><strong>Normalize</strong>&nbsp;to one canonical Receipt event</div>
+    <div class="step"><b>3</b><strong>Single topic</strong>&nbsp;downstream is source-blind</div>
+    <div class="step"><b>4</b><strong>Dedup</strong>&nbsp;same purchase via 2 sources = 1 award</div>
+    <div class="step"><b>5</b><strong>DLQ</strong>&nbsp;per-source parse failures quarantined</div>
+  </div>
+  </div>
+
+  <div class="cols" style="margin-top:24px">
+  <div>
+  <h3 class="label">Key code — adapter pattern</h3>
+<pre><span class="k">public interface</span> <span class="t">ReceiptSourceAdapter</span> {
+  <span class="k">boolean</span> supports(<span class="t">IngestEvent</span> raw);
+  <span class="t">NormalizedReceipt</span> normalize(<span class="t">IngestEvent</span> raw);
+}
+
+<span class="a">@Service</span>
+<span class="k">public class</span> <span class="t">IngestionService</span> {
+  <span class="k">private final</span> <span class="t">List</span>&lt;<span class="t">ReceiptSourceAdapter</span>&gt; adapters; <span class="c">// Spring injects all</span>
+
+  <span class="k">public void</span> ingest(<span class="t">IngestEvent</span> raw) {
+    <span class="t">NormalizedReceipt</span> r = adapters.stream()
+        .filter(a -> a.supports(raw)).findFirst()
+        .orElseThrow(<span class="t">UnknownSourceException</span>::<span class="k">new</span>)
+        .normalize(raw);
+
+    r.setDedupKey(sha256(r.userId() + r.retailer()
+                       + r.date() + r.total()));
+    sqs.send(<span class="s">"receipts-normalized"</span>, r); <span class="c">// one topic, v1 schema</span>
+  }
+}
+<span class="c">// new source = new @Component implementing the interface. Done.</span></pre>
+  </div>
+  <div>
+  <h3 class="label">⚠️ Gotchas</h3>
+  <div class="grid" style="grid-template-columns:1fr">
+    <div class="gotcha"><h4>Cross-source dedup is fuzzy</h4><p>Photo total $42.97 vs eReceipt $42.97 + different timestamp formats. Normalize date to purchase-date, round totals, consider retailer order-ID when available.</p></div>
+    <div class="gotcha"><h4>Schema evolution</h4><p>Version the NormalizedReceipt (v1, v2). Additive changes only; consumers tolerate unknown fields. Otherwise every new source risks breaking downstream.</p></div>
+    <div class="gotcha"><h4>Sources have different trust</h4><p>POS API data is ground truth; OCR is guesses. Carry a <b>confidence/source field</b> — fraud rules and matching can weight it.</p></div>
+    <div class="gotcha"><h4>One bad source ≠ outage</h4><p>Email parser breaks on a new retailer template → only EmailAdapter's DLQ fills. Per-source metrics and isolation.</p></div>
+  </div>
+  </div>
+  </div>
+
+  <h3 class="label">Follow-ups to expect</h3>
+  <div class="grid">
+    <div class="fu"><h4>"How do you add a 5th source?"</h4><p>The scripted follow-up: <b>one new adapter, zero pipeline changes</b>. Say it before they ask.</p></div>
+    <div class="fu"><h4>Same purchase, photo + email?</h4><p>Both normalize → same dedup hash → second one no-ops at the ledger. One award.</p></div>
+    <div class="fu"><h4>Where does OCR fit now?</h4><p>Inside PhotoAdapter only — it's a source detail, not pipeline logic. Email parsing likewise lives in EmailAdapter.</p></div>
+    <div class="fu"><h4>Adapter in-process or service?</h4><p>Start as Spring components in one service; split heavy ones (OCR) into their own deployables when scale demands.</p></div>
+  </div>
+</section>
+
+<div class="framework">
+  <h3>🗺️ Run every question through this 7-step framework</h3>
+  <div class="fsteps">
+    <span><b>1</b> Clarify scope — read/write heavy? consistency? scale?</span>
+    <span><b>2</b> API contract first</span>
+    <span><b>3</b> Data model — entities, indexes</span>
+    <span><b>4</b> Happy path end-to-end on the diagram</span>
+    <span><b>5</b> Bottlenecks at 10×</span>
+    <span><b>6</b> Failure modes — SQS down? OCR fails? DB slow?</span>
+    <span><b>7</b> Name your tradeoffs</span>
+  </div>
+</div>
+
+</div>
+
+<script>
+function go(n){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('show'));
+  document.getElementById('q'+n).classList.add('show');
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n-1));
+  window.scrollTo({top:0});
+}
+</script>
+</body>
+</html>

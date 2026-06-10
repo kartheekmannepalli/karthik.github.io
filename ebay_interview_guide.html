@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eBay Staff Software Engineer Interview Guide</title>
+<style>
+  :root {
+    --ebay-red: #e53238;
+    --ebay-blue: #0064d2;
+    --ebay-yellow: #f5af02;
+    --ebay-green: #86b817;
+    --blue-dark: #003087;
+    --blue: #0064d2;
+    --blue-light: #e6f0fc;
+    --orange: #e07b39;
+    --orange-light: #fef3ec;
+    --purple: #6d28d9;
+    --purple-light: #f3f0ff;
+    --purple-mid: #8b5cf6;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); }
+
+  /* Header - eBay branded colors */
+  .header {
+    background: linear-gradient(135deg, #003087 0%, #0064d2 55%, #1a8fff 100%);
+    color: white; padding: 36px 40px 30px;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 8px;
+    background: linear-gradient(180deg, #e53238 0%, #f5af02 33%, #0064d2 66%, #86b817 100%);
+  }
+  .header-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .paw { font-size: 2.2rem; }
+  .header h1 { font-size: 1.9rem; font-weight: 700; }
+  .header-sub { font-size: 0.95rem; opacity: 0.88; margin-bottom: 16px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  /* Company snapshot */
+  .snapshot { background: white; margin: 24px 32px 0; border-radius: var(--radius); padding: 22px 28px; box-shadow: var(--shadow); display: flex; gap: 32px; flex-wrap: wrap; }
+  .snap-item { display: flex; flex-direction: column; gap: 2px; }
+  .snap-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .snap-value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+
+  /* Sources bar */
+  .sources-bar { margin: 16px 32px 0; background: white; border-radius: var(--radius); padding: 14px 22px; box-shadow: var(--shadow); }
+  .sources-bar h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .source-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .source-link { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 13px; font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+  .source-link:hover { background: var(--blue-light); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+  .dot-orange { background: var(--orange); }
+  .dot-red { background: var(--ebay-red); }
+
+  /* Nav tabs */
+  .tabs { display: flex; gap: 0; margin: 22px 32px 0; background: white; border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); overflow: hidden; border-bottom: 2px solid var(--border); }
+  .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab:hover { background: var(--gray); color: var(--text); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); background: white; }
+  .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+
+  /* Content panels */
+  .panel { display: none; background: white; margin: 0 32px 32px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .panel.active { display: block; }
+
+  /* Section headings */
+  .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .section-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Process flow */
+  .process { display: flex; gap: 0; margin-bottom: 28px; flex-wrap: wrap; }
+  .process-step { flex: 1; min-width: 140px; background: var(--blue-light); border-radius: 10px; padding: 14px; text-align: center; position: relative; }
+  .process-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--blue); font-size: 1.2rem; font-weight: bold; }
+  .step-num { background: var(--blue); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .step-title { font-size: 0.8rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 3px; }
+  .step-detail { font-size: 0.72rem; color: #345080; }
+
+  /* Cards grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-icon { font-size: 1.3rem; }
+  .card-title { font-size: 0.9rem; font-weight: 700; }
+  .card p, .card li { font-size: 0.85rem; line-height: 1.6; color: #374151; }
+  .card ul { padding-left: 16px; }
+  .card li { margin-bottom: 4px; }
+
+  /* Example questions */
+  .q-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .q-item { background: var(--gray); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--blue); }
+  .q-item.orange { border-left-color: var(--orange); }
+  .q-item.green { border-left-color: var(--green); }
+  .q-item.red { border-left-color: var(--ebay-red); }
+  .q-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .q-text { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .q-tip { font-size: 0.8rem; color: #4b5563; line-height: 1.5; }
+
+  /* STAR box */
+  .star-box { background: linear-gradient(135deg, #eef4fc, #e6f0fc); border: 1px solid #b3cde8; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .star-box h3 { font-size: 0.92rem; font-weight: 700; color: var(--blue); margin-bottom: 12px; }
+  .star-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .star-cell { background: white; border-radius: 8px; padding: 10px 14px; }
+  .star-letter { font-size: 1.4rem; font-weight: 800; color: var(--blue); line-height: 1; }
+  .star-word { font-size: 0.75rem; font-weight: 600; color: var(--blue-dark); margin-bottom: 4px; }
+  .star-desc { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Tips */
+  .tips { background: var(--orange-light); border: 1px solid #f5c6a0; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .tips h3 { font-size: 0.85rem; font-weight: 700; color: var(--orange); margin-bottom: 10px; }
+  .tips ul { padding-left: 18px; }
+  .tips li { font-size: 0.83rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+
+  .info-box { background: var(--blue-light); border: 1px solid #b3cde8; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .info-box h3 { font-size: 0.85rem; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .info-box p, .info-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .info-box ul { padding-left: 18px; }
+
+  /* eBay values callout */
+  .values-box { background: linear-gradient(135deg, #fff8e7, #fef3ec); border: 1px solid #f5af02; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .values-box h3 { font-size: 0.85rem; font-weight: 700; color: #b8730a; margin-bottom: 10px; }
+  .values-box ul { padding-left: 18px; }
+  .values-box li { font-size: 0.83rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+  /* Priority badge */
+  .priority { display: inline-block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 20px; font-size: 0.72rem; font-weight: 700; padding: 2px 10px; margin-left: 8px; }
+  .priority.med { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+  .priority.low { background: var(--blue-light); color: var(--blue); border-color: #bfdbfe; }
+
+  .q-item.purple { border-left-color: var(--purple); }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.84rem; }
+  .compare-table th { padding: 12px 16px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em; }
+  .compare-table th:first-child { background: var(--gray); color: var(--muted); width: 26%; }
+  .compare-table th.senior-col { background: #e8f0fa; color: var(--blue); }
+  .compare-table th.staff-col { background: var(--purple-light); color: var(--purple); }
+  .compare-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .compare-table td:first-child { font-weight: 600; color: var(--muted); font-size: 0.8rem; background: var(--gray); }
+  .compare-table td.senior-cell { background: #f8faff; color: #1e3a5f; }
+  .compare-table td.staff-cell { background: #faf8ff; color: #3b1f7a; }
+  .compare-table tr:last-child td { border-bottom: none; }
+
+  /* Mindset cards */
+  .mindset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .mindset-card { border-radius: 10px; padding: 16px 18px; }
+  .mindset-card.senior { background: #e8f0fa; border: 1px solid #b3cde8; }
+  .mindset-card.staff { background: var(--purple-light); border: 1px solid #c4b5fd; }
+  .mindset-card h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
+  .mindset-card.senior h4 { color: var(--blue); }
+  .mindset-card.staff h4 { color: var(--purple); }
+  .mindset-card li { font-size: 0.82rem; color: #374151; line-height: 1.6; margin-bottom: 4px; }
+  .mindset-card ul { padding-left: 16px; }
+
+  .purple-box { background: var(--purple-light); border: 1px solid #c4b5fd; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; }
+  .purple-box h3 { font-size: 0.88rem; font-weight: 700; color: var(--purple); margin-bottom: 10px; }
+  .purple-box p, .purple-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .purple-box ul { padding-left: 18px; }
+  .purple-box li { margin-bottom: 5px; }
+
+  /* Recruiter call alert - special box for next 30 min prep */
+  .urgent-box { background: linear-gradient(135deg, #fef2f2, #fee2e2); border: 2px solid #e53238; border-radius: 12px; padding: 18px 22px; margin: 0 32px 0; box-shadow: var(--shadow); }
+  .urgent-box h3 { font-size: 0.95rem; font-weight: 700; color: #b91c1c; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .urgent-box p, .urgent-box li { font-size: 0.85rem; color: #4b1414; line-height: 1.6; }
+  .urgent-box ul { padding-left: 20px; margin-top: 6px; }
+  .urgent-box li { margin-bottom: 4px; }
+
+  @media (max-width: 680px) {
+    .mindset-grid { grid-template-columns: 1fr; }
+    .compare-table { font-size: 0.76rem; }
+    .snapshot, .tabs, .panel, .sources-bar, .urgent-box { margin-left: 12px; margin-right: 12px; }
+    .header { padding: 24px 18px 20px; }
+    .star-grid { grid-template-columns: 1fr; }
+    .process { flex-direction: column; gap: 8px; }
+    .process-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -14px; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="paw">🛒</span>
+    <h1>eBay Staff Software Engineer Interview Guide</h1>
+  </div>
+  <p class="header-sub">Role: Staff Software Engineer · Shipping Team · Bellevue, WA · Sourced from Glassdoor, Blind, InterviewQuery, Interview Kickstart, eBay Tech Blog · Updated May 2026</p>
+  <div class="tags">
+    <span class="tag">🛍️ Global E-commerce Marketplace</span>
+    <span class="tag">📍 Bellevue, WA (Shipping team)</span>
+    <span class="tag">⭐ 3.8/5 Glassdoor</span>
+    <span class="tag">📅 Avg. Hire: ~17–22 days</span>
+    <span class="tag">🎚️ Level: MTS1 / IC5–IC6 equivalent</span>
+  </div>
+</div>
+
+<!-- Urgent: Recruiter call in 30 min -->
+<div class="urgent-box" style="margin-top: 16px;">
+  <h3>⏰ Your Recruiter Call is in 30 Minutes — Quick Brief</h3>
+  <p><strong>What to expect:</strong> A 30-minute conversational call. The recruiter will gauge background fit, motivation, current comp + expectations, work authorization, and walk you through the process. <strong>No coding.</strong></p>
+  <ul>
+    <li><strong>Have a 60-sec pitch ready:</strong> Years of experience, current role, why eBay, why Staff.</li>
+    <li><strong>Know the role:</strong> Staff SWE on the Shipping team — one of eBay's core initiatives, responsible for delivering items cheaply, conveniently, dependably across 190+ markets.</li>
+    <li><strong>"Why eBay?"</strong> Connect to mission: "eBay creates economic opportunity for millions of small sellers globally. Shipping is the trust layer that makes that marketplace work — that's a problem worth solving at Staff scale."</li>
+    <li><strong>Comp question:</strong> Have a number ready. Bellevue Staff SWE total comp typically lands $280K–$380K+ (base ~$200K–$240K + 15% bonus + ~$120K–$180K/yr equity). Express range, not single number.</li>
+    <li><strong>Ask about:</strong> Team composition, the loop structure, timeline, and who you'll meet in next steps.</li>
+  </ul>
+</div>
+
+<!-- Sources -->
+<div class="sources-bar">
+  <h3>📚 Reliable Sources Checked</h3>
+  <div class="source-links">
+    <a class="source-link" href="https://www.glassdoor.com/Interview/eBay-Staff-Software-Engineer-Interview-Questions-EI_IE7853.0,4_KO5,28.htm" target="_blank"><span class="dot dot-green"></span>Glassdoor — eBay Staff SWE</a>
+    <a class="source-link" href="https://www.glassdoor.com/Interview/eBay-Software-Engineer-III-Interview-Questions-EI_IE7853.0,4_KO5,26.htm" target="_blank"><span class="dot dot-green"></span>Glassdoor — eBay SWE III</a>
+    <a class="source-link" href="https://www.teamblind.com/company/eBay/posts" target="_blank"><span class="dot dot-red"></span>Blind — eBay Discussions</a>
+    <a class="source-link" href="https://www.interviewquery.com/interview-guides/ebay-software-engineer" target="_blank"><span class="dot dot-blue"></span>InterviewQuery</a>
+    <a class="source-link" href="https://interviewkickstart.com/blogs/interview-questions/ebay-interview-questions" target="_blank"><span class="dot dot-blue"></span>Interview Kickstart</a>
+    <a class="source-link" href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/online-auction" target="_blank"><span class="dot dot-orange"></span>Hello Interview — Auction</a>
+    <a class="source-link" href="https://www.interviewcake.com/ebay-interview-questions" target="_blank"><span class="dot dot-orange"></span>Interview Cake</a>
+  </div>
+</div>
+
+<!-- Company snapshot -->
+<div class="snapshot">
+  <div class="snap-item"><span class="snap-label">What they do</span><span class="snap-value">Global e-commerce marketplace — 159M+ active buyers, 800M+ listings, 190+ markets</span></div>
+  <div class="snap-item"><span class="snap-label">Tech Stack</span><span class="snap-value">Java 17 + Spring Boot, Kafka, Cassandra, Oracle, Solr/Elasticsearch, Redis, Kubernetes, GCP/AWS</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Difficulty</span><span class="snap-value">2.9–3.1 / 5 (Glassdoor); LC easy–medium, occasional hard</span></div>
+  <div class="snap-item"><span class="snap-label">Culture Focus</span><span class="snap-value">Customer-first, authenticity, bold ideas, integrity, inclusion</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Style</span><span class="snap-value">Conversational; "non-standard" — varies team to team; CodeSignal + live coding + design + behavioral</span></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')"><span class="tab-icon">🗺️</span>Process Overview</div>
+  <div class="tab" onclick="showTab('leveling')"><span class="tab-icon">🚀</span>Senior → Staff</div>
+  <div class="tab" onclick="showTab('behavioral')"><span class="tab-icon">💬</span>Behavioral <span class="priority">First Round</span></div>
+  <div class="tab" onclick="showTab('coding')"><span class="tab-icon">💻</span>Coding</div>
+  <div class="tab" onclick="showTab('design')"><span class="tab-icon">🏗️</span>System Design</div>
+  <div class="tab" onclick="showTab('aicoding')"><span class="tab-icon">🤖</span>AI Coding <span class="priority">CodeSignal Mock</span></div>
+</div>
+
+<!-- OVERVIEW PANEL -->
+<div class="panel active" id="panel-overview">
+  <div class="section-title">🗺️ Full Interview Process at eBay</div>
+  <p class="section-desc">Synthesized from 60+ Glassdoor reviews, Blind threads, and InterviewQuery guides. Note: eBay's process is famously <strong>non-standardized across teams</strong> — the Shipping team in Bellevue typically follows the structure below, but expect variation.</p>
+
+  <div class="process">
+    <div class="process-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Recruiter Call</div>
+      <div class="step-detail">~30 min. Background, fit, comp, role walkthrough. (Today's call.)</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Hiring Manager Call</div>
+      <div class="step-detail">45–60 min. Project deep-dive + behavioral. Sometimes 3 situational Qs.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Technical Phone Screen</div>
+      <div class="step-detail">45–60 min on CodeSignal/Codility. 1–2 LC medium problems. Java preferred.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Onsite Loop (4–5 rounds)</div>
+      <div class="step-detail">~5 hrs total. Coding · System Design · Code Refactoring · Behavioral · HM</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">5</div>
+      <div class="step-title">Debrief & Offer</div>
+      <div class="step-detail">Panel discussion. Decision typically 1–3 weeks (eBay is notably slow).</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🛒</span><span class="card-title">About eBay</span></div>
+      <p>Founded 1995, headquartered San Jose. eBay is the world's most vibrant marketplace for unique selection and value — connecting 159M+ active buyers with millions of sellers across 800M+ listings in 190+ markets. Engineering focus: marketplace algorithms, search & recommendations, payments, trust & safety, and global logistics/shipping. The role you're interviewing for sits on the <strong>Shipping team in Bellevue</strong> — a core eBay initiative ensuring deliveries are cheap, convenient, and dependable.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">What eBay Looks For (Staff)</span></div>
+      <ul>
+        <li>Deep Java + Spring Boot expertise (Java 8/17 features matter)</li>
+        <li>Customer advocate mindset — "obsessive customer focus"</li>
+        <li>Creative thinker; outside-the-box on high-scale problems</li>
+        <li>Cross-functional collaboration (PM, Research, QA, Ops)</li>
+        <li>Data-driven decision making — "rely on data for direction"</li>
+        <li>Builds horizontally + vertically scalable components</li>
+        <li>Staff-level: architectural leadership, multi-team influence</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚠️</span><span class="card-title">Real Candidate Notes (Blind + Glassdoor)</span></div>
+      <ul>
+        <li>"eBay doesn't have a standard for interviews" — formats vary by team and interviewer</li>
+        <li>Recruiters reportedly slow with follow-ups — send polite check-in after 7–10 days</li>
+        <li>Some interviewers highly engaged, others described as disengaged ("bipolar experience")</li>
+        <li>Decisions can take 2–3+ weeks post-onsite — be patient</li>
+        <li>Bellevue Shipping team specifically: pace + culture mixed; expect direct technical questions</li>
+        <li>Final debrief is collaborative across all interviewers + HM + recruiter</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="values-box">
+    <h3>🌟 eBay Core Values to Weave Into Every Round</h3>
+    <ul>
+      <li><strong>Customers are our compass</strong> — Show user obsession (both buyers AND sellers — eBay is a marketplace)</li>
+      <li><strong>Authenticity thrives</strong> — Be genuine, not over-rehearsed. eBay values individuality.</li>
+      <li><strong>Bold ideas are welcome</strong> — Don't be afraid to challenge or propose unconventional solutions</li>
+      <li><strong>Everyone can bring their unique selves</strong> — Inclusion and diversity matter</li>
+      <li><strong>We're in this together</strong> — Cross-functional collaboration is core</li>
+      <li><strong>Economic opportunity for all</strong> — eBay's mission is about empowering small sellers globally</li>
+    </ul>
+  </div>
+</div>
+
+<!-- LEVELING PANEL -->
+<div class="panel" id="panel-leveling">
+  <div class="section-title">🚀 Senior → Staff Engineer at eBay: What Changes</div>
+  <p class="section-desc">eBay's MTS (Member of Technical Staff) ladder ranges from L3 (entry) to L7 (Principal). Staff Software Engineer = MTS1 / approximately L5–L6 IC. The jump from Senior is a <strong>fundamentally different way of operating</strong> — from execution-focused to strategy and multiplication.</p>
+
+  <div class="purple-box">
+    <h3>⚡ The Core Shift in One Sentence</h3>
+    <p><strong>Senior Engineer:</strong> Optimized for fast, high-quality delivery within your team.<br>
+    <strong>Staff Engineer at eBay:</strong> Optimized for <em>multiplication</em> — enabling other engineers, shaping cross-team technical direction, driving org-wide architectural decisions. At a marketplace operating at eBay's scale (800M+ listings), Staff engineers are expected to think about <em>platform leverage</em>, not feature delivery.</p>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">📊 Role Expectations: Side-by-Side</div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th class="senior-col">🔵 Senior Engineer (You Now)</th>
+        <th class="staff-col">🟣 Staff Engineer (Target Role at eBay)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Scope</td>
+        <td class="senior-cell">Owns features or subsystems within one team</td>
+        <td class="staff-cell">Drives initiatives across the Shipping platform; influences adjacent teams (Payments, Trust, Search)</td>
+      </tr>
+      <tr>
+        <td>Influence</td>
+        <td class="senior-cell">Influences immediate teammates and project</td>
+        <td class="staff-cell">Influences across teams, up to Directors, without formal authority</td>
+      </tr>
+      <tr>
+        <td>Problem Framing</td>
+        <td class="senior-cell">Given a problem — figures out the best technical solution</td>
+        <td class="staff-cell">Identifies the right problem to solve; questions whether a feature should be built at all</td>
+      </tr>
+      <tr>
+        <td>Coding</td>
+        <td class="senior-cell">Core daily activity; deep in implementation</td>
+        <td class="staff-cell">Less daily coding; focus on PoC, code review, architecture, technical strategy docs</td>
+      </tr>
+      <tr>
+        <td>Decision-Making</td>
+        <td class="senior-cell">Technical decisions within team; escalates major ones</td>
+        <td class="staff-cell">Owns high-stakes, cross-cutting technical decisions; unblocks multiple teams</td>
+      </tr>
+      <tr>
+        <td>Mentorship</td>
+        <td class="senior-cell">Mentors junior engineers; reviews PRs</td>
+        <td class="staff-cell">Mentors Senior engineers; builds systems for others to grow (RFCs, runbooks, tech talks)</td>
+      </tr>
+      <tr>
+        <td>Ambiguity</td>
+        <td class="senior-cell">Works within defined requirements</td>
+        <td class="staff-cell">Creates clarity from ambiguity; drives stakeholder alignment with little direction</td>
+      </tr>
+      <tr>
+        <td>Business Alignment</td>
+        <td class="senior-cell">Aware of product goals; executes toward them</td>
+        <td class="staff-cell">Translates business strategy into technical roadmap; talks tradeoffs with non-technical leaders</td>
+      </tr>
+      <tr>
+        <td>Marketplace Awareness</td>
+        <td class="senior-cell">Understands their team's slice of the platform</td>
+        <td class="staff-cell">Thinks in two-sided marketplace terms: how decisions affect both buyer and seller experience at scale</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title" style="margin-bottom:14px;">🧠 Mindset Comparison</div>
+  <div class="mindset-grid">
+    <div class="mindset-card senior">
+      <h4>🔵 Senior Engineer Thinking</h4>
+      <ul>
+        <li>"How do I implement this shipping label feature correctly?"</li>
+        <li>"How do I improve my team's velocity?"</li>
+        <li>"What's the best technical approach for this problem?"</li>
+        <li>"How can I mentor my junior teammates?"</li>
+        <li>"I need to ship this on time and with quality."</li>
+      </ul>
+    </div>
+    <div class="mindset-card staff">
+      <h4>🟣 Staff Engineer Thinking</h4>
+      <ul>
+        <li>"Should we build this? Does it serve the 3-year shipping roadmap?"</li>
+        <li>"How do I unblock 3 teams with one architectural decision?"</li>
+        <li>"What platform change ensures this never breaks again org-wide?"</li>
+        <li>"How do I grow Senior engineers toward Staff?"</li>
+        <li>"How does this align with eBay's economic-opportunity mission?"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">🎯 What to Keep in Mind in Your eBay Staff Interview</div>
+
+  <div class="q-list">
+    <div class="q-item purple">
+      <div class="q-label">🔑 Lead with Impact, Not Implementation</div>
+      <div class="q-text">Start every story at the strategic level — business or org impact first — before diving into technical details.</div>
+      <div class="q-tip">💡 Common Staff interview mistake: starting with technical execution. Zoom out first ("This drove $X in saved costs / unblocked Y teams"), then zoom in on the engineering work.</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">✖️ Show Yourself as a Multiplier</div>
+      <div class="q-text">For every story, answer: "How did this make others around me better, faster, or more independent?" Staff is judged on team elevation, not personal output.</div>
+      <div class="q-tip">💡 Examples: "Set up architecture review forums that upskilled 4 senior engineers" or "Created a deployment framework that cut team release cycle time 50%."</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">🌐 Demonstrate Cross-Functional Influence</div>
+      <div class="q-text">Bring examples of aligning engineering with PM, design, data science, and business stakeholders — especially across team boundaries, not just within your own team.</div>
+      <div class="q-tip">💡 The eBay JD explicitly mentions Research, PM, QA, and Ops collaboration. Show you can drive alignment across multiple functions.</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">🗺️ Speak to Technical Strategy, Not Just Execution</div>
+      <div class="q-text">When discussing system design, zoom out: "Why does this architecture matter for eBay's long-term marketplace scalability? What are the org-level tradeoffs?"</div>
+      <div class="q-tip">💡 Staff engineers at eBay influence platform architecture. Speak in years, not sprints. Frame decisions as "this enables future capability X."</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">🌫️ Prove You Can Navigate Ambiguity</div>
+      <div class="q-text">Have at least one story where you created structure from nothing — no spec, no clear owner — and drove it to resolution across stakeholders.</div>
+      <div class="q-tip">💡 If your stories always start with "we were given a clear requirement," they read as Senior, not Staff. Find your "I noticed this problem and drove it" story.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>📋 Interview Preparation Checklist — Staff Level at eBay</h3>
+    <ul>
+      <li><strong>Reframe your stories:</strong> Re-examine your STAR stories from a Senior lens and upgrade them — add business impact, cross-team influence, and org-level outcome.</li>
+      <li><strong>Prepare 2–3 "defining project" stories</strong> that show you led something ambiguous, cross-functional, and high-stakes end-to-end.</li>
+      <li><strong>Know your "multiplier" moments:</strong> Times you made other engineers meaningfully better. These are Staff-defining stories.</li>
+      <li><strong>Be ready for "tell me about your technical vision":</strong> Staff interviews probe how you'd shape direction of an area.</li>
+      <li><strong>Don't default to "we":</strong> At Staff level, interviewers want your specific decision-making — not the team's collective action.</li>
+      <li><strong>Connect everything to eBay's mission:</strong> Marketplace, two-sided trust, global scale, economic opportunity for small sellers.</li>
+      <li><strong>Speak the eBay tech language:</strong> Java 17, Spring Boot, Kafka event-driven, microservices, horizontal scaling, eventual consistency.</li>
+    </ul>
+  </div>
+
+  <div class="info-box">
+    <h3>📚 Recommended Reading</h3>
+    <p>If you have time before your onsite: <em>The Staff Engineer's Path</em> by Tanya Reilly is the go-to resource. Even skimming the first two chapters helps internalize the framing you need. For system design at marketplace scale, scan <em>Designing Data-Intensive Applications</em> chapters on replication, consistency, and stream processing — directly relevant to eBay's Shipping problem space.</p>
+  </div>
+</div>
+
+<!-- BEHAVIORAL PANEL -->
+<div class="panel" id="panel-behavioral">
+  <div class="section-title">💬 Behavioral Round <span class="priority">Today's Recruiter + Future HM Round</span></div>
+  <p class="section-desc">eBay places <strong>strong emphasis on values alignment and cultural fit</strong>. Behavioral questions appear in the recruiter call, the hiring manager call, and as part of the onsite loop. The hiring manager call sometimes consists entirely of <em>3 situational questions</em> in lieu of coding (per recent Glassdoor reports).</p>
+
+  <div class="star-box">
+    <h3>📐 Use the STAR Method — Especially Critical for Staff</h3>
+    <div class="star-grid">
+      <div class="star-cell">
+        <div class="star-letter">S</div>
+        <div class="star-word">SITUATION</div>
+        <div class="star-desc">Set the scene briefly. Where were you, what was the business context?</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">T</div>
+        <div class="star-word">TASK</div>
+        <div class="star-desc">What was your specific role? At Staff level, this should highlight ambiguity or cross-team scope.</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">A</div>
+        <div class="star-word">ACTION</div>
+        <div class="star-desc">What did YOU specifically do? Be specific — "I decided…" not "we did…"</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">R</div>
+        <div class="star-word">RESULT</div>
+        <div class="star-desc">Quantified outcome + multiplier effect. Numbers + people impact.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor, Blind, Interview Kickstart)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🤝 Cross-Functional Collaboration</div>
+      <div class="q-text">Tell me about a time you worked with a cross-functional team — PM, designers, data scientists. How did you drive alignment when stakeholders disagreed?</div>
+      <div class="q-tip">💡 The eBay JD specifically calls out collaboration with Research, PM, QA, and Ops. Show you can refine vague requirements into shippable deliverables.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">⚡ Conflict Resolution & Tough Decisions</div>
+      <div class="q-text">Tell me about a time when a project suffered because of your superior's inability to make tough decisions. (Reported by Interview Kickstart as a common eBay question.)</div>
+      <div class="q-tip">💡 Tricky question — don't badmouth a past manager. Frame it as "I took ownership and drove the decision upward with data and recommendation." Show Staff-level initiative.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">📖 Project Deep Dive</div>
+      <div class="q-text">Walk me through a specific high-impact project from your resume. What was your role, the technical decisions, and the outcome?</div>
+      <div class="q-tip">💡 eBay interviewers dig into resume projects deeply. Prepare 3 projects in depth — be ready to whiteboard architecture, defend tradeoffs, and discuss org impact.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">💡 Customer Obsession</div>
+      <div class="q-text">Tell me about a time you advocated for the customer in a feature decision — especially when it went against engineering preference.</div>
+      <div class="q-tip">💡 HUGE at eBay — "Customers are our compass." Show you think about both buyers AND sellers in marketplace decisions. Bonus if you reference user research.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🌱 Bold Ideas / Innovation</div>
+      <div class="q-text">Tell me about a time you proposed an unconventional or bold technical idea. How did you build support for it, and what was the outcome?</div>
+      <div class="q-tip">💡 eBay values "bold ideas are welcome." This is your Staff-level showcase moment — show vision, persuasion, and outcome.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:12px;">🎯 How to Prepare</div>
+
+  <div class="tips">
+    <h3>🔑 eBay-Specific Preparation Tips</h3>
+    <ul>
+      <li><strong>Know eBay's values explicitly:</strong> Customers are our compass · Authenticity thrives · Bold ideas welcome · We're in this together · Everyone brings unique selves. Weave these naturally.</li>
+      <li><strong>"Why eBay?"</strong> Recruiter WILL ask. Strong answers: marketplace complexity, economic opportunity mission, scale of impact (190+ markets, 159M buyers), genuine interest in two-sided platforms.</li>
+      <li><strong>"Why this team (Shipping)?"</strong> Shipping is core eBay infrastructure — the trust layer of the marketplace. Without reliable, cheap shipping, sellers can't compete with Amazon. Frame it as foundational to the entire business.</li>
+      <li><strong>Prepare a Story Bank:</strong> Have 6–8 STAR stories covering: cross-functional collaboration, conflict, failure, learning, leadership, customer empathy, ambiguity, and a "bold idea" story.</li>
+      <li><strong>Reference your resume projects:</strong> Glassdoor confirms interviewers dig deep into specific resume bullets — know every line.</li>
+      <li><strong>Conversational tone:</strong> eBay culture is relatively relaxed — match the energy. Avoid being overly rehearsed or stiff.</li>
+    </ul>
+  </div>
+
+  <div class="info-box">
+    <h3>📌 The Hiring Manager Round (Specific to eBay)</h3>
+    <p>One recent Glassdoor candidate noted: <em>"During the manager call, I was expecting a coding round, but instead, they asked three situational questions."</em> This is a notable eBay pattern — the HM round can be <strong>purely behavioral</strong> rather than technical. Don't be caught off guard. Be ready for situational/leadership questions like: How do you handle a tech debt push-back from a PM? How do you decide which projects to prioritize? Tell me about a time you killed your own project.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title">Do</span></div>
+      <ul>
+        <li>Be specific — name actual numbers, systems, outcomes</li>
+        <li>Show ownership ("I decided…" not "the team decided…")</li>
+        <li>Connect your values to eBay's mission of economic opportunity</li>
+        <li>Ask thoughtful questions — it's mutual evaluation</li>
+        <li>Frame stories at Staff scope: cross-team, multi-quarter, ambiguous</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">❌</span><span class="card-title">Avoid</span></div>
+      <ul>
+        <li>Vague answers ("I worked on a challenging project…")</li>
+        <li>Over-scripted, robotic delivery</li>
+        <li>Criticizing past employers or managers harshly</li>
+        <li>Answers that only say "we" — show YOUR individual contribution</li>
+        <li>Forgetting to tie technical results back to business impact</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Recruiter & Behavioral Rounds</div>
+  <p class="section-desc">You're interviewing eBay too. These questions signal Staff-level thinking and show you're evaluating culture, leadership, and strategic fit — not just checking boxes.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Role Scope & Impact</div>
+      <div class="q-text">"What does success look like for a Staff Engineer on the Shipping team at the 6-month and 1-year mark? How is impact measured beyond individual code contributions?"</div>
+      <div class="q-tip">💡 Directly surfaces how eBay defines Staff-level value. Helps calibrate whether their expectations match what you can deliver.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Team Structure & Culture</div>
+      <div class="q-text">"Can you tell me about the Shipping team's composition — how many Staff engineers are on it today, who would I be working most closely with, and what's the most pressing initiative right now?"</div>
+      <div class="q-tip">💡 Practical and reveals if you'd be the only Staff, joining peers, or filling a gap. Hints at workload and influence opportunity.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">Question 3 · Process & Timeline</div>
+      <div class="q-text">"Can you walk me through the rest of the interview process and timeline? Who would I be meeting with, and what should I expect in each round?"</div>
+      <div class="q-tip">💡 eBay's process is famously inconsistent across teams. Get clarity now to prepare specifically for what's coming.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Recent Org Context</div>
+      <div class="q-text">"eBay has been investing in AI and modernizing the marketplace experience. How is that playing out specifically within the Shipping team — are there big platform changes or modernization efforts underway?"</div>
+      <div class="q-tip">💡 Shows you've researched current eBay direction. Reveals whether the team is in maintenance mode or doing greenfield work — important context.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Growth & Trajectory</div>
+      <div class="q-text">"What's the path for a Staff Engineer here — is there a clear progression to Senior Staff and Principal? And what kinds of projects historically have helped people advance?"</div>
+      <div class="q-tip">💡 Demonstrates long-term thinking and ambition. Also gives you signal on whether this team is a launchpad or a plateau.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODING PANEL -->
+<div class="panel" id="panel-coding">
+  <div class="section-title">💻 Coding Round</div>
+  <p class="section-desc">eBay's coding interviews lean <strong>practical and Java-focused</strong>, not LeetCode-hard. Expect a mix of CodeSignal-style online assessment, live pair programming on CodeSignal/Codility, and potentially a refactoring round during onsite. Multiple Glassdoor candidates note: <em>"Nothing LeetCode hard — easy to medium difficulty"</em> and <em>"Easy-medium DSA for both rounds."</em></p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor + InterviewQuery + Blind)</h3>
+    <ul>
+      <li><strong>Online Assessment:</strong> CodeSignal-style — typically 4 problems (1 easy, 2 medium, 1 hard), timed, with screen + camera sharing.</li>
+      <li><strong>Phone screen:</strong> 45–60 min on CodeSignal or Codility. 1–2 LC medium problems. Java preferred; other languages negotiable.</li>
+      <li><strong>Onsite coding:</strong> 1–2 live coding rounds covering DSA + Java language depth (Java 8/17 features, Spring Boot scenarios).</li>
+      <li><strong>Code refactoring round:</strong> Some candidates report this as a distinct round — you're given existing code and asked to improve readability, performance, or design.</li>
+      <li><strong>Topics tested:</strong> Arrays, Strings, Hash Tables (top topics per CodeJeet), Graph traversal (DFS/BFS), Trees, Dynamic Programming, Concurrency.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Glassdoor, CodeJeet, Interview Cake)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🔢 Array / Search Optimization</div>
+      <div class="q-text">Given a circularly rotated sorted array like [3, 5, 6, 7, 8, -3, -1, -1, 1, 2], design an algorithm to find an element efficiently. (Reported on Glassdoor.)</div>
+      <div class="q-tip">💡 Modified binary search problem. Walk through finding the pivot, then binary searching the correct half. O(log n) is the target.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🌳 Tree / LCA</div>
+      <div class="q-text">Find the Least Common Ancestor (LCA) in a binary tree. Note: there is NO pointer from node to parent. Design the tree node and write the method.</div>
+      <div class="q-tip">💡 Classic eBay question. Recursive solution: if root matches either node, return root; otherwise recurse left/right; if both sides return non-null, root is LCA.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">🛒 OOP Design — Order Fulfillment</div>
+      <div class="q-text">Write Java OOP code: online order fulfillment algorithm to minimize delivery cost by finding nearest warehouses where the user's order items are available. (Highly relevant to Shipping team!)</div>
+      <div class="q-tip">💡 This is a real recent eBay question. Think: Warehouse class, Inventory class, distance calculation, greedy assignment vs. optimal (Hungarian algorithm). Discuss tradeoffs at Staff level.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🔁 Invalid Transactions</div>
+      <div class="q-text">LeetCode 1169 (frequently asked at eBay per Interview Solver): A transaction is invalid if amount &gt; $1000 OR if it occurs within 60 minutes of another transaction by the same user in a different city. Return all invalid transactions.</div>
+      <div class="q-tip">💡 Tests parsing, grouping, time-window comparison. Brute force is O(n²); discuss optimization with sorting/grouping by user.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">☕ Java Deep Knowledge</div>
+      <div class="q-text">Live Q&amp;A: Explain Java 17 features you've used. Constructor vs. method injection in Spring? How does Spring profiles work? How would you implement global exception handling in Spring Boot?</div>
+      <div class="q-tip">💡 Reported consistently across Glassdoor — eBay tests Java/Spring depth, not just algorithms. Brush up on Spring Boot fundamentals before interview.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips for eBay's Coding Round</h3>
+    <ul>
+      <li><strong>Java & Spring Boot deep prep:</strong> Java 8 streams/lambdas, Java 17 features (sealed classes, records, pattern matching), Spring DI, Spring profiles, transaction management, exception handling. eBay tests these explicitly.</li>
+      <li><strong>Focus on LC easy-to-medium:</strong> Arrays, Strings, Hash Tables, Trees. Don't waste time on LC hard DP — it rarely shows up.</li>
+      <li><strong>Practice on CodeSignal:</strong> eBay uses it for OA and live coding. Get familiar with the IDE.</li>
+      <li><strong>Talk while you code:</strong> Verbalize tradeoffs, edge cases, complexity. eBay engineers explicitly look for collaborative thinking.</li>
+      <li><strong>Refactoring practice:</strong> Take old code from your own repos and practice improving it for readability + performance. Be ready to articulate "why" of every refactor.</li>
+      <li><strong>For the Shipping team specifically:</strong> Brush up on logistics-flavored problems — routing, warehouse assignment, scheduling, rate limiting, shipping carrier integrations.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Coding Round</div>
+  <p class="section-desc">The coding round is pair-programming style at eBay, so the interviewer is also your collaborator. These questions help you learn about engineering craft and day-to-day technical life at Staff level.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Engineering Standards</div>
+      <div class="q-text">"Beyond passing tests, what does high-quality production code look like on the Shipping team at eBay — how does the team approach code review, test coverage, and documentation expectations?"</div>
+      <div class="q-tip">💡 As a Staff engineer you'd help set these standards. Shows you're thinking about craft at an org level, not just this exercise.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Java/Spring Stack Evolution</div>
+      <div class="q-text">"eBay's core stack is Java/Spring Boot. Are there active modernization efforts underway — moving toward newer Java versions, reactive patterns, or alternative frameworks like Quarkus?"</div>
+      <div class="q-tip">💡 Staff engineers often own or influence these migrations. Shows you think about codebase trajectory.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">Question 3 · Developer Experience</div>
+      <div class="q-text">"How does the team handle developer productivity — local dev setup, CI/CD pipeline speed, build times for the Shipping service? Are there Staff-level initiatives to improve DX?"</div>
+      <div class="q-tip">💡 DX improvements are a classic Staff multiplier. Signals you understand your leverage extends beyond shipping features.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · On-Call & Reliability</div>
+      <div class="q-text">"How does the Shipping team manage on-call rotations and incident response? How does a Staff Engineer contribute to reliability — runbooks, post-mortems, SLOs?"</div>
+      <div class="q-tip">💡 Reliability at marketplace scale is critical — peak holiday shipping is do-or-die for eBay. Shows operational maturity.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Tech Debt & Greenfield Mix</div>
+      <div class="q-text">"What's the rough split between greenfield work and maintaining existing systems on the Shipping team? Where does tech debt sit, and how does Staff influence what gets paid down?"</div>
+      <div class="q-tip">💡 Tells you a lot about real day-to-day work. Be wary if it's 90% maintenance — that's not Staff-leverage territory.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN PANEL -->
+<div class="panel" id="panel-design">
+  <div class="section-title">🏗️ System Design Round</div>
+  <p class="section-desc">eBay's system design rounds are <strong>critical for Staff-level decisions</strong>. Interviewers explicitly weigh this round heavily for IC5+ leveling. Expect questions on marketplace architecture, two-sided systems, real-time bidding/auctions, search at scale, payments, and (for your role) <strong>shipping/logistics systems</strong>.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Glassdoor + Interview Kickstart + Hello Interview)</h3>
+    <ul>
+      <li>45–60 minutes; one or two interviewers; whiteboard or virtual diagramming (Excalidraw, Miro)</li>
+      <li>Often <strong>2 system design rounds at Staff level</strong> — one general architecture, one deeper-dive on data modeling or domain-specific</li>
+      <li>Topics: API design, database schema, caching, sharding, concurrency, distributed systems patterns, eventual consistency</li>
+      <li>Interviewers evaluate: requirements gathering, capacity estimation, trade-off analysis, failure modes, scale-out thinking</li>
+      <li>Code refactoring round may also appear (separate from design): rewriting existing service for performance or readability</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Interview Kickstart, Hello Interview, Glassdoor)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🛒 Design Online Auction Platform (Classic eBay)</div>
+      <div class="q-text">Design an auction system where users can list items, place bids, and view live auction state. Highest bid wins; auctions end at a fixed time. Handle real-time bid updates and concurrency.</div>
+      <div class="q-tip">💡 The eBay quintessential question. Key topics: optimistic vs. pessimistic locking, WebSocket for real-time, Redis for current bid state, Kafka for bid events, idempotency, race conditions on auction-close.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">📦 Design Shipping/Logistics System (Most Relevant to Your Role!)</div>
+      <div class="q-text">Design eBay's shipping platform: integrate with multiple carriers (USPS, FedEx, UPS, DHL), provide real-time rate quotes, label generation, tracking, and delivery confirmation. Handle 100M+ shipments/year.</div>
+      <div class="q-tip">💡 Almost certainly will come up given the team. Discuss: carrier abstraction layer, rate caching, async label generation, event-driven tracking updates, fallback when carrier APIs fail, multi-region resilience.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">🔍 Design eBay's Search & Discovery System</div>
+      <div class="q-text">Design the search system for 800M+ active listings. Support keyword search, faceted filtering (price, condition, location), ranking, autocomplete, and personalization.</div>
+      <div class="q-tip">💡 Key topics: inverted index (Elasticsearch/Solr — eBay uses Solr), sharding by category, ranking pipeline (recall → filter → rank), caching popular queries, freshness vs. consistency tradeoff.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🔔 Design Notification Service for eBay</div>
+      <div class="q-text">Design an end-to-end notification service: outbid alerts, sold-item notifications, shipping updates, promotional messages. Support email, SMS, push. Handle 1B+ notifications/day with per-user preferences.</div>
+      <div class="q-tip">💡 Key topics: pub/sub (Kafka), user preference service, throttling/rate limiting per user, multi-channel fanout, retry/DLQ, idempotency.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">💳 Design Payments / Fraud Detection</div>
+      <div class="q-text">Design a payment processing system with built-in fraud detection. Handle authorization, capture, refunds, chargebacks. Detect fraud in real time without adding latency.</div>
+      <div class="q-tip">💡 Key topics: synchronous risk checks vs. async detection, ML feature store, rules engine + ML model ensemble, idempotency on retries, double-spend prevention, GDPR/PCI compliance.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 System Design Preparation — Staff Level at eBay</h3>
+    <ul>
+      <li><strong>Think marketplace-first:</strong> eBay is a two-sided platform. Always design for BOTH buyer and seller flows. Cold-start problems matter.</li>
+      <li><strong>Master the standard 6-step framework:</strong> (1) Clarify requirements, (2) Define APIs, (3) Capacity estimation, (4) High-level design, (5) Deep dive into 1–2 components, (6) Bottlenecks + scale.</li>
+      <li><strong>Be ready to defend your take-home/past project:</strong> Walk through architectural decisions and tradeoffs confidently. eBay interviewers often spend 20 mins reviewing your past architecture.</li>
+      <li><strong>Talk through tradeoffs:</strong> SQL vs. NoSQL, REST vs. GraphQL, monolith vs. microservices, sync vs. async — eBay cares about your reasoning, not a single "right" answer.</li>
+      <li><strong>Know eBay's actual stack:</strong> Java + Spring Boot, Kafka, Cassandra, Oracle (legacy), Solr for search, Redis for caching, Kubernetes on GCP/private cloud. Use these in your diagrams to show familiarity.</li>
+      <li><strong>For Shipping specifically:</strong> Study integrations with external APIs (carrier APIs), idempotency, async event processing, retry/circuit breakers, multi-region failover, eventual consistency for tracking updates.</li>
+      <li><strong>Practice Hello Interview's "Design Online Auction":</strong> Directly relevant. <a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/online-auction" target="_blank">hellointerview.com/learn/system-design/problem-breakdowns/online-auction</a></li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — System Design Round</div>
+  <p class="section-desc">The design round interviewer is likely a Senior or Staff engineer — your future peer. These questions show strategic depth and that you understand the real complexity of running a marketplace at scale.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Architecture Direction</div>
+      <div class="q-text">"Where is eBay's Shipping platform today on the spectrum of monolith to microservices — and what's the strategic direction? Is the Staff Engineer expected to drive those decisions?"</div>
+      <div class="q-tip">💡 Shows you understand architectural evolution is a Staff-level concern, not just an implementation detail.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Scale & Hard Problems</div>
+      <div class="q-text">"eBay processes massive shipping volume during peak holiday season. What are the biggest unsolved or hardest scalability challenges the Shipping platform faces today?"</div>
+      <div class="q-tip">💡 Directly relevant to eBay's business. Shows you've thought about domain-specific design beyond generic FAANG patterns.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">Question 3 · Carrier Integration Strategy</div>
+      <div class="q-text">"Shipping involves deep integration with dozens of external carriers — USPS, FedEx, UPS, DHL, regional carriers globally. How is that abstraction layered today, and how do you handle carrier API instability or breaking changes?"</div>
+      <div class="q-tip">💡 Very specific to Shipping. Shows you've thought about the real engineering complexity of the team's problem space.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Decision-Making Process</div>
+      <div class="q-text">"How does the team make and document major architectural decisions — RFCs, ADRs, design docs? How much influence does a Staff Engineer have in shaping those processes themselves?"</div>
+      <div class="q-tip">💡 Decision-making process reveals organizational maturity. As Staff, you'd both participate in and potentially improve these processes.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Cross-Team Architecture</div>
+      <div class="q-text">"Shipping intersects with Payments, Trust & Safety, Search, and Seller tools. How do architectural decisions get coordinated across these domains, and where do Staff engineers typically have leverage in shaping that cross-team direction?"</div>
+      <div class="q-tip">💡 Demonstrates you think about Staff influence beyond a single team. Also signals you understand eBay's marketplace architecture is deeply interconnected.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AI CODING PANEL — CodeSignal Mock Prep -->
+<div class="panel" id="panel-aicoding">
+  <div class="section-title">🤖 AI Coding — CodeSignal Mock Prep <span class="priority">For Your Round</span></div>
+  <p class="section-desc">This tab contains the <strong>full mock problem set for your upcoming CodeSignal round</strong> — recruiter said "System Design Focused / Backend development." Three deep mock problems below, each ~50 min runtime. Practice these out loud with a timer. By the third mock, the framework should feel automatic.</p>
+
+  <div class="urgent-box" style="margin: 0 0 20px 0;">
+    <h3>⏱️ 36-Hour Plan</h3>
+    <p><strong>Day 1 (~6 hrs):</strong> CodeSignal setup (30m) → Mock 1: Carrier Integration (90m) → Shipping domain primer (90m) → Mock 2: Label Generation (90m) → Java refresh (60m)<br>
+    <strong>Day 2 (~5 hrs):</strong> Mock 3: Tracking Events (90m) → Behavioral prep (45m) → Tradeoff catalog (45m) → Optional Mock 4: Rate Engine (60m) → wind down by 8pm</p>
+  </div>
+
+  <div class="info-box">
+    <h3>📐 The 6-Step Framework — Memorize This</h3>
+    <p>Run every design mock through this structure. Muscle memory frees brain cycles for content.</p>
+    <ul>
+      <li><strong>1. Clarify requirements</strong> (functional + non-functional) — 5 min</li>
+      <li><strong>2. APIs / contracts</strong> — 5 min</li>
+      <li><strong>3. Capacity estimates</strong> (QPS, storage, bandwidth) — 3 min</li>
+      <li><strong>4. High-level architecture</strong> — 8 min</li>
+      <li><strong>5. Deep dive on 1–2 components</strong> — 10 min</li>
+      <li><strong>6. Failure modes, monitoring, scale-out</strong> — 5 min</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MOCK 1 -->
+  <div class="section-title" style="margin-bottom: 6px;">🚚 Mock 1 — Carrier Integration Platform <span class="priority med">Highest Priority</span></div>
+  <p class="section-desc">The most likely problem given the team. Master the adapter pattern, parallel fan-out, circuit breaker, and idempotency here — these themes recur in Mocks 2 and 3 too.</p>
+
+  <div class="q-item" style="margin-bottom: 14px; background: #fff8e7; border-left-color: var(--ebay-yellow);">
+    <div class="q-label">📋 The Prompt (as interviewer would give it)</div>
+    <div class="q-text">"eBay needs a service that lets sellers get shipping rate quotes and generate labels across multiple carriers — USPS, FedEx, UPS, DHL, and regional carriers. Design this system. Focus on backend. Walk me through how you'd build it."</div>
+  </div>
+
+  <div class="cards" style="margin-bottom: 20px;">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">❓</span><span class="card-title">Clarifying Questions (Ask First!)</span></div>
+      <ul>
+        <li><strong>Scope:</strong> Direct carrier integration or aggregator (Shippo)? Assume direct.</li>
+        <li><strong>Volume:</strong> ~10K rate quotes/sec peak, ~1K label gens/sec.</li>
+        <li><strong>Latency:</strong> p99 &lt; 500ms for rate quotes.</li>
+        <li><strong>Reliability:</strong> Graceful degradation if a carrier is down.</li>
+        <li><strong>Markets:</strong> US-only or global? Affects carrier list, currency, customs.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title">Core Architectural Moves</span></div>
+      <ul>
+        <li><strong>Adapter pattern:</strong> <code>Carrier</code> interface with per-carrier impls. New carrier = new class.</li>
+        <li><strong>Parallel fan-out:</strong> <code>CompletableFuture.allOf()</code> with 200ms timeout per carrier, drop slow ones.</li>
+        <li><strong>Rate caching:</strong> Redis cache keyed by (zip, zip, weight, dims, carrier, service). 1-hr TTL, 80%+ hit rate.</li>
+        <li><strong>Circuit breaker per carrier:</strong> Resilience4j. Trip at 50% failure rate in 10s window.</li>
+        <li><strong>Idempotency on labels:</strong> Client sends key; map (key → label_id) in TTL'd store.</li>
+        <li><strong>Async label gen:</strong> Return 202 + label ID; complete async via webhook/poll.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>☕ Java Sketch to Write Live in CodeSignal</h3>
+    <pre style="background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.78rem; line-height: 1.5; margin-top: 8px;"><code>public interface Carrier {
+    String name();
+    List&lt;RateQuote&gt; quoteRates(ShipmentRequest req);
+    LabelResult generateLabel(LabelRequest req, String idempotencyKey);
+    Optional&lt;TrackingStatus&gt; getTracking(String trackingNumber);
+}
+
+public class RateAggregator {
+    private final List&lt;Carrier&gt; carriers;
+    private final ExecutorService pool;
+    private final Duration perCarrierTimeout = Duration.ofMillis(200);
+
+    public List&lt;RateQuote&gt; quoteAll(ShipmentRequest req) {
+        List&lt;CompletableFuture&lt;List&lt;RateQuote&gt;&gt;&gt; futures = carriers.stream()
+            .map(c -&gt; CompletableFuture
+                .supplyAsync(() -&gt; c.quoteRates(req), pool)
+                .orTimeout(perCarrierTimeout.toMillis(), MILLISECONDS)
+                .exceptionally(ex -&gt; List.of()))
+            .toList();
+        return futures.stream().flatMap(f -&gt; f.join().stream()).toList();
+    }
+}</code></pre>
+    <p style="margin-top: 10px; font-size: 0.8rem;"><strong>This is the Staff-level signal:</strong> typed interface with generics, real concurrency, timeout + fallback. Type this fresh in CodeSignal — don't copy-paste.</p>
+  </div>
+
+  <div class="tips">
+    <h3>⚠️ Failure Modes — Bring These Up Unprompted</h3>
+    <ul>
+      <li>Carrier API rate-limits us → token bucket per carrier</li>
+      <li>Carrier returns wrong currency or unit → contract validation at adapter boundary</li>
+      <li>Network partition mid-label-gen → idempotency saves us on retry</li>
+      <li>Carrier rate card changes mid-cache-TTL → stale prices for up to 1hr (acceptable tradeoff)</li>
+      <li>Hot key: one massive seller floods us → per-seller rate limiting</li>
+    </ul>
+  </div>
+
+  <div class="values-box">
+    <h3>📊 Observability — Most Candidates Skip This (Don't!)</h3>
+    <ul>
+      <li>p50/p95/p99 latency per carrier, tagged by carrier name</li>
+      <li>Carrier error rate; alert at &gt;5%</li>
+      <li>Cache hit rate; alert if &lt;60%</li>
+      <li>Circuit breaker state transitions logged</li>
+      <li>Label-gen success rate per carrier; daily reconciliation job for orphans</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MOCK 2 -->
+  <div class="section-title" style="margin-bottom: 6px;">🏷️ Mock 2 — Label Generation Service <span class="priority low">Day 2 Morning</span></div>
+  <p class="section-desc">Theme shift: idempotency is <strong>money-critical</strong> here. Sellers get charged when a label is generated — double-charging or losing a label both have direct financial impact. Async processing, state machines, refund flows.</p>
+
+  <div class="q-item" style="margin-bottom: 14px; background: #fff8e7; border-left-color: var(--ebay-yellow);">
+    <div class="q-label">📋 The Prompt</div>
+    <div class="q-text">"Design the service that generates shipping labels for sellers. Sellers click 'Buy postage,' we charge them, generate a PDF label, and they print and ship. Walk through it."</div>
+  </div>
+
+  <div class="cards" style="margin-bottom: 20px;">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">What This Problem Tests</span></div>
+      <ul>
+        <li><strong>Idempotency is money-critical:</strong> Network hiccup + retry must NOT charge twice or generate two labels.</li>
+        <li><strong>Async PDF generation:</strong> Labels can take seconds to render. Don't block the request.</li>
+        <li><strong>Refund / void flow:</strong> Sellers void unused labels within 30 days — interacts with the carrier.</li>
+        <li><strong>State machine:</strong> Label states: <code>REQUESTED → PURCHASED → GENERATED → USED → VOIDED/REFUNDED</code>. Draw this!</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title">Core Architectural Moves</span></div>
+      <ul>
+        <li>API takes <code>idempotency_key</code>; Redis lookup first, return existing label if found</li>
+        <li>Charge + label-state-write in a <strong>single DB transaction</strong> (not distributed)</li>
+        <li>Payments via internal service with its own idempotency layer</li>
+        <li>Push job to Kafka topic <code>label-generation-requests</code>; worker calls carrier, writes back PDF URL</li>
+        <li>Notify seller via webhook/poll when label is ready</li>
+        <li>Voids: separate state machine, call carrier void API, refund via Payments service, idempotent</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>⚠️ Failure Modes for Money-Handling Flows</h3>
+    <ul>
+      <li><strong>Payment succeeds, label gen fails</strong> → automatic refund via <strong>Saga pattern</strong> (compensating transaction)</li>
+      <li><strong>Carrier returns label but our DB write fails</strong> → reconciliation job catches orphan labels nightly</li>
+      <li><strong>Seller tries to void an already-used label</strong> → state-machine check rejects</li>
+      <li><strong>Carrier silently bills us but no label returned</strong> → idempotent retry + reconciliation</li>
+      <li><strong>PDF rendering is slow</strong> → timeout, return 202, allow polling</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MOCK 3 -->
+  <div class="section-title" style="margin-bottom: 6px;">📡 Mock 3 — Tracking Event Ingestion <span class="priority low">Day 2</span></div>
+  <p class="section-desc">Different shape than Mocks 1–2: this is <strong>high-volume data flow at scale</strong>, not abstraction. The highest-volume, most real-time-visible system on the Shipping team. Showing you can reason about it well = strong Staff signal.</p>
+
+  <div class="q-item" style="margin-bottom: 14px; background: #fff8e7; border-left-color: var(--ebay-yellow);">
+    <div class="q-label">📋 The Prompt</div>
+    <div class="q-text">"Carriers send us tracking events via webhook — package picked up, in transit, out for delivery, delivered, etc. We get hundreds of millions of events per day across all carriers. Design the ingestion pipeline. Users see live tracking on the buyer-facing page."</div>
+  </div>
+
+  <div class="cards" style="margin-bottom: 20px;">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⚡</span><span class="card-title">Key Insights</span></div>
+      <ul>
+        <li><strong>Webhook receiver must be tiny + fast:</strong> ack in &lt;50ms or carriers retry-storm us</li>
+        <li><strong>Events are out of order</strong> (carrier infra is messy) — store by event_ts, not arrival time</li>
+        <li><strong>Latest status</strong> uses max(event_ts), not most-recently-received</li>
+        <li><strong>Dedup by hash:</strong> (carrier, tracking_number, event_type, event_ts)</li>
+        <li><strong>Two read paths:</strong> latest status (Redis cache) + full history (time-series DB)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title">Pipeline Architecture</span></div>
+      <ul>
+        <li><strong>Ingress:</strong> tiny webhook receiver, validate signature, push to Kafka, ack carrier</li>
+        <li><strong>Kafka:</strong> partition by tracking_number for ordering within a shipment</li>
+        <li><strong>Consumer:</strong> dedup → write to event store (Cassandra, partitioned by tracking_number)</li>
+        <li><strong>Status cache:</strong> Redis <code>tracking:{number} → latest_status</code> with TTL</li>
+        <li><strong>Buyer page</strong> reads from Redis with Cassandra fallback</li>
+        <li><strong>Cold storage:</strong> archive to S3 after 1 year for compliance</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>⚠️ Scale Concerns at 100M+ events/day</h3>
+    <ul>
+      <li><strong>Hot tracking numbers</strong> (viral package?) → Redis hot key, use replicas or local cache</li>
+      <li><strong>Carrier signature verification:</strong> per-carrier secret rotation strategy</li>
+      <li><strong>Kafka consumer lag:</strong> alert if &gt;30s lag — buyer pages will show stale data</li>
+      <li><strong>Cassandra write hotspot:</strong> partition key choice matters; tracking_number works because writes are spread</li>
+      <li><strong>Event replay capability:</strong> if downstream service is down 1hr, can we replay from Kafka? Yes (retain 7 days)</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MOCK 4 -->
+  <div class="section-title" style="margin-bottom: 6px;">💰 Mock 4 — Shipping Rate Engine <span class="priority low">Optional</span></div>
+  <p class="section-desc">Only do this one if Mocks 1–3 went well and you have energy. Tests caching strategy + multi-objective optimization. Themes overlap heavily with Mock 1 so it's lower marginal value.</p>
+
+  <div class="q-item" style="margin-bottom: 14px; background: #fff8e7; border-left-color: var(--ebay-yellow);">
+    <div class="q-label">📋 The Prompt</div>
+    <div class="q-text">"Given a package's dimensions, weight, origin, destination, and an SLA (e.g., 'arrives by Friday'), return the cheapest viable carrier + service. The seller picks one. We process 50K such requests/sec at peak. Design it."</div>
+  </div>
+
+  <div class="cards" style="margin-bottom: 20px;">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">What Makes This Hard</span></div>
+      <ul>
+        <li><strong>50K QPS is high</strong> — every read can't hit carrier APIs</li>
+        <li><strong>Rate cards change daily</strong> — cache invalidation matters</li>
+        <li><strong>Multi-objective:</strong> cheapest? Fastest? Most reliable? Weighted score</li>
+        <li><strong>Dimensional weight</strong> rules vary by carrier (girth + length formulas)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏗️</span><span class="card-title">Architectural Moves</span></div>
+      <ul>
+        <li><strong>Rate cards ingested daily</strong> from carriers, stored in normalized DB</li>
+        <li><strong>Hot rate cache</strong> in Redis bucketed by (zip3, zip3, weight_bucket)</li>
+        <li><strong>Scoring service</strong> applies seller preferences + SLA constraints</li>
+        <li><strong>Negative cache</strong> for "no carrier serves this lane" to avoid recomputation</li>
+        <li><strong>Async pre-warming</strong> for popular zip pairs at off-peak</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TRADEOFF CHEAT SHEET -->
+  <div class="section-title" style="margin-bottom: 12px;">📊 Tradeoff Catalog — Memorize These</div>
+  <p class="section-desc">These are the recurring "voice your tradeoffs" moments. Be able to deliver each in 2 sentences without thinking.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🗄️</span><span class="card-title">SQL vs NoSQL (Shipments)</span></div>
+      <p><strong>SQL (Postgres):</strong> transactional integrity for shipment state + payment. <strong>NoSQL (Cassandra):</strong> tracking events at massive write scale. eBay uses both — choose by access pattern, not by trend.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🔄</span><span class="card-title">Sync vs Async Label Gen</span></div>
+      <p><strong>Sync:</strong> simpler UX, but ties up threads. <strong>Async:</strong> better resource use, harder for clients. At our scale, async with 202 + poll/webhook wins.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📨</span><span class="card-title">Push vs Pull Tracking</span></div>
+      <p><strong>Carrier-push webhooks:</strong> fresh, but messy infra + retries. <strong>We-pull:</strong> deterministic but stale + wasteful. Hybrid: push as primary, pull as reconciliation.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📬</span><span class="card-title">Kafka vs SQS vs DB-as-Queue</span></div>
+      <p><strong>Kafka:</strong> high-volume, replayable, ordering. <strong>SQS:</strong> simpler ops, no replay. <strong>DB-as-queue:</strong> only for low-volume. Tracking = Kafka, internal jobs = SQS.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🔑</span><span class="card-title">Idempotency: Client-Key vs Server-Dedup</span></div>
+      <p><strong>Client-key:</strong> simpler server, requires client discipline. <strong>Server-dedup:</strong> hash payload, robust against bad clients. For money flows: always client-key.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">⏱️</span><span class="card-title">Cache: TTL vs Event-Invalidation</span></div>
+      <p><strong>TTL:</strong> simple, accepts staleness. <strong>Event-invalidation:</strong> fresh but fragile to dropped events. Rate cards: TTL is fine (1hr stale is OK). User-facing state: event-invalidation.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- WHAT SEPARATES STAFF -->
+  <div class="section-title" style="margin-bottom: 12px;">🎯 What Separates Staff From Senior in This Round</div>
+  <p class="section-desc">In order of impact. These five behaviors are what the interviewer is actually scoring.</p>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">1. Set Scope, Don't Accept It</div>
+      <div class="q-text">Ask 3–4 clarifying questions <strong>before drawing anything</strong>. Staff candidates set scope. Senior candidates accept the prompt as given.</div>
+      <div class="q-tip">💡 "What's the scale? US-only or global? Do we own carrier integration or call out to a 3rd party? Real-time or eventual consistency on tracking?"</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">2. Voice Tradeoffs Continuously</div>
+      <div class="q-text">Not "I'll use Kafka." Instead: "Kafka here because tracking is high-volume and we need replayability. Tradeoff is operational complexity — at our scale Kafka wins, but I'd revisit if volume were 10x lower."</div>
+      <div class="q-tip">💡 Every architectural choice should come with the alternative you considered and rejected.</div>
+    </div>
+    <div class="q-item green">
+      <div class="q-label">3. Sketch Real Java, Not Pseudocode</div>
+      <div class="q-text">Type signatures with generics, checked exceptions, Spring annotations. This is your "I write production Java" signal — interviewers will notice instantly.</div>
+      <div class="q-tip">💡 <code>public interface Carrier { List&lt;RateQuote&gt; quoteRates(ShipmentRequest req); }</code> — not <code>function quoteRates(req)</code>.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">4. Bring Up Failure Modes Unprompted</div>
+      <div class="q-text">"What happens if the FedEx API is down for 30 minutes? What if a label generation times out — does the seller get charged?" Thinking about the 1% bad case is a Staff signal.</div>
+      <div class="q-tip">💡 Top 3 failure modes to always cover: network failure, partial state (write A succeeded, write B failed), hot-key (one user dominates traffic).</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">5. Talk About Observability</div>
+      <div class="q-text">Most candidates skip this entirely. Even one sentence — "I'd emit a latency metric per carrier API call, tagged by carrier, and alert on p99 breach" — instantly elevates you.</div>
+      <div class="q-tip">💡 Quick formula: metrics (latency, error rate, throughput per dimension) + logs (structured, correlation IDs) + traces (across services) + alerts (on SLOs, not symptoms).</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- DAY OF CHECKLIST -->
+  <div class="section-title" style="margin-bottom: 12px;">✅ Day-Of Checklist</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">💻</span><span class="card-title">Tech Setup (10 min before)</span></div>
+      <ul>
+        <li>Chrome (latest), Zoom updated, logged into CodeSignal 10 min early</li>
+        <li>Test mic, camera, screenshare in the actual room</li>
+        <li>Bookmark interview link: <code>app.codesignal.com/live-interview/...</code></li>
+        <li>Laptop plugged in, phone on silent</li>
+        <li>Close Slack, email, all notifications</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📋</span><span class="card-title">Materials Ready</span></div>
+      <ul>
+        <li>eBay JD open in a tab</li>
+        <li>Resume open — they may reference projects</li>
+        <li>Water + scratch paper + pen</li>
+        <li>5 questions to ask, written down (from System Design tab)</li>
+        <li>Your tradeoff cheat sheet (one-pager)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🧠</span><span class="card-title">Mindset</span></div>
+      <ul>
+        <li>If interviewer says "let's dive in" — politely take 30 sec to ask clarifying Qs first</li>
+        <li>Think out loud throughout — silence = anxious interviewer</li>
+        <li>If stuck, narrate: "Let me think about this for a second" beats silence</li>
+        <li>Wrong but with reasoning &gt; silent but right</li>
+        <li>Last 5 min: ask your questions — don't skip</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const names = ['overview','leveling','behavioral','coding','design','aicoding'];
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + name);
+    });
+  }
+</script>
+</body>
+</html>

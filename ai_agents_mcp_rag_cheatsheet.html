@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI / Agents / MCP / RAG — Interview Cheat Sheet</title>
+<style>
+  :root {
+    --blue: #0078d4;
+    --blue-dark: #005a9e;
+    --blue-light: #e6f2fb;
+    --purple: #5c2d91;
+    --purple-light: #f0e8f7;
+    --green: #107c10;
+    --green-light: #e6f4e6;
+    --orange: #d83b01;
+    --orange-light: #fdecea;
+    --yellow: #f7b500;
+    --yellow-light: #fff8e1;
+    --red: #d13438;
+    --red-light: #fdecea;
+    --teal: #008272;
+    --teal-light: #e0f2f0;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #f4f6f9; color: var(--text); line-height: 1.5; }
+
+  .header {
+    background: linear-gradient(135deg, #003a70 0%, #0078d4 55%, #5c2d91 100%);
+    color: white; padding: 28px 32px 22px;
+  }
+  .header h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+  .header p { font-size: 0.88rem; opacity: 0.92; }
+
+  /* Sticky nav */
+  .nav { position: sticky; top: 0; background: white; box-shadow: var(--shadow); padding: 10px 32px; z-index: 100; display: flex; gap: 6px; flex-wrap: wrap; overflow-x: auto; }
+  .nav a { padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; text-decoration: none; color: var(--muted); white-space: nowrap; transition: all 0.15s; border: 1px solid var(--border); }
+  .nav a:hover { background: var(--blue-light); color: var(--blue); border-color: var(--blue); }
+
+  .container { max-width: 1200px; margin: 20px auto; padding: 0 20px 40px; }
+
+  .section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 18px; padding: 20px 24px; }
+  .section h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .section-sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+
+  /* Term cards */
+  .terms { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .term { background: var(--gray); border-left: 3px solid var(--blue); border-radius: 6px; padding: 10px 12px; }
+  .term-name { font-size: 0.85rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 3px; }
+  .term-def { font-size: 0.78rem; color: #374151; line-height: 1.4; }
+  .term-use { font-size: 0.72rem; color: var(--muted); font-style: italic; margin-top: 4px; }
+
+  /* Color variants per section */
+  .section.rag h2 { color: var(--green); }
+  .section.rag .term { border-left-color: var(--green); }
+  .section.rag .term-name { color: var(--green); }
+
+  .section.mcp h2 { color: var(--purple); }
+  .section.mcp .term { border-left-color: var(--purple); }
+  .section.mcp .term-name { color: var(--purple); }
+
+  .section.agent h2 { color: var(--orange); }
+  .section.agent .term { border-left-color: var(--orange); }
+  .section.agent .term-name { color: var(--orange); }
+
+  .section.concurrency h2 { color: var(--teal); }
+  .section.concurrency .term { border-left-color: var(--teal); }
+  .section.concurrency .term-name { color: var(--teal); }
+
+  .section.safety h2 { color: var(--red); }
+  .section.safety .term { border-left-color: var(--red); }
+  .section.safety .term-name { color: var(--red); }
+
+  .section.eval h2 { color: var(--yellow); }
+  .section.eval .term { border-left-color: var(--yellow); }
+  .section.eval .term-name { color: #8a6500; }
+
+  /* Comparison box */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  .compare-card { padding: 12px; border-radius: 6px; }
+  .compare-card.left { background: var(--blue-light); border: 1px solid #b3d4ec; }
+  .compare-card.right { background: var(--purple-light); border: 1px solid #d4c2eb; }
+  .compare-card h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+  .compare-card.left h4 { color: var(--blue-dark); }
+  .compare-card.right h4 { color: var(--purple); }
+  .compare-card p { font-size: 0.78rem; color: #374151; line-height: 1.45; }
+
+  /* Power phrases */
+  .phrases { background: linear-gradient(135deg, #fff7e0 0%, #fef3c7 100%); border: 1px solid #f3d27a; border-radius: 8px; padding: 14px 16px; }
+  .phrase { font-size: 0.82rem; color: #5b4500; line-height: 1.55; margin-bottom: 6px; padding-left: 18px; position: relative; }
+  .phrase::before { content: '💬'; position: absolute; left: 0; font-size: 0.85rem; }
+
+  @media (max-width: 680px) {
+    .terms { grid-template-columns: 1fr; }
+    .compare { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤖 AI / Agents / MCP / RAG — Interview Cheat Sheet</h1>
+  <p>Terminology you need to use confidently in AI Senior Engineer interviews. Drop these naturally — don't recite.</p>
+</div>
+
+<div class="nav">
+  <a href="#core">🧠 Core LLM</a>
+  <a href="#rag">📚 RAG</a>
+  <a href="#mcp">🔌 MCP</a>
+  <a href="#agent">🎯 Agent Loop</a>
+  <a href="#concurrency">⚙️ Concurrency</a>
+  <a href="#safety">🛡️ Safety</a>
+  <a href="#eval">📊 Eval</a>
+  <a href="#ms">🪟 Microsoft</a>
+  <a href="#phrases">💬 Phrases</a>
+</div>
+
+<div class="container">
+
+<!-- CORE LLM -->
+<div class="section" id="core">
+  <h2>🧠 Core LLM Concepts</h2>
+  <p class="section-sub">The fundamentals — assume the interviewer knows these and uses them as shorthand.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">Token</div><div class="term-def">Unit LLMs consume/bill on. ~4 chars or 0.75 words in English.</div></div>
+    <div class="term"><div class="term-name">Context Window</div><div class="term-def">Max tokens (input + output) the model can handle in one call.</div></div>
+    <div class="term"><div class="term-name">Input vs Output Tokens</div><div class="term-def">Billed at different rates. Output is usually 3–5x more expensive.</div></div>
+    <div class="term"><div class="term-name">Prompt / Completion</div><div class="term-def">Input you send / output the model returns.</div></div>
+    <div class="term"><div class="term-name">System Prompt</div><div class="term-def">Persistent instructions setting model behavior/role.</div></div>
+    <div class="term"><div class="term-name">Streaming (SSE)</div><div class="term-def">Receiving tokens as generated via Server-Sent Events. Lower TTFT.</div></div>
+    <div class="term"><div class="term-name">TTFT</div><div class="term-def">Time To First Token. Latency to start streaming.</div></div>
+    <div class="term"><div class="term-name">TPS</div><div class="term-def">Tokens Per Second. Throughput while streaming.</div></div>
+    <div class="term"><div class="term-name">Temperature</div><div class="term-def">Randomness control. 0 = deterministic, 1 = creative.</div></div>
+    <div class="term"><div class="term-name">Top-p / Top-k</div><div class="term-def">Sampling strategies that constrain token selection.</div></div>
+    <div class="term"><div class="term-name">Hallucination</div><div class="term-def">Plausible but false generated content. The #1 production problem.</div></div>
+    <div class="term"><div class="term-name">Fine-tuning</div><div class="term-def">Continued training on domain data to adapt a base model.</div></div>
+    <div class="term"><div class="term-name">LoRA / QLoRA</div><div class="term-def">Parameter-efficient fine-tuning — cheap, fast adaptation.</div></div>
+    <div class="term"><div class="term-name">Prompt Engineering</div><div class="term-def">Crafting prompts to get reliable outputs without fine-tuning.</div></div>
+    <div class="term"><div class="term-name">Few-shot / Zero-shot</div><div class="term-def">Few examples in prompt vs. none. Affects accuracy.</div></div>
+    <div class="term"><div class="term-name">Chain of Thought (CoT)</div><div class="term-def">Prompting the model to reason step-by-step.</div></div>
+  </div>
+</div>
+
+<!-- RAG -->
+<div class="section rag" id="rag">
+  <h2>📚 RAG — Retrieval-Augmented Generation</h2>
+  <p class="section-sub">The pattern for grounding LLMs in your own data. Know both ingestion and query flow.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">RAG</div><div class="term-def">Pattern: retrieve relevant docs → augment prompt → generate answer.</div></div>
+    <div class="term"><div class="term-name">Embedding</div><div class="term-def">Vector representation of text. Captures semantic meaning.</div></div>
+    <div class="term"><div class="term-name">Embedding Model</div><div class="term-def">e.g., text-embedding-3, Cohere Embed v3. Outputs the vector.</div></div>
+    <div class="term"><div class="term-name">Dense vs Sparse</div><div class="term-def">Dense = neural embeddings (semantic). Sparse = BM25 (keyword).</div></div>
+    <div class="term"><div class="term-name">Vector Store / DB</div><div class="term-def">Pinecone, Weaviate, Azure AI Search, pgvector. Stores embeddings + text.</div></div>
+    <div class="term"><div class="term-name">ANN Search</div><div class="term-def">Approximate Nearest Neighbor. Fast similarity search at scale.</div></div>
+    <div class="term"><div class="term-name">HNSW</div><div class="term-def">Hierarchical Navigable Small World — common ANN index algorithm.</div></div>
+    <div class="term"><div class="term-name">Cosine Similarity</div><div class="term-def">Distance metric for embeddings. Most common.</div></div>
+    <div class="term"><div class="term-name">Top-k Retrieval</div><div class="term-def">Returning k most similar chunks. Typical k = 3–10.</div></div>
+    <div class="term"><div class="term-name">Chunking</div><div class="term-def">Splitting docs into pieces. Typical: 512 tokens with 20% overlap.</div></div>
+    <div class="term"><div class="term-name">Chunk Overlap</div><div class="term-def">Shared content between adjacent chunks to preserve context.</div></div>
+    <div class="term"><div class="term-name">Hybrid Retrieval</div><div class="term-def">BM25 + vector search combined. Best for production.</div></div>
+    <div class="term"><div class="term-name">Reranker / Cross-Encoder</div><div class="term-def">Second pass that reorders top-k for relevance. Expensive but improves quality.</div></div>
+    <div class="term"><div class="term-name">Query Rewriting</div><div class="term-def">Reformulate user query for better retrieval (expand, decompose).</div></div>
+    <div class="term"><div class="term-name">Grounding</div><div class="term-def">Anchoring generation in retrieved facts. Reduces hallucination.</div></div>
+    <div class="term"><div class="term-name">Citation / Attribution</div><div class="term-def">Linking generated text back to source chunks.</div></div>
+    <div class="term"><div class="term-name">Semantic Cache</div><div class="term-def">Cache responses by embedding similarity, not exact match.</div></div>
+    <div class="term"><div class="term-name">Prompt Caching</div><div class="term-def">Provider-side cache of repeated prefixes. Huge cost savings.</div></div>
+  </div>
+</div>
+
+<!-- MCP -->
+<div class="section mcp" id="mcp">
+  <h2>🔌 MCP — Model Context Protocol</h2>
+  <p class="section-sub">Anthropic's open protocol for connecting LLMs to tools/data. Microsoft has adopted it.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">MCP Server</div><div class="term-def">Backend that exposes tools/resources via standardized protocol.</div></div>
+    <div class="term"><div class="term-name">MCP Client</div><div class="term-def">The agent/LLM app that connects to MCP servers.</div></div>
+    <div class="term"><div class="term-name">Tool</div><div class="term-def">A function the server exposes. e.g., read_file, send_email.</div></div>
+    <div class="term"><div class="term-name">Tool Schema</div><div class="term-def">JSON schema defining tool inputs AND outputs. LLM uses this to call correctly.</div></div>
+    <div class="term"><div class="term-name">Resource</div><div class="term-def">Data the server manages (docs, files, DB records).</div></div>
+    <div class="term"><div class="term-name">Server Discovery</div><div class="term-def">How agents find and connect to available MCP servers.</div></div>
+    <div class="term"><div class="term-name">Tool Discovery</div><div class="term-def">How agent learns what tools each connected server offers.</div></div>
+    <div class="term"><div class="term-name">Transport</div><div class="term-def">How client/server communicate. Usually stdio or HTTP/SSE.</div></div>
+  </div>
+
+  <div class="compare">
+    <div class="compare-card left">
+      <h4>🔧 Plain API Integration</h4>
+      <p>You hardcode each tool's auth, error handling, schema. LLM needs custom prompts per tool. Doesn't scale to many tools.</p>
+    </div>
+    <div class="compare-card right">
+      <h4>⚡ MCP</h4>
+      <p>Standardized protocol. LLM autonomously discovers tools + schemas. One client works with many servers. Built for agent ecosystems.</p>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT LOOP -->
+<div class="section agent" id="agent">
+  <h2>🎯 Agent Loop &amp; Orchestration</h2>
+  <p class="section-sub">How agents actually work. The mechanics behind "the LLM does it."</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">Agent Loop</div><div class="term-def">Cycle: observe → think → act → observe. Until done or max steps.</div></div>
+    <div class="term"><div class="term-name">ReAct</div><div class="term-def">Reasoning + Acting. Foundational pattern: thought → action → observation.</div></div>
+    <div class="term"><div class="term-name">Orchestrator</div><div class="term-def">Component managing the agent's execution cycle, retries, termination.</div></div>
+    <div class="term"><div class="term-name">Planner-Executor</div><div class="term-def">Pattern: one LLM plans steps, another executes them.</div></div>
+    <div class="term"><div class="term-name">Multi-Agent System</div><div class="term-def">Multiple specialized agents collaborating on a task.</div></div>
+    <div class="term"><div class="term-name">Tool Call / Function Calling</div><div class="term-def">LLM emits structured request to invoke an external function.</div></div>
+    <div class="term"><div class="term-name">Structured Output</div><div class="term-def">Forcing LLM to return validated JSON matching a schema.</div></div>
+    <div class="term"><div class="term-name">Step / Turn / Iteration</div><div class="term-def">One cycle of the agent loop.</div></div>
+    <div class="term"><div class="term-name">Max-Step Limit</div><div class="term-def">Guard against infinite loops. Hard cap on iterations.</div></div>
+    <div class="term"><div class="term-name">Termination Condition</div><div class="term-def">When agent stops: goal met, max steps, error, user cancel.</div></div>
+    <div class="term"><div class="term-name">Short-term Memory</div><div class="term-def">Current session/conversation context. Lives in Redis or in-memory.</div></div>
+    <div class="term"><div class="term-name">Long-term Memory</div><div class="term-def">Persisted across sessions. Usually via vector store.</div></div>
+    <div class="term"><div class="term-name">Trajectory</div><div class="term-def">Full sequence of an agent's steps for one task.</div></div>
+    <div class="term"><div class="term-name">Tool Gateway</div><div class="term-def">Safe execution layer between LLM intent and real-world action.</div></div>
+    <div class="term"><div class="term-name">Graph-based Planning</div><div class="term-def">State machine/graph for complex non-linear flows (LangGraph style).</div></div>
+  </div>
+</div>
+
+<!-- CONCURRENCY -->
+<div class="section concurrency" id="concurrency">
+  <h2>⚙️ Concurrency, Rate Limiting &amp; Retries</h2>
+  <p class="section-sub">For the "batch async LLM calls" type questions. These signal production maturity.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">Semaphore</div><div class="term-def">Caps concurrent in-flight requests. The mechanism for bounded concurrency.</div></div>
+    <div class="term"><div class="term-name">Bounded Concurrency</div><div class="term-def">Concept of limiting parallel calls. Semaphore is how you implement it.</div></div>
+    <div class="term"><div class="term-name">Fan-out / Fan-in</div><div class="term-def">Launch many parallel calls / collect their results.</div></div>
+    <div class="term"><div class="term-name">Backpressure</div><div class="term-def">Slowing down upstream when downstream can't keep up.</div></div>
+    <div class="term"><div class="term-name">Token Bucket</div><div class="term-def">Rate-limit algorithm. Refills steadily, allows controlled bursts.</div></div>
+    <div class="term"><div class="term-name">RPM / TPM</div><div class="term-def">Requests/Tokens Per Minute. LLM providers limit both. TPM usually binds first.</div></div>
+    <div class="term"><div class="term-name">Quota</div><div class="term-def">Aggregate usage limit (vs. rate limit = instantaneous).</div></div>
+    <div class="term"><div class="term-name">Exponential Backoff</div><div class="term-def">Retry waits: 1s, 2s, 4s, 8s. Doubles each time.</div></div>
+    <div class="term"><div class="term-name">Jitter</div><div class="term-def">Randomization in backoff. Prevents thundering herd. "Full jitter" is the named pattern.</div></div>
+    <div class="term"><div class="term-name">Thundering Herd</div><div class="term-def">Many clients retrying simultaneously. Backoff + jitter prevents it.</div></div>
+    <div class="term"><div class="term-name">Retry Budget</div><div class="term-def">Cap on total retries to prevent retry storms making things worse.</div></div>
+    <div class="term"><div class="term-name">Circuit Breaker</div><div class="term-def">After N failures, stop calling for cooldown. States: closed/open/half-open.</div></div>
+    <div class="term"><div class="term-name">Idempotency</div><div class="term-def">Same request retried = same result. Required for safe retries.</div></div>
+    <div class="term"><div class="term-name">Idempotency Key</div><div class="term-def">Unique ID per logical request. Server deduplicates retries.</div></div>
+    <div class="term"><div class="term-name">Transient vs Permanent</div><div class="term-def">Retry transient (429, 5xx, timeout). Don't retry permanent (400, 401).</div></div>
+    <div class="term"><div class="term-name">Retry-After Header</div><div class="term-def">Server tells you exactly how long to wait. Always respect it.</div></div>
+    <div class="term"><div class="term-name">Dead Letter Queue</div><div class="term-def">Where permanently failed items go for inspection.</div></div>
+    <div class="term"><div class="term-name">Bulkhead Pattern</div><div class="term-def">Isolate resources so one slow tenant doesn't starve others.</div></div>
+  </div>
+</div>
+
+<!-- SAFETY -->
+<div class="section safety" id="safety">
+  <h2>🛡️ Safety, Guardrails &amp; Cost</h2>
+  <p class="section-sub">Senior-level concerns. Showing you think about these = production maturity signal.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">Guardrails</div><div class="term-def">Safety constraints. STRUCTURAL — enforced by code, not prompts.</div></div>
+    <div class="term"><div class="term-name">Policy Engine</div><div class="term-def">Component deciding what actions are allowed. Sits between LLM and tools.</div></div>
+    <div class="term"><div class="term-name">Human-in-the-Loop (HITL)</div><div class="term-def">Approval gate for irreversible/risky actions.</div></div>
+    <div class="term"><div class="term-name">Sandboxing</div><div class="term-def">Running risky tools in isolated envs (Docker, Firecracker microVMs).</div></div>
+    <div class="term"><div class="term-name">Blast Radius</div><div class="term-def">How much damage a misbehaving action can cause. Minimize it.</div></div>
+    <div class="term"><div class="term-name">Prompt Injection</div><div class="term-def">Malicious input that hijacks the LLM's instructions.</div></div>
+    <div class="term"><div class="term-name">Action Classification</div><div class="term-def">Read = auto-allow. Write = need confirmation. Delete = always HITL.</div></div>
+    <div class="term"><div class="term-name">Token Budget</div><div class="term-def">Per-request/user cap on token spend. Prevents runaway cost.</div></div>
+    <div class="term"><div class="term-name">Model Routing / Cascading</div><div class="term-def">Simple queries → small model. Hard → large model. Saves cost.</div></div>
+    <div class="term"><div class="term-name">Cost per Request / Task</div><div class="term-def">The metric that matters at scale.</div></div>
+    <div class="term"><div class="term-name">Schema Validation</div><div class="term-def">Validate LLM-emitted tool args against schema before executing.</div></div>
+  </div>
+</div>
+
+<!-- EVAL -->
+<div class="section eval" id="eval">
+  <h2>📊 Evaluation &amp; Observability</h2>
+  <p class="section-sub">The hardest unsolved problem in agent engineering. Showing you care = strong senior signal.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">Eval / Evals</div><div class="term-def">Offline test suites for agent quality.</div></div>
+    <div class="term"><div class="term-name">LLM-as-Judge</div><div class="term-def">Using a model to grade another model's output.</div></div>
+    <div class="term"><div class="term-name">Golden Set</div><div class="term-def">Curated input/expected-output pairs for regression testing.</div></div>
+    <div class="term"><div class="term-name">Groundedness / Faithfulness</div><div class="term-def">Does the answer match the retrieved facts?</div></div>
+    <div class="term"><div class="term-name">Recall@k</div><div class="term-def">Did the right doc appear in top-k retrieved? Key RAG metric.</div></div>
+    <div class="term"><div class="term-name">Precision@k</div><div class="term-def">How many of top-k results are relevant.</div></div>
+    <div class="term"><div class="term-name">Trace / Tracing</div><div class="term-def">OpenTelemetry-style recording of each agent step for debugging.</div></div>
+    <div class="term"><div class="term-name">Replay</div><div class="term-def">Re-run a stored trajectory to debug or test.</div></div>
+    <div class="term"><div class="term-name">A/B Test</div><div class="term-def">Run two prompt/model variants on real traffic to compare quality.</div></div>
+    <div class="term"><div class="term-name">Drift</div><div class="term-def">Quality degrading over time as inputs/models change.</div></div>
+    <div class="term"><div class="term-name">Regression Test</div><div class="term-def">Ensure new prompt/model version doesn't break old behavior.</div></div>
+  </div>
+</div>
+
+<!-- MICROSOFT -->
+<div class="section" id="ms">
+  <h2>🪟 Microsoft AI Ecosystem (Extra Credit)</h2>
+  <p class="section-sub">Name-drop these in your Microsoft interview. Shows you've researched the stack.</p>
+  <div class="terms">
+    <div class="term"><div class="term-name">Semantic Kernel</div><div class="term-def">Microsoft's open-source agent SDK. C# / Python. Plugin-based.</div></div>
+    <div class="term"><div class="term-name">AutoGen</div><div class="term-def">Microsoft Research's multi-agent framework. Conversation-driven.</div></div>
+    <div class="term"><div class="term-name">Azure AI Foundry</div><div class="term-def">Microsoft's full agent + model platform.</div></div>
+    <div class="term"><div class="term-name">Azure OpenAI Service</div><div class="term-def">Microsoft's hosted OpenAI deployment with enterprise SLAs.</div></div>
+    <div class="term"><div class="term-name">Azure AI Search</div><div class="term-def">Microsoft's hybrid retrieval service. Vector + BM25.</div></div>
+    <div class="term"><div class="term-name">Copilot Studio</div><div class="term-def">Low-code agent builder. Enterprise-focused.</div></div>
+    <div class="term"><div class="term-name">Prompt Flow</div><div class="term-def">Azure tool for building, testing, deploying LLM workflows.</div></div>
+    <div class="term"><div class="term-name">Responsible AI</div><div class="term-def">Microsoft's framework: fairness, reliability, safety, privacy, inclusion, transparency, accountability.</div></div>
+  </div>
+</div>
+
+<!-- POWER PHRASES -->
+<div class="section" id="phrases">
+  <h2>💬 Power Phrases — Drop These in Interviews</h2>
+  <p class="section-sub">Sentences that signal "I've built this in production." Use them naturally.</p>
+  <div class="phrases">
+    <div class="phrase"><strong>"Guardrails should be structural, not prompted"</strong> — the LLM doesn't enforce anything; the policy engine does.</div>
+    <div class="phrase"><strong>"The LLM is maybe 20% of a production agent system"</strong> — the rest is orchestration, tools, memory, observability.</div>
+    <div class="phrase"><strong>"TPM is usually the binding constraint, not RPM"</strong> — shows you've actually hit LLM rate limits.</div>
+    <div class="phrase"><strong>"Full jitter on exponential backoff to prevent thundering herd"</strong> — names a specific AWS-blog pattern, not just "backoff."</div>
+    <div class="phrase"><strong>"Idempotency keys make retries on partial batch failures safe"</strong> — connects two concepts correctly.</div>
+    <div class="phrase"><strong>"Hybrid retrieval — BM25 plus vector, then rerank with a cross-encoder"</strong> — the production RAG pattern.</div>
+    <div class="phrase"><strong>"Chunking strategy directly determines retrieval quality"</strong> — shows you've debugged RAG.</div>
+    <div class="phrase"><strong>"Embeddings are model-specific — swapping models means re-embedding the corpus"</strong> — operational awareness.</div>
+    <div class="phrase"><strong>"Cost-aware model routing — small models for simple queries, large for hard ones"</strong> — production economics.</div>
+    <div class="phrase"><strong>"Eval is the hardest unsolved problem in agent engineering"</strong> — honest take that resonates with senior engineers.</div>
+    <div class="phrase"><strong>"Action classification — reads auto-allowed, writes need HITL"</strong> — concrete safety design.</div>
+    <div class="phrase"><strong>"Tool gateway sits between the LLM's intent and real-world execution"</strong> — clean separation of concerns.</div>
+    <div class="phrase"><strong>"Trajectories are how you debug agents — like distributed traces for reasoning"</strong> — connects to known SRE concepts.</div>
+    <div class="phrase"><strong>"MCP standardizes what custom tool integrations used to require per-tool"</strong> — shows you get the protocol's value.</div>
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

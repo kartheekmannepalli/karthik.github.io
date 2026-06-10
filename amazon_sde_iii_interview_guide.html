@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon SDE III Interview Guide</title>
+<style>
+  :root {
+    --green: #e47911;          /* Amazon orange = primary accent */
+    --green-light: #fff4e6;
+    --green-mid: #f0962d;
+    --orange: #d35400;
+    --blue: #146eb4;           /* Amazon blue */
+    --blue-light: #e8f1fa;
+    --orange-light: #fef3ec;
+    --purple: #6d28d9;
+    --purple-light: #f3f0ff;
+    --purple-mid: #8b5cf6;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; color: var(--text); }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #131A22 0%, #232F3E 55%, #37475A 100%);
+    color: white; padding: 36px 40px 30px;
+  }
+  .header-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .paw { font-size: 2.2rem; }
+  .header h1 { font-size: 1.9rem; font-weight: 700; }
+  .header h1 span { color: var(--green); }
+  .header-sub { font-size: 0.95rem; opacity: 0.85; margin-bottom: 16px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.14); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  /* Company snapshot */
+  .snapshot { background: white; margin: 24px 32px 0; border-radius: var(--radius); padding: 22px 28px; box-shadow: var(--shadow); display: flex; gap: 32px; flex-wrap: wrap; }
+  .snap-item { display: flex; flex-direction: column; gap: 2px; }
+  .snap-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+  .snap-value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
+
+  /* Sources bar */
+  .sources-bar { margin: 16px 32px 0; background: white; border-radius: var(--radius); padding: 14px 22px; box-shadow: var(--shadow); }
+  .sources-bar h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .source-links { display: flex; gap: 10px; flex-wrap: wrap; }
+  .source-link { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 13px; font-size: 0.8rem; color: var(--blue); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+  .source-link:hover { background: var(--blue-light); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+  .dot-orange { background: var(--orange); }
+
+  /* Nav tabs */
+  .tabs { display: flex; gap: 0; margin: 22px 32px 0; background: white; border-radius: var(--radius) var(--radius) 0 0; box-shadow: var(--shadow); overflow: hidden; border-bottom: 2px solid var(--border); }
+  .tab { flex: 1; padding: 14px 10px; text-align: center; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.18s; }
+  .tab:hover { background: var(--gray); color: var(--text); }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); background: white; }
+  .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+
+  /* Content panels */
+  .panel { display: none; background: white; margin: 0 32px 32px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); padding: 28px; }
+  .panel.active { display: block; }
+
+  /* Section headings */
+  .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .section-desc { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+
+  /* Process flow */
+  .process { display: flex; gap: 0; margin-bottom: 28px; flex-wrap: wrap; }
+  .process-step { flex: 1; min-width: 140px; background: var(--green-light); border-radius: 10px; padding: 14px; text-align: center; position: relative; }
+  .process-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 50%; transform: translateY(-50%); color: var(--green); font-size: 1.2rem; font-weight: bold; }
+  .step-num { background: var(--green); color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; }
+  .step-title { font-size: 0.8rem; font-weight: 700; color: var(--orange); margin-bottom: 3px; }
+  .step-detail { font-size: 0.72rem; color: #7a5a3a; }
+
+  /* Cards grid */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-icon { font-size: 1.3rem; }
+  .card-title { font-size: 0.9rem; font-weight: 700; }
+  .card p, .card li { font-size: 0.85rem; line-height: 1.6; color: #374151; }
+  .card ul { padding-left: 16px; }
+  .card li { margin-bottom: 4px; }
+
+  /* Example questions */
+  .q-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .q-item { background: var(--gray); border-radius: 10px; padding: 14px 16px; border-left: 4px solid var(--green); }
+  .q-item.orange { border-left-color: var(--orange); }
+  .q-item.blue { border-left-color: var(--blue); }
+  .q-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 5px; }
+  .q-text { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .q-tip { font-size: 0.8rem; color: #4b5563; line-height: 1.5; }
+
+  /* STAR box */
+  .star-box { background: linear-gradient(135deg, #fff7ee, #fdeede); border: 1px solid #f5cfa0; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+  .star-box h3 { font-size: 0.92rem; font-weight: 700; color: var(--orange); margin-bottom: 12px; }
+  .star-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .star-cell { background: white; border-radius: 8px; padding: 10px 14px; }
+  .star-letter { font-size: 1.4rem; font-weight: 800; color: var(--green); line-height: 1; }
+  .star-word { font-size: 0.75rem; font-weight: 600; color: var(--green-mid); margin-bottom: 4px; }
+  .star-desc { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Tips */
+  .tips { background: var(--orange-light); border: 1px solid #f5c6a0; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .tips h3 { font-size: 0.85rem; font-weight: 700; color: var(--orange); margin-bottom: 10px; }
+  .tips ul { padding-left: 18px; }
+  .tips li { font-size: 0.83rem; color: #4b5563; line-height: 1.6; margin-bottom: 4px; }
+
+  .info-box { background: var(--blue-light); border: 1px solid #b3cde8; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+  .info-box h3 { font-size: 0.85rem; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .info-box p, .info-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .info-box ul { padding-left: 18px; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+
+  /* Priority badge */
+  .priority { display: inline-block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 20px; font-size: 0.72rem; font-weight: 700; padding: 2px 10px; margin-left: 8px; }
+  .priority.med { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+  .priority.low { background: var(--blue-light); color: var(--blue); border-color: #bfdbfe; }
+
+  .q-item.purple { border-left-color: var(--purple); }
+
+  /* LP grid */
+  .lp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .lp-card { border: 1px solid var(--border); border-left: 4px solid var(--green); border-radius: 8px; padding: 12px 14px; }
+  .lp-card h4 { font-size: 0.82rem; font-weight: 700; color: var(--orange); margin-bottom: 4px; }
+  .lp-card p { font-size: 0.78rem; color: #4b5563; line-height: 1.5; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.84rem; }
+  .compare-table th { padding: 12px 16px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em; }
+  .compare-table th:first-child { background: var(--gray); color: var(--muted); width: 26%; }
+  .compare-table th.senior-col { background: #e8f1fa; color: var(--blue); }
+  .compare-table th.staff-col { background: var(--purple-light); color: var(--purple); }
+  .compare-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .compare-table td:first-child { font-weight: 600; color: var(--muted); font-size: 0.8rem; background: var(--gray); }
+  .compare-table td.senior-cell { background: #f8faff; color: #1e3a5f; }
+  .compare-table td.staff-cell { background: #faf8ff; color: #3b1f7a; }
+  .compare-table tr:last-child td { border-bottom: none; }
+
+  /* Mindset cards */
+  .mindset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .mindset-card { border-radius: 10px; padding: 16px 18px; }
+  .mindset-card.senior { background: #e8f1fa; border: 1px solid #b3cde8; }
+  .mindset-card.staff { background: var(--purple-light); border: 1px solid #c4b5fd; }
+  .mindset-card h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
+  .mindset-card.senior h4 { color: var(--blue); }
+  .mindset-card.staff h4 { color: var(--purple); }
+  .mindset-card li { font-size: 0.82rem; color: #374151; line-height: 1.6; margin-bottom: 4px; }
+  .mindset-card ul { padding-left: 16px; }
+
+  .purple-box { background: var(--purple-light); border: 1px solid #c4b5fd; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; }
+  .purple-box h3 { font-size: 0.88rem; font-weight: 700; color: var(--purple); margin-bottom: 10px; }
+  .purple-box p, .purple-box li { font-size: 0.83rem; color: #374151; line-height: 1.6; }
+  .purple-box ul { padding-left: 18px; }
+  .purple-box li { margin-bottom: 5px; }
+
+  @media (max-width: 680px) {
+    .mindset-grid { grid-template-columns: 1fr; }
+    .compare-table { font-size: 0.76rem; }
+    .snapshot, .tabs, .panel, .sources-bar { margin-left: 12px; margin-right: 12px; }
+    .header { padding: 24px 18px 20px; }
+    .star-grid { grid-template-columns: 1fr; }
+    .process { flex-direction: column; gap: 8px; }
+    .process-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -14px; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="paw">📦</span>
+    <h1>Amazon <span>SDE III</span> Interview Guide</h1>
+  </div>
+  <p class="header-sub">Senior Software Engineer (SDE III / Sr. SDE) · Sourced from Amazon Jobs, Leadership Principles page, Glassdoor, Onsites.fyi, LeetCode &amp; Blind · Updated May 2026</p>
+  <div class="tags">
+    <span class="tag">🛒 E-commerce · ☁️ AWS · Devices · Ads</span>
+    <span class="tag">🏙️ HQ: Seattle, WA (Arlington, VA HQ2)</span>
+    <span class="tag">🎯 16 Leadership Principles</span>
+    <span class="tag">⏱️ Decision within 5 business days of loop</span>
+  </div>
+</div>
+
+<!-- Sources -->
+<div class="sources-bar">
+  <h3>📚 Reliable Sources Checked</h3>
+  <div class="source-links">
+    <a class="source-link" href="https://amazon.jobs/content/en/how-we-hire/sde-iii-interview-prep" target="_blank"><span class="dot dot-green"></span>Amazon Jobs — Official SDE III Prep</a>
+    <a class="source-link" href="https://www.amazon.jobs/content/en/our-workplace/leadership-principles" target="_blank"><span class="dot dot-green"></span>Amazon Leadership Principles</a>
+    <a class="source-link" href="https://www.glassdoor.com/Interview/Amazon-Senior-Software-Engineer-Interview-Questions-EI_IE6036.0,6_KO7,31.htm" target="_blank"><span class="dot dot-blue"></span>Glassdoor Interviews</a>
+    <a class="source-link" href="https://www.onsites.fyi/blog/article/amazon-sde-iii-software-engineer-interview-questions" target="_blank"><span class="dot dot-orange"></span>Onsites.fyi SDE III Guide</a>
+    <a class="source-link" href="https://leetcode.com/discuss/post/7150016/amazon-real-time-sde-interview-questions-4rz0/" target="_blank"><span class="dot dot-orange"></span>LeetCode Discuss</a>
+  </div>
+</div>
+
+<!-- Company snapshot -->
+<div class="snapshot">
+  <div class="snap-item"><span class="snap-label">What they do</span><span class="snap-value">E-commerce marketplace, AWS cloud, devices, advertising, logistics</span></div>
+  <div class="snap-item"><span class="snap-label">Tech Stack</span><span class="snap-value">Java, Python, AWS (DynamoDB, S3, EC2, Lambda, Kinesis), microservices</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Difficulty</span><span class="snap-value">Hard · structured multi-round loop</span></div>
+  <div class="snap-item"><span class="snap-label">Culture Focus</span><span class="snap-value">Customer obsession, ownership, high standards, data-driven</span></div>
+  <div class="snap-item"><span class="snap-label">Interview Style</span><span class="snap-value">LP-driven behavioral + live coding + system design + Bar Raiser</span></div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview')"><span class="tab-icon">🗺️</span>Process Overview</div>
+  <div class="tab" onclick="showTab('leveling')"><span class="tab-icon">📈</span>SDE II → SDE III</div>
+  <div class="tab" onclick="showTab('behavioral')"><span class="tab-icon">🎯</span>Leadership Principles <span class="priority">Core</span></div>
+  <div class="tab" onclick="showTab('coding')"><span class="tab-icon">💻</span>Coding</div>
+  <div class="tab" onclick="showTab('design')"><span class="tab-icon">🏗️</span>System Design</div>
+</div>
+
+<!-- OVERVIEW PANEL -->
+<div class="panel active" id="panel-overview">
+  <div class="section-title">🗺️ Full Interview Process at Amazon (SDE III)</div>
+  <p class="section-desc">Based on Amazon's own SDE III/Sr. SDE prep page plus dozens of Glassdoor, Onsites.fyi, LeetCode and Blind candidate reports. The defining feature of an Amazon loop is that <strong>every round blends technical signal with Leadership Principles</strong> — and a Bar Raiser sits in the loop with veto power.</p>
+
+  <div class="process">
+    <div class="process-step">
+      <div class="step-num">1</div>
+      <div class="step-title">Application / Recruiter Screen</div>
+      <div class="step-detail">Resume fit + a deep dive into leadership and impact experience.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">2</div>
+      <div class="step-title">Technical Phone Screen</div>
+      <div class="step-detail">60 min with a senior leader. ~½ Leadership Principles, ~½ coding + system design.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">3</div>
+      <div class="step-title">Screen Outcome</div>
+      <div class="step-detail">If successful, a recruiter arranges your interview loop.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">4</div>
+      <div class="step-title">Interview Loop (5 rounds)</div>
+      <div class="step-detail">Five 55-min interviews: coding, system design, behavioral — each scored on assigned LPs.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">5</div>
+      <div class="step-title">Bar Raiser</div>
+      <div class="step-detail">One trained interviewer (outside the team) safeguards the hiring bar.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-num">6</div>
+      <div class="step-title">Decision</div>
+      <div class="step-detail">Debrief + outcome typically within 5 business days.</div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📦</span><span class="card-title">About Amazon</span></div>
+      <p>Amazon is one of the world's largest technology companies, spanning the e-commerce marketplace, AWS (its highly profitable cloud arm), devices like Alexa and Kindle, a fast-growing advertising business, and global logistics. Engineering centers on massive scale, low latency, and reliability — Prime Day-style traffic spikes, multi-region availability, and tight cost control are everyday realities. SDE III engineers typically own cross-service or platform-level systems.</p>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🎯</span><span class="card-title">What an SDE III Does</span></div>
+      <ul>
+        <li>Plays a technical leadership role; the team turns to them for technical and business guidance</li>
+        <li>Builds multiple high-performance, stable, scalable systems</li>
+        <li>Holds a system-wide, architectural view of solutions</li>
+        <li>Writes exemplary, secure, maintainable, extensible code others can build on</li>
+        <li>Mentors SDE I/II engineers and sets team-wide best practices</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🛡️</span><span class="card-title">The Bar Raiser (Amazon-specific)</span></div>
+      <ul>
+        <li>A specially trained interviewer from <em>outside</em> the hiring team</li>
+        <li>Their job is to protect Amazon's long-term hiring bar, not to fill the seat</li>
+        <li>Has effective veto power in the debrief</li>
+        <li>Probes Leadership Principles hard and looks for consistent signal</li>
+        <li>Treat <em>every</em> interviewer as potentially the Bar Raiser — you won't be told who it is</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h3>📌 How decisions are made</h3>
+    <p>Each interviewer is assigned specific competencies and Leadership Principles to evaluate, writes up detailed notes independently, and then the panel debriefs together. <strong>Consistent, well-evidenced signal across interviewers carries the most weight</strong> — one strong round rarely offsets a weak or vague one. Amazon is explicitly data-driven, so quantified results in your stories matter.</p>
+  </div>
+</div>
+
+<!-- LEVELING PANEL -->
+<div class="panel" id="panel-leveling">
+  <div class="section-title">📈 SDE II → SDE III: What Changes</div>
+  <p class="section-desc">SDE III (L6) is not just a more productive SDE II. The jump is from <strong>owning a service well</strong> to <strong>shaping technical direction across services and influencing leaders</strong>. Understanding this reframes how you tell every story and approach every design.</p>
+
+  <div class="purple-box">
+    <h3>⚡ The Core Shift in One Sentence</h3>
+    <p><strong>SDE II:</strong> Delivers scalable components and owns a service end-to-end within the team.<br>
+    <strong>SDE III:</strong> Drives <em>cross-service / platform-level</em> architecture, aligns Directors and PMs, mentors senior engineers, and ties technical decisions to business outcomes (cost, revenue, reliability at org scale). You're judged on leverage and judgment, not just throughput.</p>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">📊 Role Expectations: Side-by-Side</div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th class="senior-col">🔵 SDE II (L5)</th>
+        <th class="staff-col">🟣 SDE III / Sr. SDE (L6 — Target)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Scope</td>
+        <td class="senior-cell">Single-service ownership within one team</td>
+        <td class="staff-cell">Cross-service / platform leadership across multiple teams</td>
+      </tr>
+      <tr>
+        <td>Design Complexity</td>
+        <td class="senior-cell">Scalable components and services</td>
+        <td class="staff-cell">Multi-region, fault-tolerant, disaster-recovery-grade systems</td>
+      </tr>
+      <tr>
+        <td>Stakeholders</td>
+        <td class="senior-cell">Team leads, peers, and PMs</td>
+        <td class="staff-cell">Directors, product VPs, and cross-org partners</td>
+      </tr>
+      <tr>
+        <td>Metrics That Matter</td>
+        <td class="senior-cell">Latency, error rates, feature delivery</td>
+        <td class="staff-cell">Business outcomes — revenue impact, cost reduction, org-wide reliability</td>
+      </tr>
+      <tr>
+        <td>Coding</td>
+        <td class="senior-cell">Core daily activity; deep in implementation</td>
+        <td class="staff-cell">Still hands-on, but more architecture, PoCs, reviews, and standards-setting</td>
+      </tr>
+      <tr>
+        <td>Leadership</td>
+        <td class="senior-cell">Mentors juniors within the team</td>
+        <td class="staff-cell">Defines org-wide engineering standards; grows senior engineers</td>
+      </tr>
+      <tr>
+        <td>Ambiguity</td>
+        <td class="senior-cell">Works within mostly-defined requirements</td>
+        <td class="staff-cell">Creates clarity from ambiguity; identifies the right problem to solve</td>
+      </tr>
+      <tr>
+        <td>Business Alignment</td>
+        <td class="senior-cell">Aware of goals; executes toward them</td>
+        <td class="staff-cell">Translates business strategy into technical roadmap; communicates trade-offs to non-technical leaders</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title" style="margin-bottom:14px;">🧠 Mindset Comparison</div>
+  <div class="mindset-grid">
+    <div class="mindset-card senior">
+      <h4>🔵 SDE II Thinking</h4>
+      <ul>
+        <li>"How do I build this service correctly and scalably?"</li>
+        <li>"How do I hit my latency and error-rate targets?"</li>
+        <li>"What's the best technical approach for this problem?"</li>
+        <li>"How do I mentor the juniors on my team?"</li>
+        <li>"I need to ship this feature on time with quality."</li>
+      </ul>
+    </div>
+    <div class="mindset-card staff">
+      <h4>🟣 SDE III Thinking</h4>
+      <ul>
+        <li>"Should we build this at all? Does it serve the multi-year roadmap?"</li>
+        <li>"How does one decision unblock several teams or cut cost org-wide?"</li>
+        <li>"What standard or mechanism stops this class of failure for good?"</li>
+        <li>"How do I grow an SDE II into a strong senior engineer?"</li>
+        <li>"What's the technical strategy that aligns with the P&amp;L?"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:14px;">🎯 What to Keep in Mind During Your SDE III Loop</div>
+
+  <div class="q-list">
+    <div class="q-item purple">
+      <div class="q-label">🔑 Lead with Impact, Then Implementation</div>
+      <div class="q-text">Open each story with the business or org-level outcome before the technical detail. Amazon expects quantified results ("cut infra cost by $2M/yr", "enabled $50M incremental revenue on Prime Day").</div>
+      <div class="q-tip">💡 A common SDE III mistake: diving straight into low-level technical detail. Zoom out to scope, stakeholders, and impact first — then go deep when asked (Dive Deep rewards both).</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">✖️ Show Yourself as a Multiplier</div>
+      <div class="q-text">For each story, answer: "How did this make other teams or engineers faster, safer, or more independent?" Mechanisms, runbooks, and standards count as much as the system you shipped.</div>
+      <div class="q-tip">💡 Maps directly to <em>Hire and Develop the Best</em> and <em>Insist on the Highest Standards</em>.</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">🌐 Demonstrate Cross-Org Influence</div>
+      <div class="q-text">Bring examples of aligning engineering with product, data science, and Director/VP-level stakeholders — without formal authority.</div>
+      <div class="q-tip">💡 Maps to <em>Earn Trust</em> and <em>Have Backbone; Disagree and Commit</em>. Show you challenged respectfully, then committed fully.</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">🗺️ Speak to Technical Strategy, Not Just Execution</div>
+      <div class="q-text">In design rounds, justify <em>why</em> an architecture matters for Amazon's multi-year scale and cost, and name the trade-offs at the org level (consistency vs availability, build vs buy).</div>
+      <div class="q-tip">💡 Maps to <em>Think Big</em> and <em>Invent and Simplify</em>. Think in years and multi-region, not single sprints.</div>
+    </div>
+    <div class="q-item purple">
+      <div class="q-label">🌫️ Prove You Can Navigate Ambiguity</div>
+      <div class="q-text">Have at least one story where there was no clear spec or owner, and you created structure and drove it to resolution across stakeholders.</div>
+      <div class="q-tip">💡 Maps to <em>Bias for Action</em> and <em>Ownership</em>. If your stories always begin with "we were given a clear requirement," they read as SDE II.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>📋 Preparation Checklist — SDE III Level</h3>
+    <ul>
+      <li><strong>Reframe your stories:</strong> Upgrade SDE II-level STAR stories — add the business-impact layer, cross-team influence, and org-level outcome.</li>
+      <li><strong>Prepare 4–6 flexible "defining project" stories</strong> that each flex across several Leadership Principles, rather than one thin story per principle.</li>
+      <li><strong>Know your "multiplier" moments:</strong> times you made other engineers or teams meaningfully faster, safer, or more independent.</li>
+      <li><strong>Be ready for "technical vision":</strong> how you'd shape the direction of a system or platform area.</li>
+      <li><strong>Don't hide behind "we":</strong> the panel probes for <em>your</em> specific decisions and leadership — own them clearly.</li>
+      <li><strong>Quantify everything:</strong> Amazon is data-driven; have real numbers (latency, RPS, cost, revenue, uptime) ready.</li>
+    </ul>
+  </div>
+
+  <div class="info-box">
+    <h3>📚 Recommended Reading</h3>
+    <p><em>Designing Data-Intensive Applications</em> (Martin Kleppmann) is the go-to for the distributed-systems depth expected at SDE III — especially the chapters on replication, partitioning, transactions, and consistency. For the leadership framing, <em>The Staff Engineer's Path</em> (Tanya Reilly) helps you articulate cross-org impact.</p>
+  </div>
+</div>
+
+<!-- BEHAVIORAL / LP PANEL -->
+<div class="panel" id="panel-behavioral">
+  <div class="section-title">🎯 Leadership Principles &amp; Behavioral <span class="priority">Core of Every Round</span></div>
+  <p class="section-desc">Amazon weaves its <strong>16 Leadership Principles (LPs)</strong> into <em>every</em> interview — not just one behavioral round. Each interviewer asks 2–3 behavioral questions tied to assigned LPs, on the premise that past behavior predicts future success. No brain teasers; they focus on the <em>what</em>, the <em>how</em>, and the <em>why</em> of your decisions, backed by data.</p>
+
+  <div class="star-box">
+    <h3>📐 Use the STAR Method — Amazon explicitly expects it</h3>
+    <div class="star-grid">
+      <div class="star-cell">
+        <div class="star-letter">S</div>
+        <div class="star-word">SITUATION</div>
+        <div class="star-desc">Set the scene briefly — context, scale, what was at stake.</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">T</div>
+        <div class="star-word">TASK</div>
+        <div class="star-desc">Your specific responsibility or the decision you owned.</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">A</div>
+        <div class="star-word">ACTION</div>
+        <div class="star-desc">What <em>YOU</em> did — the bulk of the answer. "I", not "we".</div>
+      </div>
+      <div class="star-cell">
+        <div class="star-letter">R</div>
+        <div class="star-word">RESULT</div>
+        <div class="star-desc">Quantified outcome + what you learned. Numbers always.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">🧭 The 16 Leadership Principles (paraphrased)</div>
+  <div class="lp-grid">
+    <div class="lp-card"><h4>Customer Obsession</h4><p>Start from the customer and work backwards; earn and keep their trust.</p></div>
+    <div class="lp-card"><h4>Ownership</h4><p>Think long-term, act for the whole company; never say "not my job."</p></div>
+    <div class="lp-card"><h4>Invent and Simplify</h4><p>Expect innovation; relentlessly find ways to simplify.</p></div>
+    <div class="lp-card"><h4>Are Right, A Lot</h4><p>Strong judgment; seek diverse views and disconfirm your own beliefs.</p></div>
+    <div class="lp-card"><h4>Learn and Be Curious</h4><p>Never done learning; explore new possibilities.</p></div>
+    <div class="lp-card"><h4>Hire and Develop the Best</h4><p>Raise the bar with each hire; coach and grow others.</p></div>
+    <div class="lp-card"><h4>Insist on the Highest Standards</h4><p>Relentlessly high bar; don't let defects pass down the line.</p></div>
+    <div class="lp-card"><h4>Think Big</h4><p>Create a bold direction; look around corners for customers.</p></div>
+    <div class="lp-card"><h4>Bias for Action</h4><p>Speed matters; many decisions are reversible — take calculated risks.</p></div>
+    <div class="lp-card"><h4>Frugality</h4><p>Do more with less; constraints breed resourcefulness.</p></div>
+    <div class="lp-card"><h4>Earn Trust</h4><p>Listen, speak candidly, be self-critical, treat others with respect.</p></div>
+    <div class="lp-card"><h4>Dive Deep</h4><p>Stay connected to details; audit often; question gaps between metrics and anecdotes.</p></div>
+    <div class="lp-card"><h4>Have Backbone; Disagree &amp; Commit</h4><p>Challenge respectfully, then commit fully once decided.</p></div>
+    <div class="lp-card"><h4>Deliver Results</h4><p>Focus on key inputs; deliver with quality, on time, despite setbacks.</p></div>
+    <div class="lp-card"><h4>Strive to be Earth's Best Employer</h4><p>Build a safer, higher-performing, more empowering workplace.</p></div>
+    <div class="lp-card"><h4>Success &amp; Scale Bring Broad Responsibility</h4><p>Be humble about impact; leave things better than you found them.</p></div>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (mapped to LPs — from Glassdoor, Onsites.fyi &amp; candidate reports)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🛒 Customer Obsession / Deliver Results</div>
+      <div class="q-text">Tell me about a time you made a decision that prioritized the customer even though it was harder or costlier for your team. What was the measurable outcome?</div>
+      <div class="q-tip">💡 Lead with the customer pain and the data; close with the quantified result and what changed long-term.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🤝 Have Backbone; Disagree and Commit</div>
+      <div class="q-text">Describe a time you disagreed with a senior leader or another team on a technical direction. How did you handle it, and what happened after the decision was made?</div>
+      <div class="q-tip">💡 Show respectful challenge backed by evidence, then full commitment once the call was made — not lingering resentment.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🔍 Dive Deep / Ownership</div>
+      <div class="q-text">Walk me through a critical production incident or outage you owned. How did you root-cause it, and what mechanism did you put in place so it stayed fixed?</div>
+      <div class="q-tip">💡 SDE III signal: not just the fix, but the systemic prevention (alarms, runbooks, design change) that raised the bar org-wide.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">💡 Think Big / Invent and Simplify</div>
+      <div class="q-text">Tell me about a long-term technical vision or migration you drove (e.g., replacing a legacy system). How did you align stakeholders and sequence the work?</div>
+      <div class="q-tip">💡 Multi-year framing wins here — e.g., a phased migration with measurable milestones and a clear simplification payoff.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🌱 Hire and Develop the Best / Earn Trust</div>
+      <div class="q-text">Tell me about a time you mentored an engineer or raised the team's bar. How did you measure that you actually made them (or the team) better?</div>
+      <div class="q-tip">💡 Quantify the multiplier: promotions, reduced review cycles, fewer incidents, onboarding time cut.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-title" style="margin-bottom:12px;">🎯 How to Prepare</div>
+
+  <div class="tips">
+    <h3>🔑 Amazon-Specific Preparation Tips</h3>
+    <ul>
+      <li><strong>Build a story bank mapped to LPs:</strong> 4–6 strong projects, each tagged to the 3–4 LPs it can demonstrate. One rich story can cover Ownership + Deliver Results + Dive Deep.</li>
+      <li><strong>Quantify relentlessly:</strong> Amazon is data-driven. Every story needs metrics — RPS, latency, cost, uptime, revenue, headcount saved.</li>
+      <li><strong>Prepare failure stories too:</strong> they probe risks taken, failures, and what you learned. A polished-only narrative reads as untrustworthy (Earn Trust = be vocally self-critical).</li>
+      <li><strong>Use "I", not "we":</strong> interviewers must isolate <em>your</em> contribution. Name your specific decisions.</li>
+      <li><strong>Have follow-up depth ready:</strong> expect "why did you choose that?", "what would you do differently?", "what was the data?" — Dive Deep is constant.</li>
+      <li><strong>Connect to the mission:</strong> tie your engineering philosophy to customer obsession and operating at scale.</li>
+    </ul>
+  </div>
+
+  <div class="info-box">
+    <h3>📌 Where LPs show up in the loop</h3>
+    <p>The technical phone screen spends roughly half its time on LPs. In the onsite loop, behavioral questions appear in <strong>every</strong> round (typically 2–3 per interviewer), including inside the coding and design rounds. The Bar Raiser in particular pressure-tests LP signal. Treat the behavioral bar as equally decisive as the technical bar — community reports consistently note strong coders get rejected on weak LP answers.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title">Do</span></div>
+      <ul>
+        <li>Be specific — real numbers, systems, and outcomes</li>
+        <li>Show ownership ("I decided…", "I owned…")</li>
+        <li>Include a genuine failure and the lesson learned</li>
+        <li>Map each story to the LP being probed</li>
+        <li>Pause to structure your answer in STAR order</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">❌</span><span class="card-title">Avoid</span></div>
+      <ul>
+        <li>Vague answers ("I worked on a challenging project…")</li>
+        <li>Hiding behind "we" — your contribution disappears</li>
+        <li>Stories with no metrics or business impact</li>
+        <li>Harshly criticizing past employers or teammates</li>
+        <li>Only success stories — no risk, no growth shown</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Behavioral / Leadership Round</div>
+  <p class="section-desc">You're evaluating Amazon too. These signal SDE III-level thinking about scope, ownership, and how LPs actually operate day-to-day.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Scope &amp; Impact</div>
+      <div class="q-text">"What does success look like for an SDE III on this team at the 6-month and 12-month mark, and how is impact measured beyond shipped code?"</div>
+      <div class="q-tip">💡 Surfaces how the team defines L6 value and lets you calibrate whether expectations match your strengths.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Leadership Principles in Practice</div>
+      <div class="q-text">"Which Leadership Principles does this team lean on most when there's tension — say, Bias for Action vs. Insist on the Highest Standards — and how do you resolve those trade-offs?"</div>
+      <div class="q-tip">💡 Shows you understand LPs are operating tools, not slogans, and that real decisions require balancing them.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Ownership &amp; Autonomy</div>
+      <div class="q-text">"How much autonomy does an SDE III have to identify and start high-impact projects versus being assigned them? Can you give a recent example?"</div>
+      <div class="q-tip">💡 Probes whether the role is genuinely self-directing — central to operating at L6.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Cross-Org Influence</div>
+      <div class="q-text">"How do senior engineers here drive alignment with product and Director-level stakeholders — through documents, reviews, or something else?"</div>
+      <div class="q-tip">💡 Amazon runs on written narratives; the answer tells you how influence actually flows.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Growth &amp; the Bar</div>
+      <div class="q-text">"How does the team raise its engineering bar over time, and what support exists for an SDE III who wants to grow toward Principal?"</div>
+      <div class="q-tip">💡 Aligns with Hire and Develop the Best and shows you think about the long arc, not just the next role.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CODING PANEL -->
+<div class="panel" id="panel-coding">
+  <div class="section-title">💻 Coding Round</div>
+  <p class="section-desc">Amazon expects <strong>syntactically correct, runnable code — no pseudocode</strong>. The stated evaluation criteria are efficiency, reliability, robustness, portability, maintainability, and readability. At SDE III, problems lean toward optimization for scale, concurrency, and production-grade quality, and interviewers add follow-ups and edge cases as you go. Expect 2–3 coding rounds in the loop, each also carrying Leadership Principle questions.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Amazon's prep page, Glassdoor &amp; candidate reports)</h3>
+    <ul>
+      <li><strong>Style:</strong> Live coding in a shared editor (Amazon's "Livecode" / Chime) or whiteboard onsite — narrate your thinking throughout.</li>
+      <li><strong>Difficulty:</strong> LeetCode medium, occasionally hard; SDE III sees more follow-ups around concurrency, scale, and trade-offs.</li>
+      <li><strong>Language:</strong> Your choice — Java and Python are most common.</li>
+      <li><strong>Duration:</strong> 55 minutes per round; coding usually ~35–40 min after LP questions.</li>
+      <li><strong>Non-negotiables:</strong> handle edge cases, validate bad input, state time/space complexity, and write tests.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Onsites.fyi, LeetCode Discuss &amp; Glassdoor)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🗃️ Concurrency + Caching (very common at SDE III)</div>
+      <div class="q-text">Implement an LRU cache, then extend it: make it thread-safe, add TTL-based eviction, and discuss scaling to thousands of concurrent updates.</div>
+      <div class="q-tip">💡 Reads aren't passive — every <code>get()</code> updates recency. Start with a clean HashMap + doubly-linked-list version, then layer locking/TTL as the follow-ups arrive.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">⏱️ Rate Limiting / Scheduling at Scale</div>
+      <div class="q-text">Design a job scheduler that handles ~1M tasks/sec with priority queues, or a distributed semaphore / rate limiter coordinating across many nodes.</div>
+      <div class="q-tip">💡 Discuss data-structure choice (heaps), back-pressure, and how coordination would work across machines (token bucket, centralized vs. local counters).</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🌐 Graphs &amp; Trees (bread-and-butter patterns)</div>
+      <div class="q-text">Number of Islands, Course Schedule (cycle/topological sort), right-side view of a binary tree, or word-ladder / shortest-transformation BFS.</div>
+      <div class="q-tip">💡 Amazon questions cluster on a small set of patterns — BFS/DFS, topological sort, sliding window, heaps. Recognize the pattern fast and state it out loud.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🔢 Heaps / Top-K &amp; Streaming</div>
+      <div class="q-text">K Closest Points to Origin, top-K frequent elements, or "for each element return the nearest element to its right with strictly higher frequency."</div>
+      <div class="q-tip">💡 Heap vs. quickselect trade-offs are a great place to show complexity reasoning. Mention streaming variants for the scale follow-up.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🏗️ Production-grade Data Structure / OOP</div>
+      <div class="q-text">Design a thread-safe, memory-efficient in-memory store with snapshot isolation, or model a system (parking lot, deck of cards) with clean classes and methods.</div>
+      <div class="q-tip">💡 SDE III bar: clean interfaces, testability, extensibility, and explicit handling of concurrency and invalid input — not just a passing function.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Drill the high-frequency patterns:</strong> arrays/strings (two-pointer, sliding window), graphs (BFS/DFS, topological sort), trees, heaps/top-K, and linked lists. Filter LeetCode by the Amazon tag.</li>
+      <li><strong>Practice clean structure under pressure:</strong> clarify constraints → state a one-sentence plan → code one clean function → run 2 quick tests including edge cases → state complexity → discuss optimizations.</li>
+      <li><strong>Get comfortable with concurrency:</strong> locks, thread-safety, and at least one concurrency primitive in your language (Java <code>CompletableFuture</code>/<code>ConcurrentHashMap</code>, Go goroutines/channels).</li>
+      <li><strong>Narrate constantly:</strong> Amazon evaluates your thought process, not just the final answer. Talk through trade-offs as you go.</li>
+      <li><strong>Write tests proactively:</strong> "no bad input slips through" is an explicit criterion — validate inputs and cover edge cases without being asked.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — Coding Round</div>
+  <p class="section-desc">Your interviewer is a future peer. These questions show you care about engineering craft and production quality at SDE III scale.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Engineering Standards</div>
+      <div class="q-text">"Beyond passing tests, what defines high-quality production code on this team — code review norms, test-coverage expectations, and how those standards are enforced?"</div>
+      <div class="q-tip">💡 As an SDE III you'd help set these. Signals you think about the bar at a team level, not just this exercise.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Languages &amp; Stack</div>
+      <div class="q-text">"What's the primary language and stack for this team's services, and are there modernization efforts underway — newer frameworks, async patterns, or service decomposition?"</div>
+      <div class="q-tip">💡 SDE III engineers often own these migrations; shows you think about the codebase's trajectory.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Developer Experience</div>
+      <div class="q-text">"How does the team handle developer productivity — local setup, CI/CD speed, build tooling? Is there room for SDE III-led DX improvements?"</div>
+      <div class="q-tip">💡 DX is a classic senior multiplier; signals your leverage extends beyond shipping features.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Operational Excellence</div>
+      <div class="q-text">"How does the team handle on-call, incident response, and operational load? How does a senior engineer shape reliability — runbooks, COEs/post-mortems, SLOs?"</div>
+      <div class="q-tip">💡 Amazon prizes operational excellence; at peak (Prime Day) reliability is existential. Asking shows operational maturity.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Testing &amp; Quality Culture</div>
+      <div class="q-text">"How does the team balance Bias for Action with Insist on the Highest Standards when shipping — where do you draw the line on test coverage and tech debt?"</div>
+      <div class="q-tip">💡 Connects coding craft to the LPs and reveals how the team actually makes quality trade-offs.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN PANEL -->
+<div class="panel" id="panel-design">
+  <div class="section-title">🏗️ System Design Round</div>
+  <p class="section-desc">Amazon notes that designing systems is distinctive because of its <strong>size and speed of change</strong>. Expect at least one system design question (SDE III loops often have two, plus an architecture-review/critique round). The stated objectives are practicality, accuracy, efficiency, reliability, optimization, and scalability. The interviewer probes your design; you're expected to ask clarifying questions to complete and validate it.</p>
+
+  <div class="info-box">
+    <h3>📋 Format (from Amazon's prep page, Onsites.fyi &amp; Glassdoor)</h3>
+    <ul>
+      <li>Covers high-level design (HLD): APIs, data flow, scalability, multi-region; and sometimes low-level design (LLD): class/object modeling — team-dependent.</li>
+      <li>Open-ended by design — there is no single right answer; reasoning and trade-offs matter most.</li>
+      <li>SDE III bar: multi-region, fault-tolerant, disaster-recovery-grade systems with explicit consistency and cost trade-offs.</li>
+      <li>An <strong>architecture-review</strong> round may ask you to critique and improve an existing system (find bottlenecks, cut cost, harden security).</li>
+      <li>AWS fluency is expected — DynamoDB, S3, Kinesis, Lambda, Aurora, Route 53, plus CAP-theorem reasoning.</li>
+    </ul>
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">📋 Example Questions (from Onsites.fyi, Glassdoor &amp; candidate reports)</div>
+
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">🔍 Recommendation / Personalization at Scale</div>
+      <div class="q-text">Design Amazon's product recommendation engine for ~100M users with &lt;50ms p95 latency and real-time personalization that survives an AZ/region outage.</div>
+      <div class="q-tip">💡 Cover clickstream ingestion (Kafka/Kinesis), model serving + A/B testing, caching (DAX), latency-based global routing, and the cold-start problem.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">📈 Peak-Traffic Scalability</div>
+      <div class="q-text">How would you design a service to absorb a 10x spike (Prime Day) without falling over?</div>
+      <div class="q-tip">💡 Horizontal scaling, load balancing, multi-layer caching (Redis/DAX), read replicas, async queues (SQS/Kinesis), CDN, and graceful degradation / circuit breakers.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">🗄️ Distributed Data &amp; Consistency</div>
+      <div class="q-text">Design a globally consistent (or eventually consistent) key-value store, or a real-time fraud-detection system for Amazon Payments.</div>
+      <div class="q-tip">💡 This is where CAP, quorums, replication, and DynamoDB Global Tables / CRDTs earn their keep. Be explicit about consistency vs. availability choices and why.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">🌊 Real-Time Streaming</div>
+      <div class="q-text">Design an end-to-end real-time streaming application — ingestion via APIs, maintaining stream context/state, and downstream processing. (Reported on Glassdoor.)</div>
+      <div class="q-tip">💡 Talk through stateful stream processing, partitioning by key, exactly-once vs. at-least-once delivery, and backpressure handling.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">🔧 Architecture Review / Critique</div>
+      <div class="q-text">Review an existing system (e.g., the product catalog service) and propose optimizations across performance, cost, scalability, and security.</div>
+      <div class="q-tip">💡 SDE III signal: methodically find bottlenecks (missing indexes, hot partitions), quantify cost savings (tiered storage), and sequence improvements by impact.</div>
+    </div>
+  </div>
+
+  <div class="tips">
+    <h3>🔑 Preparation Tips</h3>
+    <ul>
+      <li><strong>Drive a repeatable framework:</strong> clarify requirements &amp; constraints (QPS, latency, data size) → API contract → high-level diagram → data model → deep dive → failure modes → trade-offs. Ask questions throughout.</li>
+      <li><strong>Quantify and estimate:</strong> back-of-envelope capacity math (traffic, storage, bandwidth) shows the practicality Amazon scores on.</li>
+      <li><strong>Be fluent in AWS primitives:</strong> when to reach for DynamoDB vs. Aurora, S3 tiers, Kinesis vs. SQS, Lambda vs. ECS/Fargate — and the cost implications.</li>
+      <li><strong>Always cover failure &amp; recovery:</strong> region/AZ outage, retries, idempotency, circuit breakers, monitoring (CloudWatch/X-Ray). Reliability is an explicit objective.</li>
+      <li><strong>Read DDIA:</strong> <em>Designing Data-Intensive Applications</em> chapters on replication, partitioning, transactions, and consistency map almost directly onto these rounds.</li>
+      <li><strong>Sketch as you go:</strong> use a shared whiteboard/Excalidraw and keep the diagram readable; defend each box.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title" style="margin-bottom:6px;">🙋 5 Questions to Ask — System Design Round</div>
+  <p class="section-desc">The design interviewer is likely a senior/principal engineer — your future peer. These show strategic depth and that you grasp the real complexity of operating at Amazon scale.</p>
+  <div class="q-list">
+    <div class="q-item">
+      <div class="q-label">Question 1 · Architecture Direction</div>
+      <div class="q-text">"Where is this team's architecture today on the monolith-to-microservices spectrum, and what's the strategic direction? Would an SDE III help drive those decisions?"</div>
+      <div class="q-tip">💡 Shows you see architectural evolution as a senior concern and scopes the real work you'd own.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 2 · Scale &amp; Hardest Problems</div>
+      <div class="q-text">"What are the hardest unsolved scalability or reliability challenges this team faces — the ones that keep you up before peak events?"</div>
+      <div class="q-tip">💡 Surfaces the genuine technical frontier and signals you think beyond generic patterns.</div>
+    </div>
+    <div class="q-item blue">
+      <div class="q-label">Question 3 · Data &amp; Consistency Trade-offs</div>
+      <div class="q-text">"How does the team reason about consistency vs. availability across regions, and which data stores (DynamoDB, Aurora, etc.) anchor the critical paths?"</div>
+      <div class="q-tip">💡 Demonstrates distributed-systems maturity and curiosity about the real constraints, not textbook answers.</div>
+    </div>
+    <div class="q-item">
+      <div class="q-label">Question 4 · Decision &amp; Doc Process</div>
+      <div class="q-text">"How are major architectural decisions made and documented here — design docs, narratives, architecture reviews? How much influence does an SDE III have in shaping those processes?"</div>
+      <div class="q-tip">💡 Amazon's written-narrative culture is distinctive; the answer reveals how technical influence actually flows.</div>
+    </div>
+    <div class="q-item orange">
+      <div class="q-label">Question 5 · Cost &amp; Operational Trade-offs</div>
+      <div class="q-text">"How does the team balance Frugality against reliability and speed when designing — for example, deciding between a managed AWS service and building in-house?"</div>
+      <div class="q-tip">💡 Connects design directly to the Leadership Principles and shows you weigh cost as a first-class design constraint, as Amazon does.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      const names = ['overview','leveling','behavioral','coding','design'];
+      t.classList.toggle('active', names[i] === name);
+    });
+    document.querySelectorAll('.panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + name);
+    });
+  }
+</script>
+</body>
+</html>

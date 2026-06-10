@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Patterns Cheat Sheet — Staff Java Engineer</title>
+<style>
+  :root {
+    --java-orange: #ed8b00;
+    --java-red: #f80000;
+    --blue-dark: #003087;
+    --blue: #0064d2;
+    --blue-light: #e6f0fc;
+    --green: #2d7a4f;
+    --green-light: #e8f5ee;
+    --orange: #e07b39;
+    --orange-light: #fef3ec;
+    --purple: #6d28d9;
+    --purple-light: #f3f0ff;
+    --red: #b91c1c;
+    --red-light: #fef2f2;
+    --teal: #0f766e;
+    --teal-light: #e0f2f1;
+    --yellow: #d97706;
+    --yellow-light: #fef3c7;
+    --code-bg: #1e293b;
+    --code-bg-light: #334155;
+    --code-text: #e2e8f0;
+    --code-keyword: #c084fc;
+    --code-string: #86efac;
+    --code-comment: #94a3b8;
+    --code-type: #fbbf24;
+    --gray: #f7f8fa;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  code, pre { font-family: 'SF Mono', Monaco, Consolas, 'Liberation Mono', monospace; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #003087 60%, #ed8b00 100%);
+    color: white;
+    padding: 32px 40px 26px;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute; top: 0; right: 0; bottom: 0; width: 6px;
+    background: linear-gradient(180deg, #ed8b00 0%, #f80000 100%);
+  }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .icon { font-size: 2rem; }
+  .header h1 { font-size: 1.7rem; font-weight: 700; }
+  .header-sub { font-size: 0.92rem; opacity: 0.88; margin-bottom: 14px; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { background: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; font-weight: 500; }
+
+  .toc {
+    background: white;
+    margin: 22px 32px 0;
+    border-radius: var(--radius);
+    padding: 18px 24px;
+    box-shadow: var(--shadow);
+  }
+  .toc h3 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .toc-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .toc-link:hover {
+    background: var(--blue-light);
+    border-color: var(--blue);
+    transform: translateY(-1px);
+  }
+  .toc-emoji { font-size: 1.1rem; }
+
+  .section {
+    background: white;
+    margin: 16px 32px 0;
+    border-radius: var(--radius);
+    padding: 22px 28px;
+    box-shadow: var(--shadow);
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+  }
+  .section-header h2 { font-size: 1.2rem; font-weight: 700; }
+  .section-header .section-emoji { font-size: 1.4rem; }
+  .section-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 18px;
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  .patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 14px;
+  }
+  .pattern-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: white;
+    transition: box-shadow 0.15s;
+  }
+  .pattern-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+  .pattern-card.creational { border-left: 4px solid var(--blue); }
+  .pattern-card.structural { border-left: 4px solid var(--green); }
+  .pattern-card.behavioral { border-left: 4px solid var(--purple); }
+  .pattern-card.concurrency { border-left: 4px solid var(--orange); }
+  .pattern-card.distributed { border-left: 4px solid var(--red); }
+  .pattern-card.spring { border-left: 4px solid var(--teal); }
+  .pattern-card.ddd { border-left: 4px solid var(--yellow); }
+
+  .pattern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .pattern-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .pattern-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .tag-must { background: var(--red-light); color: var(--red); }
+  .tag-common { background: var(--blue-light); color: var(--blue); }
+  .tag-niche { background: var(--gray); color: var(--muted); }
+  .tag-staff { background: var(--purple-light); color: var(--purple); }
+
+  .pattern-desc {
+    font-size: 0.82rem;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  .pattern-desc strong { color: var(--text); font-weight: 600; }
+
+  .code-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 10px 0 4px 0;
+    display: block;
+  }
+  .pattern-code, .pattern-usage {
+    padding: 10px 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    margin: 4px 0 6px 0;
+    white-space: pre;
+  }
+  .pattern-code {
+    background: var(--code-bg);
+    color: var(--code-text);
+  }
+  .pattern-usage {
+    background: var(--code-bg-light);
+    color: var(--code-text);
+    border-left: 3px solid var(--code-keyword);
+  }
+  .pattern-code .kw, .pattern-usage .kw { color: var(--code-keyword); }
+  .pattern-code .str, .pattern-usage .str { color: var(--code-string); }
+  .pattern-code .cmt, .pattern-usage .cmt { color: var(--code-comment); font-style: italic; }
+  .pattern-code .type, .pattern-usage .type { color: var(--code-type); }
+
+  .ebay-example {
+    background: var(--blue-light);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    color: #1e3a5f;
+    margin-top: 8px;
+  }
+  .ebay-example strong { color: var(--blue-dark); }
+
+  .gotcha {
+    background: var(--red-light);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    color: #4b1414;
+    margin-top: 8px;
+  }
+  .gotcha strong { color: var(--red); }
+
+  .quick-ref {
+    background: var(--green-light);
+    border: 1px solid #b2dfc4;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+  }
+  .quick-ref h4 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+  .quick-ref-list {
+    font-size: 0.82rem;
+    color: #374151;
+    line-height: 1.7;
+  }
+  .quick-ref-list strong { color: var(--text); }
+
+  .footer {
+    text-align: center;
+    padding: 22px;
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 680px) {
+    .toc, .section, .header { margin-left: 12px; margin-right: 12px; }
+    .header { padding: 22px 16px 18px; }
+    .patterns-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="icon">☕</span>
+    <h1>Design Patterns Cheat Sheet — Staff Java Engineer</h1>
+  </div>
+  <p class="header-sub">Quick-readable reference · Java + Spring Boot · Backend-focused · For interviews &amp; daily work</p>
+  <div class="tags">
+    <span class="tag">📚 48 patterns covered</span>
+    <span class="tag">🎯 Staff-level focus</span>
+    <span class="tag">☕ Idiomatic Java</span>
+    <span class="tag">🛒 eBay-flavored examples</span>
+    <span class="tag">▶ Implementation + Usage snippets</span>
+  </div>
+</div>
+
+<div class="toc">
+  <h3>📋 Sections</h3>
+  <div class="toc-grid">
+    <a class="toc-link" href="#creational"><span class="toc-emoji">🏗️</span>Creational (5)</a>
+    <a class="toc-link" href="#structural"><span class="toc-emoji">🧱</span>Structural (5)</a>
+    <a class="toc-link" href="#behavioral"><span class="toc-emoji">🎭</span>Behavioral (8)</a>
+    <a class="toc-link" href="#concurrency"><span class="toc-emoji">⚡</span>Concurrency (6)</a>
+    <a class="toc-link" href="#distributed"><span class="toc-emoji">🌐</span>Distributed (12)</a>
+    <a class="toc-link" href="#spring"><span class="toc-emoji">🍃</span>Spring &amp; Web (6)</a>
+    <a class="toc-link" href="#ddd"><span class="toc-emoji">🎯</span>DDD &amp; Architectural (6)</a>
+    <a class="toc-link" href="#staff-takeaways"><span class="toc-emoji">🚀</span>Staff Takeaways</a>
+  </div>
+</div>
+
+<!-- =================== CREATIONAL =================== -->
+<div class="section" id="creational">
+  <div class="section-header">
+    <span class="section-emoji">🏗️</span>
+    <h2>Creational Patterns</h2>
+  </div>
+  <p class="section-desc">How objects come into existence. Hide construction complexity, decouple clients from concrete classes, control instance lifecycle.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card creational">
+      <div class="pattern-header">
+        <span class="pattern-name">🏭 Factory Method</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Defines an interface for creating an object but lets a factory method (often overridden by subclasses) decide which concrete class to instantiate. <strong>Reach for it</strong> when the right concrete class depends on runtime context — region, tenant, config — and clients shouldn't have to know about that decision.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public interface</span> <span class="type">CarrierFactory</span> {
+  <span class="type">Carrier</span> create(<span class="type">String</span> region);
+}
+<span class="kw">class</span> <span class="type">USCarrierFactory</span> <span class="kw">implements</span> <span class="type">CarrierFactory</span> {
+  <span class="kw">public</span> <span class="type">Carrier</span> create(<span class="type">String</span> r) {
+    <span class="kw">return new</span> <span class="type">USPSAdapter</span>();
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">CarrierFactory</span> factory = factoryFor(req.region());
+<span class="type">Carrier</span> carrier = factory.create(req.region());
+<span class="type">RateQuote</span> quote = carrier.quoteRates(req);</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Region-driven carrier selection — US gets USPS/FedEx, EU gets DHL/Hermes — without callers knowing the mapping.</div>
+    </div>
+
+    <div class="pattern-card creational">
+      <div class="pattern-header">
+        <span class="pattern-name">🏢 Abstract Factory</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Creates <strong>families of related objects</strong> that must work together, without specifying their concrete classes. Each concrete factory produces a coordinated set of products — switching factories swaps the whole family at once, guaranteeing they're compatible.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public interface</span> <span class="type">RegionFactory</span> {
+  <span class="type">Carrier</span> carrier();
+  <span class="type">TaxCalculator</span> taxes();
+  <span class="type">AddressValidator</span> addresses();
+}
+
+<span class="kw">class</span> <span class="type">USRegionFactory</span> <span class="kw">implements</span> <span class="type">RegionFactory</span> {
+  <span class="kw">public</span> <span class="type">Carrier</span> carrier()         { <span class="kw">return new</span> <span class="type">USPSAdapter</span>(); }
+  <span class="kw">public</span> <span class="type">TaxCalculator</span> taxes()    { <span class="kw">return new</span> <span class="type">USSalesTax</span>(); }
+  <span class="kw">public</span> <span class="type">AddressValidator</span> addresses() { <span class="kw">return new</span> <span class="type">USPSValidator</span>(); }
+}
+
+<span class="kw">class</span> <span class="type">EURegionFactory</span> <span class="kw">implements</span> <span class="type">RegionFactory</span> {
+  <span class="kw">public</span> <span class="type">Carrier</span> carrier()         { <span class="kw">return new</span> <span class="type">DHLAdapter</span>(); }
+  <span class="kw">public</span> <span class="type">TaxCalculator</span> taxes()    { <span class="kw">return new</span> <span class="type">VATCalculator</span>(); }
+  <span class="kw">public</span> <span class="type">AddressValidator</span> addresses() { <span class="kw">return new</span> <span class="type">EUAddressValidator</span>(); }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">RegionFactory</span> region = order.isEU()
+    ? <span class="kw">new</span> <span class="type">EURegionFactory</span>()
+    : <span class="kw">new</span> <span class="type">USRegionFactory</span>();
+
+<span class="type">Money</span> tax = region.taxes().compute(order);
+<span class="type">Address</span> valid = region.addresses().normalize(order.address());
+<span class="type">Label</span> label = region.carrier().generateLabel(order);
+<span class="cmt">// Guaranteed: all 3 are compatible with the chosen region</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Regional bundles. Picking EU mode gives you DHL + VAT + EU-format addresses together — impossible to accidentally mix US tax rules with a DHL shipment.</div>
+      <div class="gotcha"><strong>⚠️ Don't reach for it</strong> if the products are truly independent. Factory Method × N is simpler when there's no coordination requirement between them.</div>
+    </div>
+
+    <div class="pattern-card creational">
+      <div class="pattern-header">
+        <span class="pattern-name">🏗️ Builder</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Constructs complex objects step-by-step with a fluent API, separating construction from representation. <strong>Eliminates telescoping constructors</strong> when an object has many optional fields, and the build step naturally validates invariants before producing an immutable result.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Builder</span>
+<span class="kw">public record</span> <span class="type">Shipment</span>(
+  <span class="type">Address</span> from, <span class="type">Address</span> to,
+  <span class="kw">double</span> weight, <span class="type">Service</span> service,
+  <span class="kw">boolean</span> insured, <span class="kw">boolean</span> signatureRequired) {}
+<span class="cmt">// Lombok generates the builder. Or hand-roll a static inner class.</span></pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Shipment</span> s = <span class="type">Shipment</span>.builder()
+    .from(origin)
+    .to(destination)
+    .weight(<span class="kw">2.5</span>)
+    .service(<span class="type">PRIORITY</span>)
+    .insured(<span class="kw">true</span>)
+    .build();
+shippingService.dispatch(s);</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Building shipping requests, search queries, REST DTOs with 8+ optional fields. Reads top-to-bottom in code reviews.</div>
+    </div>
+
+    <div class="pattern-card creational">
+      <div class="pattern-header">
+        <span class="pattern-name">🔒 Singleton</span>
+        <span class="pattern-tag tag-common">Use Carefully</span>
+      </div>
+      <div class="pattern-desc">
+        Guarantees a class has exactly one instance and provides a global access point. <strong>In Spring, you almost never write this by hand</strong> — every bean is a singleton by default. Hand-rolled singletons are usually a code smell: they hurt testability and hide concurrency assumptions.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Spring way (preferred — singleton by default)</span>
+<span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">RateCache</span> { <span class="cmt">/* ... */</span> }
+
+<span class="cmt">// Hand-rolled (last resort, e.g. utility config)</span>
+<span class="kw">public enum</span> <span class="type">AppConfig</span> {
+  <span class="type">INSTANCE</span>;
+  <span class="kw">public</span> <span class="type">String</span> get(<span class="type">String</span> key) { <span class="cmt">/* ... */</span> }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Spring way — DI gives you the singleton</span>
+<span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">Quoter</span> {
+  <span class="kw">private final</span> <span class="type">RateCache</span> cache;
+  <span class="type">Quoter</span>(<span class="type">RateCache</span> cache) { <span class="kw">this</span>.cache = cache; }
+}
+
+<span class="cmt">// Hand-rolled access</span>
+<span class="type">String</span> region = <span class="type">AppConfig</span>.<span class="type">INSTANCE</span>.get(<span class="str">"region"</span>);</pre>
+      <div class="gotcha"><strong>⚠️ Gotcha:</strong> Hand-rolled singletons hurt testability (can't substitute fakes) and hide concurrency bugs. Prefer DI almost always.</div>
+    </div>
+
+    <div class="pattern-card creational">
+      <div class="pattern-header">
+        <span class="pattern-name">🐑 Prototype</span>
+        <span class="pattern-tag tag-niche">Niche</span>
+      </div>
+      <div class="pattern-desc">
+        Creates new objects by cloning an existing prototype — useful when building from scratch is expensive but cloning is cheap. <strong>Largely superseded</strong> in modern Java by records with "with-methods" (functional updates that return new instances).
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public record</span> <span class="type">RateTemplate</span>(
+    <span class="type">String</span> service, <span class="kw">double</span> base, <span class="kw">double</span> fuelSurcharge) {
+
+  <span class="kw">public</span> <span class="type">RateTemplate</span> withBase(<span class="kw">double</span> b) {
+    <span class="kw">return new</span> <span class="type">RateTemplate</span>(service, b, fuelSurcharge);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">RateTemplate</span> standard = <span class="type">RateTemplate</span>.standard();
+<span class="type">RateTemplate</span> discounted = standard.withBase(standard.base() * <span class="kw">0.9</span>);
+<span class="cmt">// Original 'standard' is untouched; discounted is a fresh instance</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Copy-on-write for rate templates and immutable config snapshots that need slight per-tenant variations.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== STRUCTURAL =================== -->
+<div class="section" id="structural">
+  <div class="section-header">
+    <span class="section-emoji">🧱</span>
+    <h2>Structural Patterns</h2>
+  </div>
+  <p class="section-desc">How objects compose. Bridge incompatible interfaces, add behavior dynamically, hide complexity behind clean facades.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card structural">
+      <div class="pattern-header">
+        <span class="pattern-name">🔌 Adapter</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Wraps an incompatible third-party or legacy interface so it conforms to one your code already expects. <strong>The translator</strong> between your clean domain and a messy external SDK — keeps the external system's quirks from leaking into your business logic. The #1 pattern for integration work.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">interface</span> <span class="type">Carrier</span> { <span class="type">RateQuote</span> quote(<span class="type">Req</span> r); }
+
+<span class="kw">class</span> <span class="type">FedExAdapter</span> <span class="kw">implements</span> <span class="type">Carrier</span> {
+  <span class="kw">private final</span> <span class="type">FedExClient</span> client; <span class="cmt">// 3rd-party SDK</span>
+
+  <span class="kw">public</span> <span class="type">RateQuote</span> quote(<span class="type">Req</span> r) {
+    <span class="kw">var</span> resp = client.getRates(toFedExReq(r));
+    <span class="kw">return</span> toRateQuote(resp);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Carrier</span> fedex = <span class="kw">new</span> <span class="type">FedExAdapter</span>(fedExClient);
+<span class="type">Carrier</span> ups   = <span class="kw">new</span> <span class="type">UPSAdapter</span>(upsClient);
+
+<span class="type">List</span>&lt;<span class="type">Carrier</span>&gt; all = <span class="type">List</span>.of(fedex, ups);
+all.forEach(c -> log.info(c.quote(req)));
+<span class="cmt">// Caller never touches FedExClient or UPSClient directly</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Every carrier integration on the Shipping team. USPS, FedEx, UPS, DHL each get an adapter conforming to the same <code>Carrier</code> interface.</div>
+    </div>
+
+    <div class="pattern-card structural">
+      <div class="pattern-header">
+        <span class="pattern-name">🎨 Decorator</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Wraps an object to add behavior without modifying the wrapped class or other wrappers around it. Each layer adds exactly one responsibility — composable, unlike inheritance which forces fixed combinations. <strong>Powerful for layering cross-cutting concerns</strong> like caching, metrics, and resilience.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">class</span> <span class="type">CachingCarrier</span> <span class="kw">implements</span> <span class="type">Carrier</span> {
+  <span class="kw">private final</span> <span class="type">Carrier</span> delegate;
+  <span class="kw">private final</span> <span class="type">Cache</span> cache;
+  <span class="kw">public</span> <span class="type">RateQuote</span> quote(<span class="type">Req</span> r) {
+    <span class="kw">return</span> cache.get(r, () -> delegate.quote(r));
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Carrier</span> raw = <span class="kw">new</span> <span class="type">FedExAdapter</span>(client);
+<span class="type">Carrier</span> carrier = <span class="kw">new</span> <span class="type">MetricsCarrier</span>(
+    <span class="kw">new</span> <span class="type">CachingCarrier</span>(
+        <span class="kw">new</span> <span class="type">CircuitBreakerCarrier</span>(raw)));
+
+<span class="type">RateQuote</span> q = carrier.quote(req);
+<span class="cmt">// Routes through metrics -> cache -> circuit breaker -> raw call</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Wrap a carrier adapter with metrics + caching + circuit breaker. Compose like Russian dolls; each layer is testable in isolation.</div>
+    </div>
+
+    <div class="pattern-card structural">
+      <div class="pattern-header">
+        <span class="pattern-name">🏛️ Facade</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Hides a complex subsystem behind a single high-level interface. <strong>The caller doesn't need to know</strong> about the 4 services or the orchestration logic underneath — they just call <code>buy()</code>. Reduces coupling between layers and gives you one place to evolve the orchestration.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">ShippingFacade</span> {
+  <span class="kw">public</span> <span class="type">LabelResult</span> buyAndPrint(<span class="type">Order</span> o) {
+    <span class="kw">var</span> rates  = rateService.quote(o);
+    <span class="kw">var</span> picked = rateService.cheapest(rates);
+    payments.charge(o.seller(), picked.cost());
+    <span class="kw">return</span> labels.generate(o, picked);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@RestController</span>
+<span class="kw">class</span> <span class="type">SellerController</span> {
+  <span class="kw">private final</span> <span class="type">ShippingFacade</span> shipping;
+
+  <span class="kw">@PostMapping</span>(<span class="str">"/orders/{id}/ship"</span>)
+  <span class="type">LabelResult</span> ship(<span class="kw">@PathVariable</span> <span class="type">Long</span> id) {
+    <span class="kw">return</span> shipping.buyAndPrint(orderRepo.find(id));
+  }
+}</pre>
+      <div class="ebay-example"><strong>eBay:</strong> One endpoint orchestrates rate quote + payment + label gen + notification. Controllers stay thin; the facade owns the choreography.</div>
+    </div>
+
+    <div class="pattern-card structural">
+      <div class="pattern-header">
+        <span class="pattern-name">🪞 Proxy</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Stand-in for the real object that controls access — for lazy loading, access control, remote calls, or AOP cross-cutting concerns. <strong>Spring is built on proxies:</strong> every <code>@Transactional</code>, <code>@Cacheable</code>, or <code>@Async</code> annotation generates a dynamic proxy at runtime.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Spring auto-creates the proxy</span>
+<span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">OrderService</span> {
+
+  <span class="kw">@Transactional</span>
+  <span class="kw">public void</span> place(<span class="type">Order</span> o) {
+    orderRepo.save(o);
+    inventory.reserve(o);
+    <span class="cmt">// commits or rolls back as one txn</span>
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@Autowired</span> <span class="type">OrderService</span> orders;  <span class="cmt">// Actually a Spring proxy</span>
+
+orders.place(order);
+<span class="cmt">// Proxy: begin txn -> real place() -> commit (or rollback on throw)</span></pre>
+      <div class="gotcha"><strong>⚠️ Self-invocation bypasses the proxy!</strong> Calling <code>this.place()</code> from another method in the same class skips <code>@Transactional</code> entirely. Extract to a separate bean if you need this.</div>
+    </div>
+
+    <div class="pattern-card structural">
+      <div class="pattern-header">
+        <span class="pattern-name">🌳 Composite</span>
+        <span class="pattern-tag tag-niche">Niche</span>
+      </div>
+      <div class="pattern-desc">
+        Treats individual objects and groups of objects uniformly through a shared interface. <strong>Useful for tree structures</strong> where a node can be either a leaf or a container of more nodes, and clients shouldn't care which.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">interface</span> <span class="type">Validator</span>&lt;<span class="type">T</span>&gt; {
+  <span class="type">Result</span> check(<span class="type">T</span> t);
+}
+<span class="kw">class</span> <span class="type">CompositeValidator</span>&lt;<span class="type">T</span>&gt; <span class="kw">implements</span> <span class="type">Validator</span>&lt;<span class="type">T</span>&gt; {
+  <span class="kw">private final</span> <span class="type">List</span>&lt;<span class="type">Validator</span>&lt;<span class="type">T</span>&gt;&gt; children;
+  <span class="kw">public</span> <span class="type">Result</span> check(<span class="type">T</span> t) {
+    <span class="kw">return</span> children.stream()
+        .map(v -> v.check(t))
+        .reduce(<span class="type">Result</span>.ok(), <span class="type">Result</span>::merge);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Validator</span>&lt;<span class="type">Shipment</span>&gt; all = <span class="kw">new</span> <span class="type">CompositeValidator</span>&lt;&gt;(<span class="type">List</span>.of(
+    <span class="kw">new</span> <span class="type">WeightValidator</span>(),
+    <span class="kw">new</span> <span class="type">AddressValidator</span>(),
+    <span class="kw">new</span> <span class="type">CarrierCompatValidator</span>()));
+
+<span class="type">Result</span> r = all.check(shipment);  <span class="cmt">// runs all 3</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Shipment validation chains, fraud rule trees, hierarchical category trees in search.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== BEHAVIORAL =================== -->
+<div class="section" id="behavioral">
+  <div class="section-header">
+    <span class="section-emoji">🎭</span>
+    <h2>Behavioral Patterns</h2>
+  </div>
+  <p class="section-desc">How objects interact and distribute responsibility. Algorithms, communication flows, state management.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">🎯 Strategy</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Encapsulates interchangeable algorithms behind a common interface and lets clients pick one at runtime. <strong>The dependency-injection version of polymorphism</strong> — when you "inject an interface" in Spring, you're using Strategy. The most common pattern in modern Java code, usually unnamed.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">interface</span> <span class="type">PricingStrategy</span> {
+  <span class="kw">double</span> price(<span class="type">Shipment</span> s);
+}
+<span class="kw">class</span> <span class="type">FlatRatePricing</span>    <span class="kw">implements</span> <span class="type">PricingStrategy</span> { ... }
+<span class="kw">class</span> <span class="type">WeightBasedPricing</span> <span class="kw">implements</span> <span class="type">PricingStrategy</span> { ... }
+
+<span class="kw">class</span> <span class="type">Quoter</span> {
+  <span class="kw">private final</span> <span class="type">PricingStrategy</span> strategy;
+  <span class="type">Quoter</span>(<span class="type">PricingStrategy</span> s) { <span class="kw">this</span>.strategy = s; }
+  <span class="kw">public double</span> price(<span class="type">Shipment</span> s) { <span class="kw">return</span> strategy.price(s); }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">PricingStrategy</span> strategy = req.isPremium()
+    ? <span class="kw">new</span> <span class="type">WeightBasedPricing</span>()
+    : <span class="kw">new</span> <span class="type">FlatRatePricing</span>();
+
+<span class="kw">double</span> cost = <span class="kw">new</span> <span class="type">Quoter</span>(strategy).price(shipment);
+<span class="cmt">// Swap algorithms without touching Quoter</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Pricing strategies per region/SLA, search-ranking algorithms, fraud-scoring models. Pluggable behavior is everywhere.</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">👀 Observer / Pub-Sub</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Decouples producers from consumers — one state change notifies many subscribers without the producer knowing who they are. <strong>In-process</strong> via Spring <code>ApplicationEventPublisher</code>; <strong>across services</strong> via Kafka or SNS. Same shape, different scale.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Component</span>
+<span class="kw">class</span> <span class="type">OrderService</span> {
+  <span class="kw">@Autowired</span> <span class="type">ApplicationEventPublisher</span> events;
+
+  <span class="kw">void</span> ship(<span class="type">Order</span> o) {
+    <span class="cmt">// ... ship logic ...</span>
+    events.publishEvent(<span class="kw">new</span> <span class="type">OrderShipped</span>(o.id()));
+  }
+}
+
+<span class="kw">@Component</span>
+<span class="kw">class</span> <span class="type">NotificationListener</span> {
+  <span class="kw">@EventListener</span>
+  <span class="kw">void</span> handle(<span class="type">OrderShipped</span> e) { sendEmail(e); }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Producer just fires the event</span>
+orderService.ship(order);
+
+<span class="cmt">// All registered @EventListener methods get invoked.</span>
+<span class="cmt">// Producer doesn't know about NotificationListener,</span>
+<span class="cmt">// AnalyticsListener, FraudListener, etc.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Tracking events fan out to notifications, analytics, fraud detection, search re-indexing — all decoupled via Kafka.</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">📜 Command</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Wraps a request as an object, decoupling <strong>who asks for something</strong> from <strong>who performs it</strong>. Enables queuing, retrying, logging, and undoing — useful any time a unit of work needs to be persisted, scheduled, or audited.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">interface</span> <span class="type">Command</span> { <span class="kw">void</span> execute(); }
+
+<span class="kw">class</span> <span class="type">VoidLabelCmd</span> <span class="kw">implements</span> <span class="type">Command</span> {
+  <span class="kw">private final</span> <span class="type">String</span> labelId;
+  <span class="kw">private final</span> <span class="type">CarrierClient</span> client;
+  <span class="kw">public void</span> execute() { client.voidLabel(labelId); }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Command</span> voidIt = <span class="kw">new</span> <span class="type">VoidLabelCmd</span>(labelId, carrierClient);
+queue.submit(voidIt);
+<span class="cmt">// Worker thread pulls and runs it later.</span>
+<span class="cmt">// Can be retried on failure, logged for audit, persisted across restarts.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Async job queue — every action (void label, refund, send notification) wrapped as a Command for retryable, auditable execution.</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">🔗 Chain of Responsibility</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Passes a request along a chain of handlers, each free to process or forward. <strong>Filter chains, middleware, and validation pipelines</strong> all use this pattern — each handler does its slice without knowing what comes before or after.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">interface</span> <span class="type">Handler</span> {
+  <span class="type">Response</span> handle(<span class="type">Req</span> r, <span class="type">Handler</span> next);
+}
+<span class="kw">class</span> <span class="type">AuthHandler</span> <span class="kw">implements</span> <span class="type">Handler</span> {
+  <span class="kw">public</span> <span class="type">Response</span> handle(<span class="type">Req</span> r, <span class="type">Handler</span> next) {
+    <span class="kw">if</span> (!authed(r)) <span class="kw">return</span> <span class="type">Response</span>.deny();
+    <span class="kw">return</span> next.handle(r, next);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Handler</span> chain = build(
+    <span class="kw">new</span> <span class="type">AuthHandler</span>(),
+    <span class="kw">new</span> <span class="type">RateLimitHandler</span>(),
+    <span class="kw">new</span> <span class="type">FraudHandler</span>(),
+    <span class="kw">new</span> <span class="type">BusinessLogicHandler</span>());
+
+<span class="type">Response</span> resp = chain.handle(request, <span class="kw">null</span>);
+<span class="cmt">// Each handler runs in order; any can short-circuit the chain</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Spring Security filter chains. Servlet filters. Fraud pipelines (rate limit → auth → KYC → ML score → decision).</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">📋 Template Method</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Defines the skeleton of an algorithm in a base class and lets subclasses override specific steps. Useful when 80% of the algorithm is fixed but a few steps vary. <strong>Often a worse choice than Strategy</strong> — inheritance is rigid; composition adapts.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">abstract class</span> <span class="type">CarrierBase</span> <span class="kw">implements</span> <span class="type">Carrier</span> {
+  <span class="kw">public final</span> <span class="type">RateQuote</span> quote(<span class="type">Req</span> r) {
+    <span class="kw">var</span> validated = validate(r);
+    <span class="kw">var</span> rates     = fetchRates(validated);   <span class="cmt">// hook</span>
+    <span class="kw">return</span> applyMargin(rates);
+  }
+  <span class="kw">protected abstract</span> <span class="type">List</span>&lt;<span class="type">Rate</span>&gt; fetchRates(<span class="type">Req</span> r);
+}
+
+<span class="kw">class</span> <span class="type">FedExCarrier</span> <span class="kw">extends</span> <span class="type">CarrierBase</span> {
+  <span class="kw">protected</span> <span class="type">List</span>&lt;<span class="type">Rate</span>&gt; fetchRates(<span class="type">Req</span> r) { <span class="cmt">/* ... */</span> }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Carrier</span> fedex = <span class="kw">new</span> <span class="type">FedExCarrier</span>();
+<span class="type">RateQuote</span> q = fedex.quote(req);
+<span class="cmt">// Runs the base's validate -> fetchRates(subclass) -> applyMargin</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Standardize the carrier-call lifecycle (validate → fetch → transform → emit metrics) while letting each subclass customize only the fetch step.</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">🚦 State</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Encodes valid state transitions in code so illegal transitions become compile-time or fast runtime errors. <strong>Critical for money flows</strong> and lifecycle objects — prevents bugs like double-charging or voiding an already-used label.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">enum</span> <span class="type">LabelState</span> {
+  <span class="type">REQUESTED</span>, <span class="type">PURCHASED</span>, <span class="type">GENERATED</span>,
+  <span class="type">USED</span>, <span class="type">VOIDED</span>, <span class="type">REFUNDED</span>;
+
+  <span class="kw">boolean</span> canVoid() {
+    <span class="kw">return this</span> == <span class="type">PURCHASED</span> || <span class="kw">this</span> == <span class="type">GENERATED</span>;
+  }
+  <span class="kw">boolean</span> canUse() { <span class="kw">return this</span> == <span class="type">GENERATED</span>; }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">if</span> (!label.state().canVoid()) {
+  <span class="kw">throw new</span> <span class="type">IllegalStateException</span>(
+    <span class="str">"Cannot void label in state "</span> + label.state());
+}
+label.transitionTo(<span class="type">VOIDED</span>);
+<span class="cmt">// Same check protects against double-void, double-refund</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Shipping label state machine — prevents double-charging, double-voiding, refunding a used label. Order lifecycle works the same way.</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">🔄 Iterator</span>
+        <span class="pattern-tag tag-niche">Built-in</span>
+      </div>
+      <div class="pattern-desc">
+        Provides a way to traverse a collection without exposing its underlying structure. <strong>Java gives you this for free</strong> via <code>Iterable</code> and streams — but worth knowing for cursor-based APIs that lazily fetch over remote data.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">class</span> <span class="type">PagedShipments</span> <span class="kw">implements</span> <span class="type">Iterable</span>&lt;<span class="type">Shipment</span>&gt; {
+  <span class="kw">private final</span> <span class="type">ShipmentApi</span> api;
+  <span class="kw">private final</span> <span class="type">Long</span> sellerId;
+
+  <span class="kw">public</span> <span class="type">Iterator</span>&lt;<span class="type">Shipment</span>&gt; iterator() {
+    <span class="kw">return new</span> <span class="type">CursorIterator</span>(api, sellerId);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">PagedShipments</span> shipments = <span class="kw">new</span> <span class="type">PagedShipments</span>(api, sellerId);
+
+<span class="kw">for</span> (<span class="type">Shipment</span> s : shipments) {  <span class="cmt">// fetches one page at a time</span>
+    process(s);
+}
+<span class="cmt">// Never loads 10M shipments into memory at once</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Cursor-based pagination over millions of shipments. Generator-style traversal of huge tracking-event archives.</div>
+    </div>
+
+    <div class="pattern-card behavioral">
+      <div class="pattern-header">
+        <span class="pattern-name">🎪 Visitor</span>
+        <span class="pattern-tag tag-niche">Niche</span>
+      </div>
+      <div class="pattern-desc">
+        Lets you perform many unrelated operations on a stable object hierarchy without modifying the objects. <strong>Largely superseded</strong> in modern Java by sealed interfaces + switch pattern matching, which is far less ceremony and just as exhaustive.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">sealed interface</span> <span class="type">Event</span>
+  <span class="kw">permits</span> <span class="type">PickedUp</span>, <span class="type">InTransit</span>, <span class="type">Delivered</span> {}
+
+<span class="kw">record</span> <span class="type">PickedUp</span>(<span class="type">Instant</span> at) <span class="kw">implements</span> <span class="type">Event</span> {}
+<span class="kw">record</span> <span class="type">InTransit</span>(<span class="type">String</span> location) <span class="kw">implements</span> <span class="type">Event</span> {}
+<span class="kw">record</span> <span class="type">Delivered</span>(<span class="type">String</span> signedBy) <span class="kw">implements</span> <span class="type">Event</span> {}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">String</span> describe(<span class="type">Event</span> e) {
+  <span class="kw">return switch</span> (e) {
+    <span class="kw">case</span> <span class="type">PickedUp</span> p  -> <span class="str">"Picked up at "</span> + p.at();
+    <span class="kw">case</span> <span class="type">InTransit</span> t -> <span class="str">"In transit near "</span> + t.location();
+    <span class="kw">case</span> <span class="type">Delivered</span> d -> <span class="str">"Delivered to "</span> + d.signedBy();
+  };
+}
+<span class="cmt">// Compiler enforces exhaustiveness — add a new permits and it won't compile</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Processing tracking event types. Modern Java pattern matching beats classical Visitor on every dimension.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== CONCURRENCY =================== -->
+<div class="section" id="concurrency">
+  <div class="section-header">
+    <span class="section-emoji">⚡</span>
+    <h2>Concurrency Patterns</h2>
+  </div>
+  <p class="section-desc">Critical for Staff-level Java interviews. These come up in code rounds, not just design. Master <code>CompletableFuture</code>, immutability, and the JDK concurrency primitives.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card concurrency">
+      <div class="pattern-header">
+        <span class="pattern-name">🧊 Immutable Objects</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Object state cannot change after construction. <strong>Thread-safe by definition</strong>, safe to share across threads and cache layers without locks. Modern Java's <code>record</code> gives you immutability, equals, hashCode, toString, and accessors in one line.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public record</span> <span class="type">RateQuote</span>(
+  <span class="type">String</span> carrier,
+  <span class="type">String</span> service,
+  <span class="type">Money</span> price,
+  <span class="type">Duration</span> eta
+) {
+  <span class="kw">public</span> <span class="type">RateQuote</span> withPrice(<span class="type">Money</span> p) {
+    <span class="kw">return new</span> <span class="type">RateQuote</span>(carrier, service, p, eta);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">RateQuote</span> q = <span class="kw">new</span> <span class="type">RateQuote</span>(<span class="str">"FedEx"</span>, <span class="str">"GROUND"</span>,
+    <span class="type">Money</span>.usd(<span class="kw">12.50</span>), <span class="type">Duration</span>.ofDays(<span class="kw">3</span>));
+
+<span class="type">RateQuote</span> discounted = q.withPrice(q.price().multiply(<span class="kw">0.9</span>));
+<span class="cmt">// Original q is untouched. Safe to pass to caches, other threads, etc.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> All DTOs, value objects (Money, Address, Weight), and events. Pass safely across threads without defensive copying.</div>
+    </div>
+
+    <div class="pattern-card concurrency">
+      <div class="pattern-header">
+        <span class="pattern-name">🔮 CompletableFuture</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Async composition primitive — chain operations, fan out in parallel, apply timeouts, fall back on error. <strong>Required vocabulary</strong> for backend interviews; expected fluency at the Staff level for any non-trivial async Java code.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Fan-out with per-task timeout + fallback</span>
+<span class="type">List</span>&lt;<span class="type">CompletableFuture</span>&lt;<span class="type">Quote</span>&gt;&gt; futures = carriers.stream()
+    .map(c -> <span class="type">CompletableFuture</span>
+        .supplyAsync(() -> c.quote(req), pool)
+        .orTimeout(<span class="kw">200</span>, <span class="type">MILLISECONDS</span>)
+        .exceptionally(ex -> <span class="type">Quote</span>.empty()))
+    .toList();</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">List</span>&lt;<span class="type">Quote</span>&gt; results = futures.stream()
+    .map(<span class="type">CompletableFuture</span>::join)
+    .filter(<span class="type">Quote</span>::nonEmpty)
+    .toList();
+<span class="cmt">// Block once at the end. Get whatever returned in time.</span>
+<span class="cmt">// Slow carriers drop out; fast ones contribute.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Parallel carrier rate lookups. Compose downstream calls with strict per-call timeouts to keep p99 under SLO.</div>
+    </div>
+
+    <div class="pattern-card concurrency">
+      <div class="pattern-header">
+        <span class="pattern-name">📦 Producer-Consumer</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Decouples production rate from consumption rate via a bounded queue. <strong>Producers can spike</strong> without blocking; consumers process at their own pace. The queue provides natural backpressure when it fills up.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">private final</span> <span class="type">BlockingQueue</span>&lt;<span class="type">Event</span>&gt; queue =
+    <span class="kw">new</span> <span class="type">LinkedBlockingQueue</span>&lt;&gt;(<span class="kw">10_000</span>);
+
+<span class="cmt">// Worker thread, started at boot</span>
+<span class="kw">void</span> worker() {
+  <span class="kw">while</span> (running) {
+    <span class="type">Event</span> e = queue.take();  <span class="cmt">// blocks if empty</span>
+    process(e);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Producer (e.g., webhook handler)</span>
+<span class="kw">@PostMapping</span>(<span class="str">"/webhook"</span>)
+<span class="kw">void</span> receive(<span class="kw">@RequestBody</span> <span class="type">Event</span> e) {
+  <span class="kw">if</span> (!queue.offer(e, <span class="kw">1</span>, <span class="type">SECONDS</span>)) {
+    <span class="cmt">// queue full -> drop or reject with 503</span>
+  }
+}</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Tracking-event ingestion. Webhook receivers produce; worker pool consumes; queue absorbs bursts during peak shipping hours.</div>
+    </div>
+
+    <div class="pattern-card concurrency">
+      <div class="pattern-header">
+        <span class="pattern-name">🏊 Thread Pool / Executor</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Reuses a fixed pool of threads instead of creating one per task. <strong>Never spawn raw threads in production</strong> — always submit to an executor sized for your workload (CPU-bound vs I/O-bound). Java 21+ virtual threads change the math for I/O-heavy code.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// I/O bound — many threads OK</span>
+<span class="type">ExecutorService</span> ioPool = <span class="type">Executors</span>.newFixedThreadPool(<span class="kw">200</span>);
+
+<span class="cmt">// CPU bound — match cores</span>
+<span class="type">ExecutorService</span> cpuPool = <span class="type">Executors</span>.newFixedThreadPool(
+    <span class="type">Runtime</span>.getRuntime().availableProcessors());
+
+<span class="cmt">// Virtual threads (Java 21+)</span>
+<span class="type">ExecutorService</span> vt = <span class="type">Executors</span>.newVirtualThreadPerTaskExecutor();</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Future</span>&lt;<span class="type">Quote</span>&gt; f = ioPool.submit(() -> carrier.quote(req));
+<span class="type">Quote</span> q = f.get(<span class="kw">500</span>, <span class="type">MILLISECONDS</span>);
+<span class="cmt">// Or with CompletableFuture:</span>
+<span class="type">CompletableFuture</span>.supplyAsync(() -> carrier.quote(req), ioPool);</pre>
+      <div class="gotcha"><strong>⚠️ Staff-level rule:</strong> N_threads ≈ N_cpu × (1 + wait_time/cpu_time). For I/O-heavy code on Java 21+, virtual threads let you forget the sizing entirely.</div>
+    </div>
+
+    <div class="pattern-card concurrency">
+      <div class="pattern-header">
+        <span class="pattern-name">🔐 Read-Write Lock</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Allows many concurrent readers but exclusive writer access. <strong><code>StampedLock</code> with optimistic reads</strong> is the modern choice — readers don't block each other or block on the writer, only validate at the end. Perfect for read-heavy hot paths.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">private final</span> <span class="type">StampedLock</span> lock = <span class="kw">new</span> <span class="type">StampedLock</span>();
+<span class="kw">private</span> <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">Rate</span>&gt; data = <span class="kw">new</span> <span class="type">HashMap</span>&lt;&gt;();
+
+<span class="kw">public</span> <span class="type">Rate</span> read(<span class="type">String</span> key) {
+  <span class="kw">long</span> stamp = lock.tryOptimisticRead();
+  <span class="type">Rate</span> r = data.get(key);
+  <span class="kw">if</span> (!lock.validate(stamp)) {
+    stamp = lock.readLock();
+    <span class="kw">try</span> { r = data.get(key); }
+    <span class="kw">finally</span> { lock.unlockRead(stamp); }
+  }
+  <span class="kw">return</span> r;
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">RateCache</span> cache = <span class="kw">new</span> <span class="type">RateCache</span>();
+<span class="type">Rate</span> r = cache.read(<span class="str">"US-CA-2lb"</span>);  <span class="cmt">// many threads concurrent</span>
+cache.refresh(newRates);          <span class="cmt">// exclusive, readers briefly retry</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Rate-card cache — refreshed once a day, read millions of times per minute. Optimistic reads keep p99 fast.</div>
+    </div>
+
+    <div class="pattern-card concurrency">
+      <div class="pattern-header">
+        <span class="pattern-name">⚛️ Atomic + Lock-Free</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Uses CPU-level compare-and-swap (CAS) instructions to update shared state without locks. <strong>Faster than synchronization</strong> for simple operations — counters, flags, single-reference swaps. <code>LongAdder</code> beats <code>AtomicLong</code> under high contention.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">private final</span> <span class="type">LongAdder</span> requestCount = <span class="kw">new</span> <span class="type">LongAdder</span>();
+<span class="kw">private final</span> <span class="type">AtomicReference</span>&lt;<span class="type">Config</span>&gt; config =
+    <span class="kw">new</span> <span class="type">AtomicReference</span>&lt;&gt;(<span class="type">Config</span>.defaults());</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Increment from any thread, no lock contention</span>
+requestCount.increment();
+<span class="kw">long</span> total = requestCount.sum();
+
+<span class="cmt">// Atomic swap of immutable config</span>
+<span class="type">Config</span> old = config.get();
+<span class="type">Config</span> updated = old.withTimeout(<span class="type">Duration</span>.ofMillis(<span class="kw">500</span>));
+config.compareAndSet(old, updated);  <span class="cmt">// retry-if-stale pattern</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Per-carrier request counters, hot-path config swaps without locking readers, lock-free flag-driven feature toggles.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== DISTRIBUTED =================== -->
+<div class="section" id="distributed">
+  <div class="section-header">
+    <span class="section-emoji">🌐</span>
+    <h2>Distributed Systems Patterns</h2>
+  </div>
+  <p class="section-desc">The Staff-level differentiator. These come up in <strong>every</strong> system design round. Be fluent enough to recommend, sketch, and discuss tradeoffs without thinking.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">⚡ Circuit Breaker</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Tracks failures from a downstream dependency and <strong>"opens the circuit"</strong> once a threshold is breached, failing fast instead of compounding latency. Periodically tries again to detect recovery. Prevents cascading failure across services.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">RateService</span> {
+
+  <span class="kw">@CircuitBreaker</span>(name = <span class="str">"fedex"</span>, fallbackMethod = <span class="str">"fallback"</span>)
+  <span class="kw">public</span> <span class="type">Quote</span> getRate(<span class="type">Req</span> r) {
+    <span class="kw">return</span> fedex.quote(r);
+  }
+  <span class="kw">public</span> <span class="type">Quote</span> fallback(<span class="type">Req</span> r, <span class="type">Exception</span> e) {
+    <span class="kw">return</span> <span class="type">Quote</span>.empty();
+  }
+}
+<span class="cmt">// States: CLOSED -> OPEN -> HALF_OPEN -> CLOSED</span></pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@Autowired</span> <span class="type">RateService</span> rates;
+
+<span class="type">Quote</span> q = rates.getRate(req);
+<span class="cmt">// If FedEx is healthy: real call.</span>
+<span class="cmt">// If breaker is OPEN: fallback runs immediately, no FedEx call.</span>
+<span class="cmt">// If HALF_OPEN: limited probe calls test recovery.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> One circuit breaker per carrier. A slow FedEx doesn't take down the entire rate-quote service.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🔄 Retry with Exponential Backoff</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Retries failed operations with exponentially increasing delays plus jitter. <strong>Only safe for idempotent operations</strong> — never blindly retry POSTs that could double-charge. Jitter prevents thundering-herd retry storms.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Retryable</span>(
+  retryFor = {<span class="type">IOException</span>.class, <span class="type">TimeoutException</span>.class},
+  maxAttempts = <span class="kw">3</span>,
+  backoff = <span class="kw">@Backoff</span>(
+    delay = <span class="kw">100</span>,        <span class="cmt">// 100ms, then 200ms, then 400ms</span>
+    multiplier = <span class="kw">2</span>,
+    random = <span class="kw">true</span>      <span class="cmt">// jitter</span>
+  )
+)
+<span class="kw">public</span> <span class="type">Result</span> call() { <span class="kw">return</span> client.invoke(); }</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@Autowired</span> <span class="type">CarrierClient</span> client;
+
+<span class="kw">try</span> {
+  <span class="type">Result</span> r = client.call(req);  <span class="cmt">// transparently retried</span>
+} <span class="kw">catch</span> (<span class="type">RetryExhaustedException</span> e) {
+  <span class="cmt">// All 3 attempts failed — handle definitively</span>
+}</pre>
+      <div class="gotcha"><strong>⚠️ Staff-level:</strong> Don't retry — 4xx (won't change), POSTs without idempotency keys (double-charge!), or things behind your own circuit breaker (compounds load).</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🚧 Bulkhead</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Isolates resource pools so failure in one dependency can't starve the others. <strong>Separate thread pools and connection pools per downstream</strong> — when FedEx slows, UPS calls still go through. Named after ship compartments that prevent total flooding.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="type">Map</span>&lt;<span class="type">String</span>, <span class="type">ExecutorService</span>&gt; pools = <span class="type">Map</span>.of(
+    <span class="str">"fedex"</span>, <span class="type">Executors</span>.newFixedThreadPool(<span class="kw">20</span>),
+    <span class="str">"ups"</span>,   <span class="type">Executors</span>.newFixedThreadPool(<span class="kw">20</span>),
+    <span class="str">"usps"</span>,  <span class="type">Executors</span>.newFixedThreadPool(<span class="kw">20</span>));</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">ExecutorService</span> pool = pools.get(carrier.name());
+<span class="type">CompletableFuture</span>&lt;<span class="type">Quote</span>&gt; f =
+    <span class="type">CompletableFuture</span>.supplyAsync(() -> carrier.quote(req), pool);
+<span class="cmt">// Slow FedEx exhausts its 20 threads. UPS pool stays unaffected.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Per-carrier thread + connection pools. Critical for preventing one bad dependency from cascading into total outage.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🔑 Idempotency Key</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Client tags each side-effectful request with a unique key. Server stores (key → result); repeated submissions return the cached result instead of executing again. <strong>Non-negotiable for any operation touching money</strong> or generating external state.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public</span> <span class="type">Label</span> generate(<span class="type">Req</span> r, <span class="type">String</span> idemKey) {
+  <span class="kw">var</span> existing = store.find(idemKey);
+  <span class="kw">if</span> (existing.isPresent()) <span class="kw">return</span> existing.get();
+  <span class="kw">var</span> label = doGenerate(r);
+  store.save(idemKey, label, <span class="type">Duration</span>.ofDays(<span class="kw">7</span>));
+  <span class="kw">return</span> label;
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Client side: same key for retries of the same logical request</span>
+<span class="type">String</span> key = <span class="type">UUID</span>.randomUUID().toString();
+
+<span class="type">Label</span> l1 = service.generate(req, key);  <span class="cmt">// network blip...</span>
+<span class="type">Label</span> l2 = service.generate(req, key);  <span class="cmt">// retry, same key</span>
+
+<span class="kw">assert</span> l1.id().equals(l2.id());  <span class="cmt">// same label, no double-charge</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Every label-buy request carries a UUID from the seller. Retry on network blip → same label, no double-charge.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">📖 Saga (Compensating Tx)</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Coordinates a multi-step transaction across services without distributed transactions. Each forward step has a <strong>compensating action</strong> that undoes it if a later step fails. The standard replacement for 2PC at scale.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">try</span> {
+  reserveInventory(o);    <span class="cmt">// compensate: releaseInventory</span>
+  chargePayment(o);       <span class="cmt">// compensate: refund</span>
+  generateLabel(o);       <span class="cmt">// compensate: voidLabel</span>
+  sendConfirmation(o);
+} <span class="kw">catch</span> (<span class="type">Exception</span> e) {
+  runCompensators(o, e);  <span class="cmt">// in reverse order</span>
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Or with a saga orchestrator framework:</span>
+<span class="type">SagaOrchestrator</span>.start(order)
+    .step(<span class="kw">this</span>::reserveInventory).compensate(<span class="kw">this</span>::releaseInventory)
+    .step(<span class="kw">this</span>::charge).compensate(<span class="kw">this</span>::refund)
+    .step(<span class="kw">this</span>::generateLabel).compensate(<span class="kw">this</span>::voidLabel)
+    .execute();</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Multi-step purchase flow. If label gen fails after payment succeeds, auto-refund. Orchestration-based (one coordinator) or choreography (events) variants.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">📤 Transactional Outbox</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Solves the <strong>dual-write problem</strong> — when you need to both persist state and publish an event but they live in different systems. Write both to the same DB transaction; a separate poller reads the outbox table and emits to the message broker. Guarantees exactly-once event publish.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Transactional</span>
+<span class="kw">public void</span> ship(<span class="type">Order</span> o) {
+  shipmentRepo.save(<span class="kw">new</span> <span class="type">Shipment</span>(o));
+  outboxRepo.save(<span class="kw">new</span> <span class="type">OutboxEvent</span>(
+    <span class="str">"ShipmentCreated"</span>, o.id(), toJson(o)));
+}
+<span class="cmt">// Both rows commit together — or both roll back.</span></pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Caller doesn't care about outbox plumbing</span>
+shippingService.ship(order);
+
+<span class="cmt">// Meanwhile, a separate poller (different process):</span>
+<span class="cmt">// 1. SELECT * FROM outbox WHERE sent_at IS NULL</span>
+<span class="cmt">// 2. publish each row to Kafka</span>
+<span class="cmt">// 3. mark sent_at = now()</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Guarantees "shipment was created" event reaches Kafka exactly when the shipment row commits. No lost events from dual-write races.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">📊 CQRS</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Separates the model used for writes (normalized, transactional) from the model used for reads (denormalized, query-optimized). <strong>Eventual consistency is the price</strong> — pay it when read and write workloads diverge enough that one model can't serve both well.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Write side - normalized, transactional</span>
+<span class="kw">@Transactional</span>
+<span class="kw">void</span> placeOrder(<span class="type">Order</span> o) {
+  orderWriteRepo.save(o);
+}
+
+<span class="cmt">// Async projector updates read model</span>
+<span class="kw">@EventListener</span>
+<span class="kw">void</span> on(<span class="type">OrderPlaced</span> e) {
+  orderSearchIndex.upsert(toReadModel(e));
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Writes go to Postgres</span>
+orderService.placeOrder(order);
+
+<span class="cmt">// Reads hit Elasticsearch (denormalized for query)</span>
+<span class="type">List</span>&lt;<span class="type">OrderSummary</span>&gt; recent =
+    orderSearchService.findRecentByBuyer(buyerId);</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Listings written to Oracle/Postgres; search reads from Solr/Elasticsearch projections. Eventual consistency between them is acceptable for search.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">📜 Event Sourcing</span>
+        <span class="pattern-tag tag-staff">Niche/Powerful</span>
+      </div>
+      <div class="pattern-desc">
+        Stores every state change as an immutable event; current state is derived by replaying the event stream. <strong>Powerful for audit-heavy domains</strong> but complex — only adopt when "what was the state at time T" is a real product requirement. Often paired with CQRS.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Events as source of truth</span>
+eventStore.append(<span class="kw">new</span> <span class="type">LabelPurchased</span>(id, ...));
+eventStore.append(<span class="kw">new</span> <span class="type">LabelPrinted</span>(id, ...));
+eventStore.append(<span class="kw">new</span> <span class="type">LabelVoided</span>(id, reason));
+
+<span class="cmt">// State derived from event stream</span>
+<span class="type">LabelState</span> current = eventStore.stream(id)
+    .reduce(<span class="type">LabelState</span>.initial(), <span class="type">LabelState</span>::apply);</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Current state</span>
+<span class="type">LabelState</span> now = labelService.currentState(labelId);
+
+<span class="cmt">// Historical state — the killer feature</span>
+<span class="type">LabelState</span> at = labelService.stateAt(labelId, lastWeek);
+<span class="cmt">// Audit query: "what was the state when the seller complained?"</span></pre>
+      <div class="gotcha"><strong>⚠️ Tradeoff:</strong> Powerful but heavy. Schema evolution is hard; snapshotting is required at scale. Reserve for domains where audit/replay is core, not as default.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🪟 Rate Limiting</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Caps how many operations a tenant or client can perform in a time window. <strong>Token bucket</strong> is the typical choice — allows controlled bursts, easy to reason about. Critical for protecting against abuse and fair resource sharing.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Bucket4j — token bucket per seller</span>
+<span class="kw">private</span> <span class="type">Bucket</span> bucketFor(<span class="type">SellerId</span> id) {
+  <span class="kw">return</span> <span class="type">Bucket</span>.builder()
+    .addLimit(<span class="type">Bandwidth</span>.simple(
+        <span class="kw">100</span>, <span class="type">Duration</span>.ofMinutes(<span class="kw">1</span>)))
+    .build();
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@PostMapping</span>(<span class="str">"/labels"</span>)
+<span class="type">ResponseEntity</span>&lt;?&gt; create(<span class="kw">@RequestBody</span> <span class="type">Req</span> r, <span class="kw">@Auth</span> <span class="type">Seller</span> s) {
+  <span class="kw">if</span> (!bucketFor(s.id()).tryConsume(<span class="kw">1</span>)) {
+    <span class="kw">return</span> <span class="type">ResponseEntity</span>.status(<span class="kw">429</span>).build();
+  }
+  <span class="kw">return</span> <span class="type">ResponseEntity</span>.ok(labelService.create(r));
+}</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Per-seller request limits on label generation. Per-carrier limits to respect their API quotas. Per-IP at the gateway.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🪦 Strangler Fig</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Replaces a legacy system incrementally by routing some traffic to the new one and growing that slice over time. <strong>The safest way to migrate production systems</strong> — no big-bang cutover, easy rollback at any percentage. Named after a fig tree that strangles its host.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">ShippingRouter</span> {
+  <span class="kw">public</span> <span class="type">Result</span> ship(<span class="type">Order</span> o) {
+    <span class="kw">if</span> (flags.isEnabled(<span class="str">"new-shipping"</span>, o.seller())) {
+      <span class="kw">return</span> newShippingService.ship(o);
+    }
+    <span class="kw">return</span> legacyShippingService.ship(o);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Callers don't know there are two backends</span>
+shippingRouter.ship(order);
+<span class="cmt">// Week 1: 1% sellers on new system</span>
+<span class="cmt">// Week 4: 10%</span>
+<span class="cmt">// Week 12: 100% — delete legacy when traffic = 0</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Migrating legacy Java monolith services to microservices. Roll forward seller-by-seller, region-by-region, over months.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🚪 API Gateway</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Single entry point for clients in a microservices world. Handles auth, rate limiting, routing, request shaping, and response aggregation. <strong>BFF variant</strong> (Backend For Frontend) shapes responses per client type — mobile, web, partner.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Often a separate product:</span>
+<span class="cmt">// Kong, AWS API Gateway, Spring Cloud Gateway</span>
+
+<span class="cmt">// Or a thin BFF service per client type:</span>
+<span class="kw">@RestController</span>
+<span class="kw">class</span> <span class="type">MobileBFF</span> {
+  <span class="kw">@GetMapping</span>(<span class="str">"/orders/{id}"</span>)
+  <span class="type">MobileOrderDTO</span> get(<span class="kw">@PathVariable</span> <span class="type">Long</span> id) {
+    <span class="kw">var</span> order = orderSvc.get(id);
+    <span class="kw">var</span> ship  = shipSvc.get(order.shipmentId());
+    <span class="kw">return</span> mobileMapper.compose(order, ship);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Mobile client hits BFF gateway, not raw services</span>
+<span class="type">GET</span> https://mobile-bff.ebay.com/orders/<span class="kw">123</span>
+
+<span class="cmt">// BFF fans out to OrderSvc + ShipmentSvc + PaymentSvc,</span>
+<span class="cmt">// composes one mobile-optimized JSON response.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Mobile app, seller hub, and partner APIs each have different needs. BFF gives each a tailored response without bloating shared services.</div>
+    </div>
+
+    <div class="pattern-card distributed">
+      <div class="pattern-header">
+        <span class="pattern-name">🚀 Cache-Aside</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Application checks the cache first; on miss, loads from source-of-truth and populates the cache. <strong>The most common cache pattern</strong> — simple, lazy, and easy to reason about. Variants: write-through, write-behind, refresh-ahead for stricter consistency.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public</span> <span class="type">Rate</span> getRate(<span class="type">String</span> key) {
+  <span class="type">Rate</span> cached = redis.get(key);
+  <span class="kw">if</span> (cached != <span class="kw">null</span>) <span class="kw">return</span> cached;
+
+  <span class="type">Rate</span> rate = db.findRate(key);
+  redis.set(key, rate, <span class="type">Duration</span>.ofHours(<span class="kw">1</span>));
+  <span class="kw">return</span> rate;
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Rate</span> r = rateService.getRate(<span class="str">"US-CA-2lb"</span>);
+<span class="cmt">// First call: cache miss -> DB query -> populate cache -> return</span>
+<span class="cmt">// Next calls (1hr): cache hit -> return immediately</span>
+<span class="cmt">// After TTL: refresh on next request</span></pre>
+      <div class="gotcha"><strong>⚠️ Staff-level:</strong> Know variants — write-through (sync write to both), write-behind (async DB write), refresh-ahead (preemptive reload). Pick by consistency requirements.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== SPRING =================== -->
+<div class="section" id="spring">
+  <div class="section-header">
+    <span class="section-emoji">🍃</span>
+    <h2>Spring &amp; Web Patterns</h2>
+  </div>
+  <p class="section-desc">Spring is eBay's stack. Be fluent in idiomatic Spring patterns — interviewers test this directly.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card spring">
+      <div class="pattern-header">
+        <span class="pattern-name">💉 Dependency Injection</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Objects receive their dependencies from outside instead of constructing them. <strong>Constructor injection with final fields is the right default</strong> — testable, immutable, fails fast if a dependency is missing at startup. Field injection is an anti-pattern.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Service</span>
+<span class="kw">public class</span> <span class="type">QuoteService</span> {
+  <span class="kw">private final</span> <span class="type">List</span>&lt;<span class="type">Carrier</span>&gt; carriers;
+  <span class="kw">private final</span> <span class="type">RateCache</span> cache;
+
+  <span class="cmt">// Spring auto-injects; @Autowired optional with single ctor</span>
+  <span class="kw">public</span> <span class="type">QuoteService</span>(<span class="type">List</span>&lt;<span class="type">Carrier</span>&gt; carriers, <span class="type">RateCache</span> cache) {
+    <span class="kw">this</span>.carriers = carriers;
+    <span class="kw">this</span>.cache = cache;
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Other beans get it injected too — Spring resolves the graph</span>
+<span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">OrderService</span> {
+  <span class="kw">private final</span> <span class="type">QuoteService</span> quotes;
+  <span class="type">OrderService</span>(<span class="type">QuoteService</span> quotes) { <span class="kw">this</span>.quotes = quotes; }
+}
+
+<span class="cmt">// In tests — wire fakes directly, no Spring needed</span>
+<span class="kw">var</span> svc = <span class="kw">new</span> <span class="type">QuoteService</span>(<span class="type">List</span>.of(fakeCarrier), fakeCache);</pre>
+      <div class="gotcha"><strong>⚠️ Avoid:</strong> Field injection (<code>@Autowired</code> on fields). Blocks testing without Spring, hides dependencies, allows non-final state.</div>
+    </div>
+
+    <div class="pattern-card spring">
+      <div class="pattern-header">
+        <span class="pattern-name">📦 Repository</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Abstracts data access behind a domain-facing interface. <strong>Business code talks to the repository</strong>, not to JPA/JDBC/HTTP directly — making it easy to swap implementations for testing or to migrate storage backends.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public interface</span> <span class="type">ShipmentRepository</span>
+    <span class="kw">extends</span> <span class="type">JpaRepository</span>&lt;<span class="type">Shipment</span>, <span class="type">Long</span>&gt; {
+
+  <span class="type">List</span>&lt;<span class="type">Shipment</span>&gt; findBySellerId(<span class="type">Long</span> sellerId);
+
+  <span class="kw">@Query</span>(<span class="str">"SELECT s FROM Shipment s WHERE s.state = :state"</span>)
+  <span class="type">List</span>&lt;<span class="type">Shipment</span>&gt; findByState(<span class="kw">@Param</span>(<span class="str">"state"</span>) <span class="type">State</span> state);
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@Autowired</span> <span class="type">ShipmentRepository</span> shipments;
+
+<span class="type">List</span>&lt;<span class="type">Shipment</span>&gt; open = shipments.findByState(<span class="type">OPEN</span>);
+<span class="type">Shipment</span> saved = shipments.save(<span class="kw">new</span> <span class="type">Shipment</span>(...));
+shipments.findById(<span class="kw">123L</span>).ifPresent(<span class="kw">this</span>::process);</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Hides whether data lives in Oracle, Postgres, Cassandra, or a remote service. Swappable for unit tests with in-memory fakes.</div>
+    </div>
+
+    <div class="pattern-card spring">
+      <div class="pattern-header">
+        <span class="pattern-name">📨 DTO / Mapper</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Transports data across boundaries (HTTP, queue messages) without exposing internal entities. <strong>Never serialize JPA entities directly</strong> — leaks internals, breaks on schema changes, can serialize lazy-loaded relations into infinite JSON. MapStruct generates mappers at compile time.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public record</span> <span class="type">ShipmentDTO</span>(<span class="type">String</span> id, <span class="type">String</span> status, <span class="type">String</span> trackingNo) {}
+
+<span class="kw">@Mapper</span>(componentModel = <span class="str">"spring"</span>)
+<span class="kw">public interface</span> <span class="type">ShipmentMapper</span> {
+  <span class="type">ShipmentDTO</span> toDto(<span class="type">Shipment</span> s);
+  <span class="type">Shipment</span> toEntity(<span class="type">ShipmentDTO</span> d);
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@RestController</span>
+<span class="kw">class</span> <span class="type">ShipmentController</span> {
+  <span class="kw">private final</span> <span class="type">ShipmentRepository</span> repo;
+  <span class="kw">private final</span> <span class="type">ShipmentMapper</span> mapper;
+
+  <span class="kw">@GetMapping</span>(<span class="str">"/shipments/{id}"</span>)
+  <span class="type">ShipmentDTO</span> get(<span class="kw">@PathVariable</span> <span class="type">Long</span> id) {
+    <span class="kw">return</span> mapper.toDto(repo.findById(id).orElseThrow());
+  }
+}</pre>
+      <div class="gotcha"><strong>⚠️ Why:</strong> Entities reflect DB schema; DTOs reflect API contract. Coupling them creates breaking changes whenever you refactor the schema.</div>
+    </div>
+
+    <div class="pattern-card spring">
+      <div class="pattern-header">
+        <span class="pattern-name">🎯 AOP / Interceptors</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Applies <strong>cross-cutting concerns</strong> (logging, metrics, security, transactions) declaratively via annotations or pointcuts. Keeps domain code clean of boilerplate. Don't overuse — runtime magic can surprise debuggers.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Aspect</span>
+<span class="kw">@Component</span>
+<span class="kw">class</span> <span class="type">MetricsAspect</span> {
+
+  <span class="kw">@Around</span>(<span class="str">"@annotation(Timed)"</span>)
+  <span class="kw">public</span> <span class="type">Object</span> time(<span class="type">ProceedingJoinPoint</span> pjp) <span class="kw">throws</span> <span class="type">Throwable</span> {
+    <span class="kw">long</span> start = <span class="type">System</span>.nanoTime();
+    <span class="kw">try</span> { <span class="kw">return</span> pjp.proceed(); }
+    <span class="kw">finally</span> {
+      metrics.record(pjp.getSignature().getName(),
+                     <span class="type">System</span>.nanoTime() - start);
+    }
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">QuoteService</span> {
+  <span class="kw">@Timed</span>  <span class="cmt">// metrics auto-emit via the aspect</span>
+  <span class="kw">public</span> <span class="type">Quote</span> quote(<span class="type">Req</span> r) {
+    <span class="kw">return</span> doQuote(r);
+  }
+}</pre>
+      <div class="ebay-example"><strong>eBay:</strong> Auto-emit metrics for every <code>@Timed</code> method. Security checks via <code>@PreAuthorize</code>. Transactions via <code>@Transactional</code>. Caching via <code>@Cacheable</code>.</div>
+    </div>
+
+    <div class="pattern-card spring">
+      <div class="pattern-header">
+        <span class="pattern-name">🛡️ Global Exception Handling</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Centralizes the mapping of exceptions to HTTP responses so controllers stay free of try/catch boilerplate. Pairs well with <strong>RFC 7807 Problem Details</strong> for consistent error shapes. Frequently asked at eBay interviews.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@RestControllerAdvice</span>
+<span class="kw">public class</span> <span class="type">GlobalExceptionHandler</span> {
+
+  <span class="kw">@ExceptionHandler</span>(<span class="type">RateLimitException</span>.class)
+  <span class="kw">public</span> <span class="type">ResponseEntity</span>&lt;<span class="type">Error</span>&gt; rateLimit(<span class="type">RateLimitException</span> e) {
+    <span class="kw">return</span> <span class="type">ResponseEntity</span>.status(<span class="kw">429</span>)
+        .body(<span class="kw">new</span> <span class="type">Error</span>(<span class="str">"RATE_LIMIT"</span>, e.getMessage()));
+  }
+
+  <span class="kw">@ExceptionHandler</span>(<span class="type">IllegalArgumentException</span>.class)
+  <span class="kw">public</span> <span class="type">ResponseEntity</span>&lt;<span class="type">Error</span>&gt; badReq(<span class="type">IllegalArgumentException</span> e) {
+    <span class="kw">return</span> <span class="type">ResponseEntity</span>.status(<span class="kw">400</span>)
+        .body(<span class="kw">new</span> <span class="type">Error</span>(<span class="str">"BAD_REQ"</span>, e.getMessage()));
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@PostMapping</span>(<span class="str">"/labels"</span>)
+<span class="type">LabelDto</span> create(<span class="kw">@RequestBody</span> <span class="type">Req</span> r) {
+  <span class="kw">return</span> service.create(r);  <span class="cmt">// no try/catch needed</span>
+}
+<span class="cmt">// Exceptions propagate to GlobalExceptionHandler -> consistent JSON</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Consistent error response shape across all controllers. Trace IDs, structured error codes, no leaked stack traces.</div>
+    </div>
+
+    <div class="pattern-card spring">
+      <div class="pattern-header">
+        <span class="pattern-name">📋 Spring Profiles</span>
+        <span class="pattern-tag tag-common">Common</span>
+      </div>
+      <div class="pattern-desc">
+        Activates different bean configurations based on environment (dev, staging, prod). <strong>Same code, different wiring</strong> — real carrier APIs in prod, stubs in dev. Commonly asked in eBay interviews because it's everyday operational tooling.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">@Configuration</span>
+<span class="kw">class</span> <span class="type">CarrierConfig</span> {
+
+  <span class="kw">@Profile</span>(<span class="str">"prod"</span>)
+  <span class="kw">@Bean</span>
+  <span class="type">Carrier</span> fedex() { <span class="kw">return new</span> <span class="type">FedExLive</span>(prodApiKey); }
+
+  <span class="kw">@Profile</span>({<span class="str">"dev"</span>, <span class="str">"test"</span>})
+  <span class="kw">@Bean</span>
+  <span class="type">Carrier</span> fedexStub() { <span class="kw">return new</span> <span class="type">FedExStub</span>(); }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt"># application.yml or env var</span>
+spring.profiles.active=prod
+
+<span class="cmt">// At runtime, only the matching @Profile beans wire up</span>
+<span class="kw">@Autowired</span> <span class="type">Carrier</span> fedex;
+<span class="cmt">// In prod: FedExLive. In dev: FedExStub. Same calling code.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Real carrier APIs in prod, sandbox/mock APIs in dev. Profiles also gate database connection details, feature flags, monitoring config.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== DDD =================== -->
+<div class="section" id="ddd">
+  <div class="section-header">
+    <span class="section-emoji">🎯</span>
+    <h2>DDD &amp; Architectural Patterns</h2>
+  </div>
+  <p class="section-desc">Domain-driven design vocabulary signals senior-to-staff thinking. You don't have to "do DDD" — but using these terms correctly in interviews instantly elevates the conversation.</p>
+
+  <div class="patterns-grid">
+
+    <div class="pattern-card ddd">
+      <div class="pattern-header">
+        <span class="pattern-name">🏛️ Aggregate</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        A cluster of related objects treated as a single unit, with one root entity guarding all invariants. <strong>Transactions never span aggregate boundaries</strong> — this is how you keep consistency boundaries explicit and avoid distributed-transaction nightmares.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Order is the aggregate root. Items and Shipment are inside.</span>
+<span class="kw">class</span> <span class="type">Order</span> {
+  <span class="kw">private final</span> <span class="type">List</span>&lt;<span class="type">OrderItem</span>&gt; items;
+  <span class="kw">private</span> <span class="type">Shipment</span> shipment;
+  <span class="kw">private</span> <span class="type">OrderState</span> state;
+
+  <span class="kw">public void</span> ship(<span class="type">Carrier</span> c) {
+    <span class="kw">if</span> (!canShip())
+      <span class="kw">throw new</span> <span class="type">IllegalStateException</span>();
+    <span class="kw">this</span>.shipment = <span class="kw">new</span> <span class="type">Shipment</span>(<span class="kw">this</span>, c);
+    <span class="kw">this</span>.state = <span class="type">SHIPPED</span>;
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Order</span> order = orderRepo.findById(id).orElseThrow();
+order.addItem(item);   <span class="cmt">// through the root — invariants checked</span>
+order.ship(carrier);   <span class="cmt">// state transition guarded</span>
+orderRepo.save(order); <span class="cmt">// whole aggregate atomically</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Order owns OrderItems + Shipment + Payment state. External code never mutates them directly — always through the root.</div>
+    </div>
+
+    <div class="pattern-card ddd">
+      <div class="pattern-header">
+        <span class="pattern-name">💎 Value Object</span>
+        <span class="pattern-tag tag-must">Must Know</span>
+      </div>
+      <div class="pattern-desc">
+        Defined entirely by its values, not by identity — two <code>Money(10, USD)</code> instances are equal. <strong>Always immutable</strong>, often enforces invariants in its constructor (no negative weights, valid currencies). Use records.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public record</span> <span class="type">Money</span>(<span class="type">BigDecimal</span> amount, <span class="type">Currency</span> currency) {
+  <span class="kw">public</span> <span class="type">Money</span> {
+    <span class="kw">if</span> (amount.signum() &lt; <span class="kw">0</span>)
+      <span class="kw">throw new</span> <span class="type">IllegalArgumentException</span>(<span class="str">"negative"</span>);
+  }
+  <span class="kw">public</span> <span class="type">Money</span> plus(<span class="type">Money</span> other) {
+    <span class="kw">if</span> (!currency.equals(other.currency))
+      <span class="kw">throw new</span> <span class="type">CurrencyMismatch</span>();
+    <span class="kw">return new</span> <span class="type">Money</span>(amount.add(other.amount), currency);
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="type">Money</span> price = <span class="type">Money</span>.usd(<span class="kw">12.50</span>);
+<span class="type">Money</span> taxed = price.plus(tax);  <span class="cmt">// new Money, original untouched</span>
+<span class="kw">if</span> (price.equals(other)) { ... }  <span class="cmt">// equality by value</span>
+
+<span class="type">Address</span> dest = <span class="kw">new</span> <span class="type">Address</span>(
+    <span class="str">"123 Main"</span>, <span class="str">"Bellevue"</span>, <span class="str">"WA"</span>, <span class="str">"98004"</span>);
+<span class="cmt">// Constructor validates format/checksum</span></pre>
+      <div class="gotcha"><strong>⚠️ Anti-pattern:</strong> Using <code>double</code> for money or <code>String</code> for everything. Value objects encode invariants in the type system — let the compiler help.</div>
+    </div>
+
+    <div class="pattern-card ddd">
+      <div class="pattern-header">
+        <span class="pattern-name">📢 Domain Event</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        A record of <strong>"something significant just happened"</strong> in the domain. Decouples the action from its downstream consequences — anyone interested can subscribe, the originator doesn't need to know who. Foundational for event-driven architectures.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="kw">public record</span> <span class="type">ShipmentDelivered</span>(
+  <span class="type">String</span> shipmentId,
+  <span class="type">Instant</span> deliveredAt,
+  <span class="type">String</span> signedBy
+) <span class="kw">implements</span> <span class="type">DomainEvent</span> {}
+
+<span class="cmt">// Published when state transitions</span>
+shipment.markDelivered(signedBy);
+events.publish(<span class="kw">new</span> <span class="type">ShipmentDelivered</span>(
+    shipment.id(), <span class="type">Instant</span>.now(), signedBy));</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Subscribers anywhere in the system:</span>
+<span class="kw">@EventListener</span>
+<span class="kw">void</span> completeOrder(<span class="type">ShipmentDelivered</span> e) { ... }
+
+<span class="kw">@EventListener</span>
+<span class="kw">void</span> releaseEscrow(<span class="type">ShipmentDelivered</span> e) { ... }
+
+<span class="kw">@EventListener</span>
+<span class="kw">void</span> requestReview(<span class="type">ShipmentDelivered</span> e) { ... }</pre>
+      <div class="ebay-example"><strong>eBay:</strong> "ShipmentDelivered" fans out to: complete order, release escrow, request seller review, send buyer notification, update analytics.</div>
+    </div>
+
+    <div class="pattern-card ddd">
+      <div class="pattern-header">
+        <span class="pattern-name">🗺️ Bounded Context</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Defines the boundary within which a domain model has a single, consistent meaning. <strong>"Shipment" means different things</strong> in Shipping vs Payments vs Search — and that's fine. Microservice boundaries should align with bounded contexts.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// In Shipping context — rich model</span>
+<span class="kw">class</span> <span class="type">Shipment</span> {
+  <span class="type">Carrier</span> carrier;
+  <span class="type">List</span>&lt;<span class="type">Package</span>&gt; packages;
+  <span class="type">TrackingEvents</span> events;
+}
+
+<span class="cmt">// In Payments context — same name, different model</span>
+<span class="kw">class</span> <span class="type">Shipment</span> {
+  <span class="type">Money</span> shippingCost;
+  <span class="type">SellerId</span> chargeTo;
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Each service owns its model of the same concept</span>
+shippingService.createShipment(orderId, carrier, packages);
+paymentsService.recordShippingCost(orderId, cost);
+
+<span class="cmt">// They communicate via events, NOT shared DB tables</span>
+events.publish(<span class="kw">new</span> <span class="type">ShipmentCreated</span>(...));
+<span class="cmt">// Payments translates to its own model on receive</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Microservices align with bounded contexts. Shipping service ≠ Order service ≠ Payments service, even though they all touch "shipments."</div>
+    </div>
+
+    <div class="pattern-card ddd">
+      <div class="pattern-header">
+        <span class="pattern-name">🚗 Anti-Corruption Layer</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Translates between your clean domain model and a messy external system (legacy or third-party), keeping their concepts out of your code. <strong>Contains the chaos at the edge</strong> — your domain stays clean. A specialized form of Adapter at the service boundary.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// FedEx returns XML, snake_case, dollars-as-strings, weird date formats</span>
+<span class="kw">@Component</span>
+<span class="kw">class</span> <span class="type">FedExACL</span> {
+  <span class="kw">public</span> <span class="type">RateQuote</span> translate(<span class="type">FedExResp</span> raw) {
+    <span class="kw">return new</span> <span class="type">RateQuote</span>(
+      raw.getCarrCode(),
+      <span class="type">Money</span>.of(<span class="kw">new</span> <span class="type">BigDecimal</span>(raw.getAmt()), <span class="type">USD</span>),
+      <span class="type">Duration</span>.ofDays(raw.getDays())
+    );
+  }
+}</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="kw">@Autowired</span> <span class="type">FedExClient</span> rawClient;
+<span class="kw">@Autowired</span> <span class="type">FedExACL</span> acl;
+
+<span class="type">FedExResp</span> raw = rawClient.getRates(...);
+<span class="type">RateQuote</span> clean = acl.translate(raw);
+<span class="cmt">// Rest of code only sees RateQuote — FedEx's XML stays at the edge</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Carrier APIs each have quirks (XML, SOAP, weird date formats). ACL keeps the chaos contained at the boundary.</div>
+    </div>
+
+    <div class="pattern-card ddd">
+      <div class="pattern-header">
+        <span class="pattern-name">🏠 Hexagonal / Ports &amp; Adapters</span>
+        <span class="pattern-tag tag-staff">Staff-Level</span>
+      </div>
+      <div class="pattern-desc">
+        Domain logic depends only on its own <strong>"ports"</strong> (interfaces); infrastructure <strong>"adapters"</strong> implement them. Lets you test the domain with fakes and swap real infrastructure without touching business code. The architectural backbone of clean / onion architectures.
+      </div>
+      <span class="code-label">⚙️ Implementation</span>
+<pre class="pattern-code"><span class="cmt">// Domain layer — defines the port</span>
+<span class="kw">interface</span> <span class="type">CarrierPort</span> {
+  <span class="type">RateQuote</span> quote(<span class="type">Shipment</span> s);
+}
+
+<span class="cmt">// Infrastructure — provides the adapter</span>
+<span class="kw">@Component</span>
+<span class="kw">class</span> <span class="type">FedExAdapter</span> <span class="kw">implements</span> <span class="type">CarrierPort</span> { ... }
+
+<span class="cmt">// Test — provides fake adapter</span>
+<span class="kw">class</span> <span class="type">InMemoryCarrierAdapter</span> <span class="kw">implements</span> <span class="type">CarrierPort</span> { ... }</pre>
+      <span class="code-label">▶ How it's called</span>
+<pre class="pattern-usage"><span class="cmt">// Domain logic NEVER imports FedEx SDK directly</span>
+<span class="kw">@Service</span>
+<span class="kw">class</span> <span class="type">ShippingService</span> {
+  <span class="kw">private final</span> <span class="type">CarrierPort</span> carrier;
+  <span class="kw">public</span> <span class="type">Quote</span> quote(<span class="type">Order</span> o) {
+    <span class="kw">return</span> carrier.quote(toShipment(o));
+  }
+}
+<span class="cmt">// In prod: FedExAdapter. In tests: InMemoryCarrierAdapter.</span></pre>
+      <div class="ebay-example"><strong>eBay:</strong> Domain logic for "calculate shipping" never imports FedEx SDK. Swappable at runtime and at test time.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== STAFF TAKEAWAYS =================== -->
+<div class="section" id="staff-takeaways">
+  <div class="section-header">
+    <span class="section-emoji">🚀</span>
+    <h2>Staff-Level Takeaways</h2>
+  </div>
+  <p class="section-desc">Senior engineers know patterns. Staff engineers know <strong>when not to use them</strong>, and can articulate tradeoffs in 2 sentences.</p>
+
+  <div class="quick-ref">
+    <h4>🎯 The 10 Patterns Most Likely to Come Up in Your eBay Interview</h4>
+    <div class="quick-ref-list">
+      <strong>1. Adapter</strong> — every carrier integration<br>
+      <strong>2. Circuit Breaker</strong> — protecting against downstream failure<br>
+      <strong>3. Idempotency Key</strong> — every money operation<br>
+      <strong>4. Strategy</strong> — pluggable algorithms (pricing, routing, ranking)<br>
+      <strong>5. Cache-Aside</strong> — rate cards, profile data, tracking status<br>
+      <strong>6. State Machine</strong> — label lifecycle, order lifecycle<br>
+      <strong>7. Observer / Pub-Sub</strong> — events fanning out via Kafka<br>
+      <strong>8. Retry + Backoff</strong> — transient failure handling<br>
+      <strong>9. Saga</strong> — multi-service order placement<br>
+      <strong>10. Transactional Outbox</strong> — atomic DB-write + event publish
+    </div>
+  </div>
+
+  <div class="quick-ref">
+    <h4>🧠 Staff Mindset: Pattern Selection</h4>
+    <div class="quick-ref-list">
+      <strong>Senior:</strong> "I'd use the Observer pattern."<br>
+      <strong>Staff:</strong> "In-process events would work, but at our scale we'd want Kafka pub-sub for replayability and to decouple consumers from producer deploys. The tradeoff is operational complexity vs. simpler in-process events — at 100M events/day, Kafka wins."
+      <br><br>
+      <strong>The shift:</strong> always voice <em>what you considered and rejected</em>, not just what you picked.
+    </div>
+  </div>
+
+  <div class="quick-ref">
+    <h4>⚠️ Pattern Anti-Patterns to Avoid Naming in Interviews</h4>
+    <div class="quick-ref-list">
+      <strong>Don't say "Singleton":</strong> In Spring, every bean is one by default. Saying "I'll make it a singleton" sounds like 2005.<br>
+      <strong>Don't reach for Visitor in modern Java:</strong> Sealed interfaces + pattern matching beat it on every dimension.<br>
+      <strong>Don't propose Event Sourcing as a default:</strong> It's powerful but very heavy. Use only when audit trail is core to the domain.<br>
+      <strong>Don't add a Factory just to have one:</strong> If construction is simple, just use <code>new</code>. Factories pay off when there's actual variation to abstract.<br>
+      <strong>Don't say "2PC":</strong> At distributed-systems scale, 2-phase commit doesn't scale. Use Saga instead.<br>
+      <strong>Don't propose Abstract Factory casually:</strong> Only reach for it when the products genuinely need coordination. Otherwise it's Factory Method × N with extra ceremony.
+    </div>
+  </div>
+
+  <div class="quick-ref">
+    <h4>📐 The Staff Engineer's Tradeoff Vocabulary</h4>
+    <div class="quick-ref-list">
+      <strong>Consistency vs. Availability</strong> — CAP theorem. Eventual consistency is fine for most marketplace data; strong consistency for money.<br>
+      <strong>Latency vs. Throughput</strong> — batch for throughput, cache for latency. Different solutions.<br>
+      <strong>Coupling vs. Cohesion</strong> — services that change together should live together; services with different scaling needs should split.<br>
+      <strong>Sync vs. Async</strong> — sync for low latency + simple UX; async for resilience + decoupling.<br>
+      <strong>Pull vs. Push</strong> — pull is deterministic but wasteful; push is fresh but messy. Often hybrid wins.<br>
+      <strong>Stateless vs. Stateful</strong> — stateless services scale horizontally trivially; stateful needs careful sharding.
+    </div>
+  </div>
+
+  <div class="quick-ref">
+    <h4>✅ How to Sound Like a Staff Engineer in Code Reviews / Interviews</h4>
+    <div class="quick-ref-list">
+      • Name the pattern, then immediately the <em>tradeoff</em> ("Adapter here, but the cost is one more class per carrier — worth it because adding a new carrier touches nothing else.")<br>
+      • Reference <em>failure modes</em> when picking patterns ("Saga because 2PC won't scale and we need compensators when payment succeeds but label gen fails")<br>
+      • Mention <em>observability</em> alongside any new pattern ("Adding a circuit breaker — I'd emit state-transition metrics so we can alert on flap rate")<br>
+      • Push back on patterns when they're overkill ("Event sourcing is powerful but it's a big lift. Do we really need to query historical state, or just the latest?")<br>
+      • Connect patterns to <em>team leverage</em> ("If we standardize this adapter interface, the on-call team can add new carriers without a code review from us")
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  📚 Curated for Staff Java Engineer interview prep · For your eBay Shipping team CodeSignal round · Quick-readable reference
+</div>
+
+</body>
+</html>

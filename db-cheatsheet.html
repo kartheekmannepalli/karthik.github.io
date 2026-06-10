@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Systems — Interview Cheatsheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0e14;
+    --bg2:#11141d;
+    --panel:#161a26;
+    --panel2:#1c2130;
+    --ink:#e6e9f0;
+    --muted:#8b93a7;
+    --line:#262c3d;
+    --code:#0a0c11;
+    /* category accents */
+    --acid:#46d4a0;
+    --tx:#5aa9ff;
+    --iso:#f5a623;
+    --lock:#ff6b8b;
+    --dist:#b388ff;
+    --scale:#ffd34e;
+    --cap:#4fd6e0;
+    --green:#46d4a0;
+    --red:#ff6b8b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(90,169,255,.10), transparent 60%),
+      radial-gradient(800px 500px at 5% 5%, rgba(179,136,255,.08), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Public Sans',sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:80px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+  /* ---------- header ---------- */
+  header{
+    padding:64px 0 30px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--tx);margin-bottom:18px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:900;
+    font-size:clamp(38px,7vw,76px);
+    line-height:.95;letter-spacing:-.02em;
+    margin-bottom:18px;
+  }
+  h1 em{font-style:italic;color:var(--acid)}
+  .sub{color:var(--muted);max-width:620px;font-size:16px}
+  .sub code{font-family:'JetBrains Mono',monospace;color:var(--ink);font-size:14px}
+
+  /* ---------- nav ---------- */
+  nav{
+    display:flex;flex-wrap:wrap;gap:8px;margin-top:30px;
+  }
+  nav a{
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    text-decoration:none;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px;transition:.18s;
+  }
+  nav a:hover{color:var(--ink);border-color:var(--tx);background:rgba(90,169,255,.08)}
+
+  /* ---------- section ---------- */
+  section{padding:56px 0 10px;scroll-margin-top:20px}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:26px}
+  .sec-num{
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+    color:var(--muted);padding-top:6px;
+  }
+  .sec-head h2{
+    font-family:'Fraunces',serif;font-weight:600;
+    font-size:clamp(26px,4vw,40px);letter-spacing:-.01em;
+  }
+  .accent-bar{height:3px;width:46px;border-radius:2px;margin-bottom:8px}
+
+  /* ---------- grid + cards ---------- */
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--bg2));
+    border:1px solid var(--line);border-radius:14px;
+    padding:20px;position:relative;overflow:hidden;
+  }
+  .card::before{content:"";position:absolute;top:0;left:0;height:100%;width:3px;background:var(--tx)}
+  .card h3{
+    font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;
+    margin-bottom:8px;display:flex;align-items:center;gap:9px;
+  }
+  .card .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+    letter-spacing:.05em;text-transform:uppercase;
+    padding:3px 8px;border-radius:5px;color:#0c0e14;
+  }
+  .card p{font-size:14px;color:var(--muted);margin-bottom:4px}
+  .card p strong{color:var(--ink);font-weight:600}
+
+  /* code block */
+  pre{
+    background:var(--code);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;overflow-x:auto;margin:12px 0 4px;
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.7;
+  }
+  pre .c{color:#5b6478;font-style:italic}        /* comment */
+  pre .k{color:#5aa9ff;font-weight:600}           /* keyword */
+  pre .s{color:#46d4a0}                            /* string/value */
+  pre .f{color:#f5a623}                            /* function/identifier */
+  pre .r{color:#ff6b8b}                            /* danger/red */
+  pre .g{color:#46d4a0;font-weight:600}            /* good/green */
+  .codecap{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+    margin-top:8px;display:flex;align-items:center;gap:7px;
+  }
+  .codecap::before{content:"▸";color:var(--tx)}
+
+  /* ---------- diagrams ---------- */
+  .acid-grid{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:860px){.acid-grid{grid-template-columns:repeat(2,1fr)}}
+  .acid-letter{font-family:'Fraunces',serif;font-size:46px;font-weight:900;line-height:1}
+
+  table.matrix{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  table.matrix th,table.matrix td{
+    border:1px solid var(--line);padding:10px 12px;text-align:left;
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+  }
+  table.matrix th{background:var(--panel2);color:var(--ink);font-weight:700}
+  table.matrix td:first-child{color:var(--ink);font-weight:600;background:var(--bg2)}
+  .yes{color:var(--red);font-weight:700}
+  .no{color:var(--green);font-weight:700}
+
+  /* flow diagram */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:6px 0}
+  .node{
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;
+    flex:1;min-width:120px;position:relative;
+  }
+  .node b{display:block;color:var(--tx);font-size:11px;margin-bottom:3px}
+  .arrow{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;padding:0 6px}
+  @media(max-width:860px){.arrow{transform:rotate(90deg);padding:6px 0}.flow{flex-direction:column}}
+
+  /* two-col compare */
+  .vs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:860px){.vs{grid-template-columns:1fr}}
+
+  /* sharding visual */
+  .shard-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .shard{
+    flex:1;min-width:90px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:10px;padding:12px;text-align:center;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+  }
+  .shard .sh-id{color:var(--scale);font-weight:700;font-size:13px}
+  .shard .sh-keys{color:var(--muted);margin-top:6px;font-size:10px}
+
+  /* cap triangle */
+  .cap-wrap{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+  .cap-item{flex:1;min-width:200px}
+  .cap-badge{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+    padding:4px 10px;border-radius:6px;margin-bottom:8px;color:#0c0e14;
+  }
+
+  .pill{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;
+    padding:3px 9px;border-radius:6px;border:1px solid var(--line);
+    color:var(--muted);margin:3px 4px 0 0;
+  }
+
+  .note{
+    border-left:3px solid var(--iso);background:rgba(245,166,35,.06);
+    padding:12px 16px;border-radius:0 8px 8px 0;font-size:13.5px;color:var(--ink);margin-top:14px;
+  }
+  .note b{color:var(--iso)}
+
+  footer{
+    margin-top:70px;padding-top:28px;border-top:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);
+    text-align:center;
+  }
+  .interview{
+    margin-top:14px;background:var(--code);border:1px dashed var(--line);
+    border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--ink);
+  }
+  .interview b{color:var(--acid);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">// systems design · reference card</div>
+    <h1>The Database<br><em>Cheatsheet</em></h1>
+    <p class="sub">ACID, isolation, locks, distributed transactions, sharding & scale — the durable-storage concepts that show up in every backend interview. Each block pairs the <i>why</i> with a runnable <code>SQL / pseudo-code</code> snippet.</p>
+    <nav>
+      <a href="#acid">ACID</a>
+      <a href="#tx">Transactions</a>
+      <a href="#iso">Isolation</a>
+      <a href="#locks">Locks</a>
+      <a href="#dist">Distributed Tx</a>
+      <a href="#dlock">Distributed Locks</a>
+      <a href="#scale">Scaling</a>
+      <a href="#shard">Sharding</a>
+      <a href="#cap">CAP</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ ACID ============ -->
+<section id="acid">
+  <div class="accent-bar" style="background:var(--acid)"></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2>ACID — the four guarantees</h2></div>
+  <div class="grid acid-grid">
+    <div class="card" style="--tx:var(--acid)">
+      <div class="acid-letter" style="color:var(--acid)">A</div>
+      <h3>Atomicity</h3>
+      <p>All writes in a transaction commit together, or none do. No partial state.</p>
+      <p><strong>Mechanism:</strong> write-ahead log + rollback.</p>
+    </div>
+    <div class="card" style="--tx:var(--acid)">
+      <div class="acid-letter" style="color:var(--acid)">C</div>
+      <h3>Consistency</h3>
+      <p>Every commit moves the DB from one valid state to another — constraints, FKs, triggers hold.</p>
+      <p><strong>Mechanism:</strong> constraints + your invariants.</p>
+    </div>
+    <div class="card" style="--tx:var(--acid)">
+      <div class="acid-letter" style="color:var(--acid)">I</div>
+      <h3>Isolation</h3>
+      <p>Concurrent transactions don't step on each other. Strength is tunable.</p>
+      <p><strong>Mechanism:</strong> locks / MVCC.</p>
+    </div>
+    <div class="card" style="--tx:var(--acid)">
+      <div class="acid-letter" style="color:var(--acid)">D</div>
+      <h3>Durability</h3>
+      <p>Once committed, survives crash / power loss.</p>
+      <p><strong>Mechanism:</strong> fsync'd WAL, replication.</p>
+    </div>
+  </div>
+  <div class="note"><b>Interview hook:</b> Atomicity ≠ Isolation. A transaction wrapper gives you all-or-nothing (A); it does <i>not</i> by itself stop two concurrent transactions from racing — that's Isolation (I), which you choose separately.</div>
+</section>
+
+<!-- ============ TRANSACTIONS ============ -->
+<section id="tx">
+  <div class="accent-bar" style="background:var(--tx)"></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2>Transactions</h2></div>
+  <div class="grid g2">
+    <div class="card">
+      <h3><span class="tag" style="background:var(--tx)">basic</span> Atomic multi-write</h3>
+      <p>Wrap dependent writes so they commit or roll back as one unit.</p>
+<pre><span class="k">BEGIN</span>;
+  <span class="k">UPDATE</span> users <span class="k">SET</span> balance = balance - <span class="s">:amt</span>
+    <span class="k">WHERE</span> id = <span class="s">:id</span>;
+  <span class="k">INSERT INTO</span> ledger(user_id, delta, type)
+    <span class="k">VALUES</span> (<span class="s">:id</span>, -<span class="s">:amt</span>, <span class="s">'redeem'</span>);
+<span class="k">COMMIT</span>;  <span class="c">-- both land, or neither</span></pre>
+      <div class="codecap">On any error → ROLLBACK; the UPDATE is undone.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag" style="background:var(--tx)">pattern</span> Guard predicate (atomic check)</h3>
+      <p>Push the invariant into the <code>WHERE</code> so "check" + "write" are one step. Inspect rows-affected.</p>
+<pre><span class="k">UPDATE</span> users <span class="k">SET</span> balance = balance - <span class="s">:amt</span>
+  <span class="k">WHERE</span> id = <span class="s">:id</span> <span class="k">AND</span> balance &gt;= <span class="s">:amt</span>;
+
+<span class="c">-- rows == 1 → ok, proceed</span>
+<span class="c">-- rows == 0 → insufficient / lost race → reject</span></pre>
+      <div class="codecap">No read-then-write window for a race to slip into.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ISOLATION ============ -->
+<section id="iso">
+  <div class="accent-bar" style="background:var(--iso)"></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2>Isolation levels & anomalies</h2></div>
+  <p class="sub" style="margin-bottom:18px">Higher isolation = fewer anomalies, less concurrency. Postgres default = <code style="color:var(--iso)">Read Committed</code>.</p>
+  <div class="card" style="--tx:var(--iso)">
+    <table class="matrix">
+      <tr><th>Level</th><th>Dirty read</th><th>Non-repeatable</th><th>Phantom</th></tr>
+      <tr><td>Read Uncommitted</td><td class="yes">possible</td><td class="yes">possible</td><td class="yes">possible</td></tr>
+      <tr><td>Read Committed</td><td class="no">no</td><td class="yes">possible</td><td class="yes">possible</td></tr>
+      <tr><td>Repeatable Read</td><td class="no">no</td><td class="no">no</td><td class="yes">possible*</td></tr>
+      <tr><td>Serializable</td><td class="no">no</td><td class="no">no</td><td class="no">no</td></tr>
+    </table>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card" style="--tx:var(--iso)"><h3>Dirty read</h3><p>You read another tx's <i>uncommitted</i> write that may roll back.</p></div>
+    <div class="card" style="--tx:var(--iso)"><h3>Non-repeatable</h3><p>Same row, read twice in one tx, different values (someone committed an UPDATE between).</p></div>
+    <div class="card" style="--tx:var(--iso)"><h3>Phantom</h3><p>Same query, run twice, different <i>row count</i> (someone INSERTed matching rows).</p></div>
+  </div>
+  <div class="note"><b>Note:</b> Postgres' MVCC makes Repeatable Read block phantoms in practice (*). Serializable lets the DB abort one of two conflicting tx — you retry the loser.
+<pre style="margin-top:10px"><span class="k">BEGIN</span> <span class="k">TRANSACTION ISOLATION LEVEL</span> <span class="f">SERIALIZABLE</span>;
+  <span class="c">-- ... if it conflicts, Postgres raises 40001</span>
+<span class="k">COMMIT</span>;  <span class="c">-- on 40001 → retry with backoff</span></pre></div>
+</section>
+
+<!-- ============ LOCKS ============ -->
+<section id="locks">
+  <div class="accent-bar" style="background:var(--lock)"></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2>Locks — optimistic vs pessimistic</h2></div>
+  <div class="vs">
+    <div class="card" style="--tx:var(--lock)">
+      <h3><span class="tag" style="background:var(--lock)">optimistic</span> Version / CAS</h3>
+      <p>Assume no conflict. Detect it at write time via a version column; retry if it moved.</p>
+<pre><span class="k">SELECT</span> balance, version <span class="k">FROM</span> users <span class="k">WHERE</span> id=<span class="s">:id</span>;
+<span class="c">-- app computes new balance...</span>
+<span class="k">UPDATE</span> users
+   <span class="k">SET</span> balance=<span class="s">:new</span>, version=version+<span class="s">1</span>
+ <span class="k">WHERE</span> id=<span class="s">:id</span> <span class="k">AND</span> version=<span class="s">:read_version</span>;
+<span class="c">-- rows==0 → someone won the race → retry</span></pre>
+      <p><strong>Best for:</strong> low contention, short tx. No lock held.</p>
+    </div>
+    <div class="card" style="--tx:var(--lock)">
+      <h3><span class="tag" style="background:var(--lock)">pessimistic</span> SELECT … FOR UPDATE</h3>
+      <p>Lock the row on read; concurrent writers queue behind you.</p>
+<pre><span class="k">BEGIN</span>;
+  <span class="k">SELECT</span> balance <span class="k">FROM</span> users
+    <span class="k">WHERE</span> id=<span class="s">:id</span> <span class="k">FOR UPDATE</span>;  <span class="c">-- 🔒</span>
+  <span class="c">-- safe: no one else can write this row</span>
+  <span class="k">UPDATE</span> users <span class="k">SET</span> balance=<span class="s">:new</span> <span class="k">WHERE</span> id=<span class="s">:id</span>;
+<span class="k">COMMIT</span>;  <span class="c">-- 🔓 lock released</span></pre>
+      <p><strong>Best for:</strong> high contention, complex read→write logic.</p>
+    </div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card" style="--tx:var(--lock)"><h3>Shared (S)</h3><p>Many readers, no writer. <code>FOR SHARE</code>.</p></div>
+    <div class="card" style="--tx:var(--lock)"><h3>Exclusive (X)</h3><p>One writer, blocks all. <code>FOR UPDATE</code>.</p></div>
+    <div class="card" style="--tx:var(--lock)"><h3>Deadlock</h3><p>A waits on B, B waits on A. Fix: <strong>lock rows in a consistent order</strong>; DB auto-aborts a victim.</p></div>
+  </div>
+</section>
+
+<!-- ============ DISTRIBUTED TX ============ -->
+<section id="dist">
+  <div class="accent-bar" style="background:var(--dist)"></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2>Distributed transactions</h2></div>
+  <p class="sub" style="margin-bottom:18px">When one logical operation spans multiple services / databases, you can't use a single local transaction.</p>
+
+  <div class="card" style="--tx:var(--dist);margin-bottom:16px">
+    <h3><span class="tag" style="background:var(--dist)">2PC</span> Two-Phase Commit</h3>
+    <p>A coordinator asks every participant to <b>prepare</b> (lock + vote), then tells all to <b>commit</b> or <b>abort</b>.</p>
+    <div class="flow">
+      <div class="node"><b>PHASE 1</b>Coordinator → "prepare?"</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>VOTE</b>All reply "yes" (locked)</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>PHASE 2</b>Coordinator → "commit"</div>
+      <div class="arrow">→</div>
+      <div class="node"><b>DONE</b>All commit & release</div>
+    </div>
+    <div class="note" style="border-color:var(--red);background:rgba(255,107,139,.06)"><b style="color:var(--red)">Weakness:</b> blocking. If the coordinator dies after "prepare", participants hold locks indefinitely. Strong consistency, poor availability.</div>
+  </div>
+
+  <div class="vs">
+    <div class="card" style="--tx:var(--dist)">
+      <h3><span class="tag" style="background:var(--dist)">saga</span> Compensating transactions</h3>
+      <p>Break into local tx per service. On failure, run <b>compensating</b> actions to undo prior steps. Eventually consistent.</p>
+<pre><span class="c">// order saga</span>
+<span class="g">1.</span> reserveInventory()   <span class="c">// ↩ release</span>
+<span class="g">2.</span> chargePayment()      <span class="c">// ↩ refund</span>
+<span class="g">3.</span> createShipment()
+<span class="c">// step 3 fails →</span>
+   <span class="r">refundPayment(); releaseInventory();</span></pre>
+      <p><strong>Two flavors:</strong> choreography (events) vs orchestration (central coordinator).</p>
+    </div>
+    <div class="card" style="--tx:var(--dist)">
+      <h3><span class="tag" style="background:var(--dist)">outbox</span> Transactional Outbox</h3>
+      <p>Write business row <i>and</i> an event to an <code>outbox</code> table in the <b>same local tx</b>. A relay publishes it to Kafka after commit. Solves "dual write".</p>
+<pre><span class="k">BEGIN</span>;
+  <span class="k">INSERT INTO</span> orders(...) <span class="k">VALUES</span>(...);
+  <span class="k">INSERT INTO</span> outbox(topic, payload)
+    <span class="k">VALUES</span>(<span class="s">'order.created'</span>, <span class="s">:json</span>);
+<span class="k">COMMIT</span>;
+<span class="c">-- relay polls outbox → publishes → marks sent</span></pre>
+      <p><strong>Guarantee:</strong> event fires iff the DB write committed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DISTRIBUTED LOCKS ============ -->
+<section id="dlock">
+  <div class="accent-bar" style="background:var(--dist)"></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2>Distributed locks</h2></div>
+  <div class="grid g2">
+    <div class="card" style="--tx:var(--dist)">
+      <h3><span class="tag" style="background:var(--dist)">redis</span> SET NX + TTL</h3>
+      <p>Acquire a lock key only if absent; auto-expire so a dead holder never blocks forever.</p>
+<pre><span class="c"># acquire — atomic, with 30s safety TTL</span>
+<span class="f">SET</span> lock:resource <span class="s">&lt;token&gt;</span> <span class="k">NX</span> <span class="k">PX</span> <span class="s">30000</span>
+
+<span class="c"># release — only if WE still hold it (Lua, atomic)</span>
+<span class="k">if</span> redis.call(<span class="s">'get'</span>,KEYS[<span class="s">1</span>])==ARGV[<span class="s">1</span>] <span class="k">then</span>
+  <span class="k">return</span> redis.call(<span class="s">'del'</span>,KEYS[<span class="s">1</span>])
+<span class="k">end</span></pre>
+      <p><strong>Token check on release</strong> stops you from deleting a lock that expired and was re-taken by someone else.</p>
+    </div>
+    <div class="card" style="--tx:var(--dist)">
+      <h3><span class="tag" style="background:var(--dist)">safety</span> Fencing tokens</h3>
+      <p>A TTL lock can expire mid-work (GC pause) → two holders. Fix: monotonic token; resource rejects stale writes.</p>
+<pre><span class="c">// lock service hands out increasing tokens</span>
+client A → token <span class="s">33</span>  (then GC pauses)
+client B → token <span class="s">34</span>  (lock expired, B acquires)
+
+<span class="c">// storage enforces:</span>
+<span class="k">if</span> incoming_token &lt; last_seen_token:
+    <span class="r">reject  // A's token 33 is stale</span></pre>
+      <p><strong>The real guarantee</strong> lives at the resource, not the lock service.</p>
+    </div>
+  </div>
+  <div class="note"><b>Tools:</b> <span class="pill">Redis / Redlock</span><span class="pill">ZooKeeper (ephemeral znodes)</span><span class="pill">etcd (leases)</span><span class="pill">Postgres advisory locks</span> — Prefer <i>not</i> needing one: idempotency keys + unique constraints often remove the need for a distributed lock entirely.</div>
+</section>
+
+<!-- ============ SCALING ============ -->
+<section id="scale">
+  <div class="accent-bar" style="background:var(--scale)"></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2>Scaling reads & writes</h2></div>
+  <div class="grid g3">
+    <div class="card" style="--tx:var(--scale)">
+      <h3>Vertical</h3>
+      <p>Bigger box — more CPU/RAM/IOPS. Simplest, zero code change.</p>
+      <p><strong>Ceiling:</strong> one machine; gets expensive fast.</p>
+    </div>
+    <div class="card" style="--tx:var(--scale)">
+      <h3>Read replicas</h3>
+      <p>Primary takes writes, async replicas serve reads. Scales <b>read</b>-heavy loads.</p>
+      <p><strong>Watch:</strong> replication lag → stale reads.</p>
+    </div>
+    <div class="card" style="--tx:var(--scale)">
+      <h3>Horizontal / shard</h3>
+      <p>Split data across nodes. Scales <b>writes</b> + storage. (§08)</p>
+      <p><strong>Cost:</strong> cross-shard queries hurt.</p>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card" style="--tx:var(--scale)">
+      <h3><span class="tag" style="background:var(--scale)">route</span> Read/write split</h3>
+<pre><span class="c">// route by intent</span>
+writes  → <span class="f">primary</span>
+reads   → <span class="f">replica_pool</span>  (round-robin)
+
+<span class="c">// read-your-writes? pin recent writers</span>
+<span class="k">if</span> wroteWithin(<span class="s">500ms</span>): read → <span class="f">primary</span></pre>
+    </div>
+    <div class="card" style="--tx:var(--scale)">
+      <h3><span class="tag" style="background:var(--scale)">throughput</span> Connection pooling</h3>
+      <p>DB connections are expensive. A pooler (PgBouncer) multiplexes thousands of clients onto a few server conns.</p>
+      <p class="pill">caching (Redis) absorbs hot reads</p>
+      <p class="pill">batch writes to cut round-trips</p>
+      <p class="pill">CQRS: separate read & write models</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHARDING ============ -->
+<section id="shard">
+  <div class="accent-bar" style="background:var(--scale)"></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2>Sharding strategies</h2></div>
+  <div class="grid g3">
+    <div class="card" style="--tx:var(--scale)">
+      <h3>Hash</h3>
+      <p><code>shard = hash(key) % N</code>. Even spread, kills hotspots. But range scans hit every shard, and changing N reshuffles everything.</p>
+      <div class="shard-row">
+        <div class="shard"><div class="sh-id">S0</div><div class="sh-keys">u_8, u_2…</div></div>
+        <div class="shard"><div class="sh-id">S1</div><div class="sh-keys">u_5, u_9…</div></div>
+        <div class="shard"><div class="sh-id">S2</div><div class="sh-keys">u_3, u_7…</div></div>
+      </div>
+    </div>
+    <div class="card" style="--tx:var(--scale)">
+      <h3>Range</h3>
+      <p>Contiguous key ranges per shard. Great for range scans / time queries — but newest data = one hot shard.</p>
+      <div class="shard-row">
+        <div class="shard"><div class="sh-id">S0</div><div class="sh-keys">A–H</div></div>
+        <div class="shard"><div class="sh-id">S1</div><div class="sh-keys">I–P</div></div>
+        <div class="shard"><div class="sh-id">S2</div><div class="sh-keys">Q–Z</div></div>
+      </div>
+    </div>
+    <div class="card" style="--tx:var(--scale)">
+      <h3>Directory / Geo</h3>
+      <p>A lookup table maps key → shard (or by region for locality/compliance). Flexible, but the directory is itself a dependency.</p>
+      <div class="shard-row">
+        <div class="shard"><div class="sh-id">US</div><div class="sh-keys">us-east</div></div>
+        <div class="shard"><div class="sh-id">EU</div><div class="sh-keys">eu-west</div></div>
+        <div class="shard"><div class="sh-id">APAC</div><div class="sh-keys">ap-south</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card" style="--tx:var(--scale)">
+      <h3><span class="tag" style="background:var(--scale)">resize</span> Consistent hashing</h3>
+      <p>Map nodes + keys onto a ring. Adding/removing a node moves only <code>~1/N</code> of keys, not all of them. Virtual nodes smooth the distribution.</p>
+<pre><span class="c">// naive modulo: N 4→5 reshuffles ~80% of keys 😱</span>
+<span class="c">// consistent hash: only ~20% move 🙂</span>
+ring.add(node);  <span class="c">// neighbors hand off a slice</span></pre>
+    </div>
+    <div class="card" style="--tx:var(--scale)">
+      <h3><span class="tag" style="background:var(--scale)">pitfall</span> What breaks at scale</h3>
+      <p><strong>Hot shard:</strong> celebrity user / latest-time range. Mitigate with composite keys or salting.</p>
+      <p><strong>Cross-shard joins/tx:</strong> avoid; denormalize or co-locate related data on the same shard (shard by the join key).</p>
+      <p><strong>Rebalancing:</strong> plan it before you need it.</p>
+    </div>
+  </div>
+  <div class="note"><b>Pick the shard key first.</b> It dictates everything: balance, query locality, and whether you ever need cross-shard transactions. Choose a key that co-locates the data you read together (e.g. <code>userID</code> for a per-user ledger).</div>
+</section>
+
+<!-- ============ CAP ============ -->
+<section id="cap">
+  <div class="accent-bar" style="background:var(--cap)"></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2>CAP & consistency models</h2></div>
+  <div class="card" style="--tx:var(--cap)">
+    <div class="cap-wrap">
+      <div class="cap-item">
+        <span class="cap-badge" style="background:var(--cap)">C — Consistency</span>
+        <p style="font-size:14px;color:var(--muted)">Every read sees the latest write.</p>
+      </div>
+      <div class="cap-item">
+        <span class="cap-badge" style="background:var(--cap)">A — Availability</span>
+        <p style="font-size:14px;color:var(--muted)">Every request gets a (non-error) response.</p>
+      </div>
+      <div class="cap-item">
+        <span class="cap-badge" style="background:var(--cap)">P — Partition tolerance</span>
+        <p style="font-size:14px;color:var(--muted)">Survives dropped messages between nodes.</p>
+      </div>
+    </div>
+    <div class="note" style="border-color:var(--cap);background:rgba(79,214,224,.06)"><b style="color:var(--cap)">The rule:</b> networks <i>will</i> partition, so <b>P is non-negotiable</b>. The real choice during a partition is <b>C or A</b>. A financial ledger picks <code>CP</code> (refuse rather than serve wrong data); a shopping cart often picks <code>AP</code>.</div>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    <div class="card" style="--tx:var(--cap)"><h3>Strong</h3><p>Reads always see latest. Costs latency / availability.</p><p class="pill">Postgres primary</p><p class="pill">Spanner</p></div>
+    <div class="card" style="--tx:var(--cap)"><h3>Eventual</h3><p>Replicas converge "eventually". Fast & available.</p><p class="pill">Dynamo / Cassandra</p><p class="pill">DNS</p></div>
+    <div class="card" style="--tx:var(--cap)"><h3>Read-your-writes</h3><p>You always see your own writes. Middle ground via session pinning.</p></div>
+  </div>
+</section>
+
+<div class="interview">
+  <b>// one-liner you can drop in any design round</b>
+  "I default to a single relational primary with ACID transactions and push invariants into the schema — unique constraints for idempotency, guard predicates for non-negative balances. I scale reads with replicas and only shard (by the access key) when write volume or storage forces it. Across services I avoid 2PC: I use the transactional outbox or sagas with compensations, and reach for a distributed lock only when idempotency keys can't do the job."
+</div>
+
+<footer>
+  database systems reference · built for interview prep · keep it on a second monitor
+</footer>
+
+</main>
+</body>
+</html>

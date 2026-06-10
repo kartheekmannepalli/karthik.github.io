@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Architecture — Visual Explainer</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#1a1d27; --card2:#22263340;
+    --ink:#e8eaf0; --muted:#9aa0b0;
+    --model:#10b981; --model-bg:#10b98118;
+    --embed:#8b5cf6; --embed-bg:#8b5cf618;
+    --plumb:#64748b; --plumb-bg:#64748b18;
+    --accent:#f59e0b;
+    --line:#2e3342;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);padding:40px 20px;line-height:1.45}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:30px;text-align:center;margin-bottom:6px}
+  .sub{text-align:center;color:var(--muted);margin-bottom:28px;font-size:15px}
+
+  /* legend */
+  .legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+  .key{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:8px 14px;border-radius:99px}
+  .dot{width:11px;height:11px;border-radius:50%}
+
+  /* phase */
+  .phase{margin-bottom:50px}
+  .phase-title{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .phase-num{background:var(--accent);color:#000;font-weight:800;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .phase-title h2{font-size:21px}
+  .phase-sub{color:var(--muted);font-size:14px;margin-bottom:20px;margin-left:44px}
+
+  /* flow */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;justify-content:center}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px;width:158px;text-align:center;position:relative;display:flex;flex-direction:column;gap:8px}
+  .step .icon{font-size:30px;line-height:1}
+  .step .name{font-weight:700;font-size:14px}
+  .step .what{font-size:12px;color:var(--muted)}
+  .step.model{border-color:var(--model);background:var(--model-bg);box-shadow:0 0 18px #10b98122}
+  .step.embed-out{border-color:var(--embed);background:var(--embed-bg)}
+  .badge{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:3px 9px;margin:0 auto}
+  .badge.model{background:var(--model);color:#04110b}
+  .badge.plumb{background:#39405288;color:var(--muted)}
+  .badge.store{background:var(--embed);color:#fff}
+  .arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 4px;min-width:64px}
+  .arrow .lbl{font-size:10.5px;color:var(--accent);font-weight:600;text-align:center;margin-bottom:2px;max-width:80px}
+  .arrow svg{display:block}
+
+  /* model invocation strip */
+  .invocations{background:var(--card);border:1px solid var(--model);border-radius:16px;padding:24px;margin-bottom:50px}
+  .invocations h2{font-size:18px;margin-bottom:16px;color:var(--model)}
+  .inv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+  .inv{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .inv .when{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+  .inv .who{font-weight:700;font-size:15px;margin-bottom:4px}
+  .inv .does{font-size:13px;color:var(--muted)}
+  .inv .io{margin-top:10px;font-size:12px;font-family:ui-monospace,Menlo,monospace;background:var(--card);border-radius:8px;padding:8px 10px;color:var(--ink)}
+  .io b{color:var(--embed)}
+
+  /* embedding lifecycle */
+  .lifecycle{background:var(--card);border:1px solid var(--embed);border-radius:16px;padding:24px;margin-bottom:50px}
+  .lifecycle h2{font-size:18px;margin-bottom:18px;color:var(--embed)}
+  .life-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+  .chip{border-radius:10px;padding:10px 14px;font-size:13px;text-align:center;border:1px solid var(--line);background:var(--bg)}
+  .chip small{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+  .chip.vec{border-color:var(--embed);color:#c4b5fd;font-family:ui-monospace,Menlo,monospace}
+  .mini-arrow{color:var(--accent);font-size:18px;flex-shrink:0}
+  .note{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+  .note b{color:var(--ink)}
+
+  /* takeaway */
+  .takeaway{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .tk{border-radius:14px;padding:18px;border:1px solid var(--line);background:var(--card)}
+  .tk .n{font-size:26px;font-weight:800;margin-bottom:4px}
+  .tk .t{font-size:13px;color:var(--muted)}
+  .tk.g .n{color:var(--model)} .tk.p .n{color:var(--embed)} .tk.o .n{color:var(--accent)}
+
+  @media (max-width:700px){
+    .flow{flex-direction:column;align-items:center}
+    .arrow{transform:rotate(90deg);min-height:48px}
+    .step{width:220px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>RAG, Step by Step</h1>
+  <p class="sub">Retrieval-Augmented Generation · who does what, and where models run</p>
+
+  <div class="legend">
+    <span class="key"><span class="dot" style="background:var(--model)"></span> Model invoked (AI)</span>
+    <span class="key"><span class="dot" style="background:var(--plumb)"></span> Plumbing — no model</span>
+    <span class="key"><span class="dot" style="background:var(--embed)"></span> Embeddings live here</span>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase">
+    <div class="phase-title"><span class="phase-num">1</span><h2>Indexing — done once, offline</h2></div>
+    <p class="phase-sub">Your documents become searchable vectors before any user asks anything.</p>
+    <div class="flow">
+      <div class="step">
+        <div class="icon">📚</div>
+        <div class="name">Knowledge Base</div>
+        <div class="what">PDF · Jira · Confluence</div>
+        <span class="badge plumb">No model</span>
+      </div>
+      <div class="arrow"><span class="lbl">text chunks</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step">
+        <div class="icon">🔀</div>
+        <div class="name">RAG App</div>
+        <div class="what">Reads &amp; chunks docs. Just orchestration.</div>
+        <span class="badge plumb">No model</span>
+      </div>
+      <div class="arrow"><span class="lbl">text in</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step model">
+        <div class="icon">🧠</div>
+        <div class="name">Embedding Model</div>
+        <div class="what">OpenAI ada-002 / Google USE. Text → vector.</div>
+        <span class="badge model">★ Model #1</span>
+      </div>
+      <div class="arrow"><span class="lbl">vectors out</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step embed-out">
+        <div class="icon">🗄️</div>
+        <div class="name">Vector DB</div>
+        <div class="what">Stores [0.12, −0.98, 0.33]… + original text</div>
+        <span class="badge store">Embeddings stored</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase">
+    <div class="phase-title"><span class="phase-num">2</span><h2>Query — every time a user asks</h2></div>
+    <p class="phase-sub">The question is embedded, matched against stored vectors, and the LLM answers with that context.</p>
+    <div class="flow">
+      <div class="step">
+        <div class="icon">🙋</div>
+        <div class="name">User</div>
+        <div class="what">Asks a question</div>
+        <span class="badge plumb">No model</span>
+      </div>
+      <div class="arrow"><span class="lbl">question</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step model">
+        <div class="icon">🧠</div>
+        <div class="name">Embedding Model</div>
+        <div class="what">Same model embeds the <i>question</i></div>
+        <span class="badge model">★ Model #2</span>
+      </div>
+      <div class="arrow"><span class="lbl">query vector</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step embed-out">
+        <div class="icon">🔍</div>
+        <div class="name">Vector DB</div>
+        <div class="what">Similarity search — pure math, no AI</div>
+        <span class="badge plumb">No model</span>
+      </div>
+      <div class="arrow"><span class="lbl">top-k text chunks</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step">
+        <div class="icon">🔀</div>
+        <div class="name">RAG App</div>
+        <div class="what">Builds prompt = question + retrieved context</div>
+        <span class="badge plumb">No model</span>
+      </div>
+      <div class="arrow"><span class="lbl">prompt</span><svg width="40" height="12"><path d="M0 6 H32 M26 1 L34 6 L26 11" stroke="#f59e0b" stroke-width="2" fill="none"/></svg></div>
+      <div class="step model">
+        <div class="icon">🤖</div>
+        <div class="name">LLM</div>
+        <div class="what">Generates the grounded answer</div>
+        <span class="badge model">★ Model #3</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODEL INVOCATIONS -->
+  <div class="invocations">
+    <h2>🟢 A model runs exactly 3 times</h2>
+    <div class="inv-grid">
+      <div class="inv">
+        <div class="when">Indexing · once per document</div>
+        <div class="who">1 · Embedding Model</div>
+        <div class="does">Translates document chunks into vectors</div>
+        <div class="io">text → <b>[0.12, −0.98, 0.33]</b></div>
+      </div>
+      <div class="inv">
+        <div class="when">Query time · every question</div>
+        <div class="who">2 · Embedding Model (same one!)</div>
+        <div class="does">Translates the user's question into a vector</div>
+        <div class="io">question → <b>[0.09, −0.91, 0.41]</b></div>
+      </div>
+      <div class="inv">
+        <div class="when">Query time · every question</div>
+        <div class="who">3 · LLM</div>
+        <div class="does">Reads prompt + retrieved context, writes the answer</div>
+        <div class="io">prompt + context → <b>answer (text)</b></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:16px">Everything else — chunking, storing, searching, prompt assembly — is the <b>RAG App</b> and <b>Vector DB</b> doing plain engineering. No AI involved.</p>
+  </div>
+
+  <!-- EMBEDDING LIFECYCLE -->
+  <div class="lifecycle">
+    <h2>🟣 The life of an embedding</h2>
+    <div class="life-row">
+      <div class="chip">"Reset your password via…"<small>text chunk</small></div>
+      <span class="mini-arrow">→</span>
+      <div class="chip" style="border-color:var(--model);color:var(--model)">Embedding Model<small>creates it</small></div>
+      <span class="mini-arrow">→</span>
+      <div class="chip vec">[0.12, −0.98, 0.33]<small>vector</small></div>
+      <span class="mini-arrow">→</span>
+      <div class="chip" style="border-color:var(--embed)">Vector DB<small>stores &amp; compares it</small></div>
+    </div>
+    <p class="note"><b>Embeddings are never translated back to text.</b> The Vector DB compares vectors mathematically (cosine similarity), then returns the <b>original text chunks</b> it stored alongside them. The LLM only ever sees text — never vectors.</p>
+    <p class="note">⚠️ Index and query must use the <b>same embedding model</b> — vectors from different models don't live in the same space and can't be compared.</p>
+  </div>
+
+  <!-- TAKEAWAYS -->
+  <div class="takeaway">
+    <div class="tk g"><div class="n">3</div><div class="t">model invocations total: embed docs, embed query, generate answer</div></div>
+    <div class="tk p"><div class="n">2</div><div class="t">places embeddings are created — both by the same embedding model</div></div>
+    <div class="tk o"><div class="n">0</div><div class="t">AI in retrieval itself — similarity search is just math on vectors</div></div>
+    <div class="tk"><div class="n">📝</div><div class="t">LLM never sees vectors — it gets the original text back as context</div></div>
+  </div>
+
+</div>
+</body>
+</html>
