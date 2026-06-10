@@ -1,119 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>Dev Notes &amp; Cheat Sheets</title>
 <style>
   :root {
-    --bg: #0f1117; --panel: #181b24; --border: #262b38;
-    --text: #e6e9ef; --muted: #8b94a7; --accent: #6ea8fe;
+    --bg: #0d0f15; --bg2: #11141d; --panel: #171b26; --panel-hover: #1d2330;
+    --border: #252b3b; --text: #e8ebf2; --muted: #8a93a6; --accent: #6ea8fe;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.25);
+  }
+  html[data-theme="light"] {
+    --bg: #f5f6fa; --bg2: #eef0f6; --panel: #ffffff; --panel-hover: #ffffff;
+    --border: #e2e5ee; --text: #1c2130; --muted: #66708a; --accent: #2f6fed;
+    --shadow: 0 1px 2px rgba(20,30,60,.06), 0 10px 30px rgba(20,30,60,.08);
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0; color: var(--text); -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(110,168,254,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 0%, rgba(94,211,168,.08), transparent 55%),
+      var(--bg);
+    font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  header {
-    max-width: 1000px; margin: 0 auto; padding: 40px 20px 10px;
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 22px; }
+  header { padding: 56px 0 8px; }
+  .titlebar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  h1 {
+    margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -.02em;
+    background: linear-gradient(92deg, var(--text), var(--accent));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
-  h1 { margin: 0 0 6px; font-size: 28px; }
-  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  .sub { color: var(--muted); margin: 10px 0 0; font-size: 14px; }
+  .sub b { color: var(--text); font-weight: 600; }
+  .theme-btn {
+    flex: none; cursor: pointer; width: 40px; height: 40px; border-radius: 10px;
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    font-size: 17px; line-height: 1; box-shadow: var(--shadow); transition: background .15s, transform .05s;
+  }
+  .theme-btn:hover { background: var(--panel-hover); }
+  .theme-btn:active { transform: scale(.94); }
+  .searchwrap { position: sticky; top: 0; z-index: 5; padding: 18px 0 8px;
+    background: linear-gradient(var(--bg) 70%, transparent); margin-top: 18px; }
+  .searchbox { position: relative; }
+  .searchbox svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    width: 17px; height: 17px; color: var(--muted); pointer-events: none; }
   .search {
-    width: 100%; padding: 12px 14px; font-size: 15px; color: var(--text);
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; outline: none;
+    width: 100%; padding: 13px 16px 13px 44px; font-size: 15px; color: var(--text);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    outline: none; box-shadow: var(--shadow); transition: border-color .15s, box-shadow .15s;
   }
-  .search:focus { border-color: var(--accent); }
-  main { max-width: 1000px; margin: 0 auto; padding: 10px 20px 60px; }
-  .group { margin-top: 34px; }
+  .search::placeholder { color: var(--muted); }
+  .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,254,.18); }
+  main { padding: 8px 0 70px; }
+  .group { margin-top: 36px; }
   h2 {
-    font-size: 15px; text-transform: uppercase; letter-spacing: .06em;
-    color: var(--muted); border-bottom: 1px solid var(--border);
-    padding-bottom: 8px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+    color: var(--muted); margin: 0 0 16px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;
   }
-  .count {
-    font-size: 12px; background: var(--panel); border: 1px solid var(--border);
-    color: var(--muted); border-radius: 20px; padding: 1px 9px;
-    letter-spacing: 0;
-  }
-  .cards {
-    display: grid; gap: 10px; margin-top: 14px;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cat);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat) 22%, transparent); flex: none; }
+  .count { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0;
+    background: color-mix(in srgb, var(--cat) 14%, transparent);
+    color: var(--cat); border-radius: 20px; padding: 2px 10px; }
+  .cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
   .card {
-    display: flex; flex-direction: column; gap: 4px; padding: 14px 16px;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; text-decoration: none; color: var(--text);
-    transition: border-color .15s, transform .05s;
+    position: relative; display: flex; align-items: center; gap: 13px; padding: 15px 16px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 13px;
+    text-decoration: none; color: var(--text); box-shadow: var(--shadow); overflow: hidden;
+    transition: transform .12s ease, border-color .15s, background .15s;
   }
-  .card:hover { border-color: var(--accent); }
-  .card:active { transform: scale(.99); }
-  .card-title { font-weight: 600; }
-  .card-path { font-size: 12px; color: var(--muted); word-break: break-all; }
-  footer {
-    max-width: 1000px; margin: 0 auto; padding: 0 20px 50px;
-    color: var(--muted); font-size: 13px;
-  }
-  .empty { color: var(--muted); padding: 30px 0; display: none; }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--cat); opacity: 0; transition: opacity .15s; }
+  .card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--cat) 55%, var(--border));
+    background: var(--panel-hover); }
+  .card:hover::before { opacity: 1; }
+  .card:active { transform: translateY(0); }
+  .card-badge { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid;
+    place-items: center; font-size: 12px; font-weight: 700; letter-spacing: .02em;
+    color: var(--cat); background: color-mix(in srgb, var(--cat) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--cat) 30%, transparent); }
+  .card-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .card-title { font-weight: 600; font-size: 14.5px; line-height: 1.35;
+    overflow: hidden; text-overflow: ellipsis; }
+  .card-path { font-size: 11.5px; color: var(--muted); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .card-arrow { margin-left: auto; color: var(--muted); font-size: 16px; flex: none;
+    opacity: 0; transform: translateX(-4px); transition: opacity .15s, transform .15s; }
+  .card:hover .card-arrow { opacity: 1; transform: translateX(0); color: var(--cat); }
+  .empty { color: var(--muted); padding: 50px 0; text-align: center; display: none; }
+  footer { color: var(--muted); font-size: 13px; padding: 0 0 56px; }
+  footer code { background: var(--panel); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 6px; font-size: 12px; }
+  @media (max-width: 540px) { h1 { font-size: 27px; } header { padding-top: 38px; } }
 </style>
 </head>
 <body>
-  <header>
-    <h1>Dev Notes &amp; Cheat Sheets</h1>
-    <p class="sub">32 pages &middot; updated 2026-06-10 17:42 UTC</p>
-    <input id="search" class="search" type="search" placeholder="Filter by title, category, or filename&hellip;" autofocus>
-  </header>
-  <main id="content">
-    <section class="group" data-group>
-      <h2>General <span class="count">30</span></h2>
-      <div class="cards">
-        <a class="card" href="ai_agents_mcp_rag_cheatsheet.html"><span class="card-title">AI / Agents / MCP / RAG — Interview Cheat Sheet</span><span class="card-path">ai_agents_mcp_rag_cheatsheet.html</span></a>
-        <a class="card" href="ai_coding_design_cheatsheet.html"><span class="card-title">AI-Assisted Interview Cheat Sheet — Coding &amp; Design Rounds</span><span class="card-path">ai_coding_design_cheatsheet.html</span></a>
-        <a class="card" href="amazon_sde_iii_interview_guide.html"><span class="card-title">Amazon SDE III Interview Guide</span><span class="card-path">amazon_sde_iii_interview_guide.html</span></a>
-        <a class="card" href="axon_interview_guide.html"><span class="card-title">Axon Interview Guide — Sr Software Engineer II</span><span class="card-path">axon_interview_guide.html</span></a>
-        <a class="card" href="db-cheatsheet.html"><span class="card-title">Database Systems — Interview Cheatsheet</span><span class="card-path">db-cheatsheet.html</span></a>
-        <a class="card" href="design_patterns_cheatsheet.html"><span class="card-title">Design Patterns Cheat Sheet — Staff Java Engineer</span><span class="card-path">design_patterns_cheatsheet.html</span></a>
-        <a class="card" href="ebay_interview_guide.html"><span class="card-title">eBay Staff Software Engineer Interview Guide</span><span class="card-path">ebay_interview_guide.html</span></a>
-        <a class="card" href="fetch_pair_programming_solutions.html"><span class="card-title">Fetch Pair Programming — 5 Solved Questions (Java)</span><span class="card-path">fetch_pair_programming_solutions.html</span></a>
-        <a class="card" href="fetch_interview_guide_v2.html"><span class="card-title">Fetch Rewards Interview Guide</span><span class="card-path">fetch_interview_guide_v2.html</span></a>
-        <a class="card" href="fetch_interview_guide.html"><span class="card-title">Fetch Rewards Interview Guide</span><span class="card-path">fetch_interview_guide.html</span></a>
-        <a class="card" href="fetch_system_design_solutions.html"><span class="card-title">Fetch — System Design Solutions</span><span class="card-path">fetch_system_design_solutions.html</span></a>
-        <a class="card" href="flexport_interview_guide_1.html"><span class="card-title">Flexport Interview Guide — Staff SWE, Autonomous Freight Systems</span><span class="card-path">flexport_interview_guide_1.html</span></a>
-        <a class="card" href="mcp-explainer.html"><span class="card-title">hotel-tax-mcp — How Your MCP Server Works</span><span class="card-path">mcp-explainer.html</span></a>
-        <a class="card" href="java-bigo-cheatsheet.html"><span class="card-title">Java Collections · Big-O Cheat Sheet</span><span class="card-path">java-bigo-cheatsheet.html</span></a>
-        <a class="card" href="java-concurrency-exceptions-explained.html"><span class="card-title">Java Refresher — Exceptions · Threads · ExecutorService · Future</span><span class="card-path">java-concurrency-exceptions-explained.html</span></a>
-        <a class="card" href="companies.html"><span class="card-title">Job Search — Company List</span><span class="card-path">companies.html</span></a>
-        <a class="card" href="leetcode_cheatsheet_1.html"><span class="card-title">LeetCode Cheat Sheet · Kotlin</span><span class="card-path">leetcode_cheatsheet_1.html</span></a>
-        <a class="card" href="microsoft_system_design_solutions.html"><span class="card-title">Microsoft AI Systems — System Design Solutions</span><span class="card-path">microsoft_system_design_solutions.html</span></a>
-        <a class="card" href="microsoft_interview_guide.html"><span class="card-title">Microsoft Interview Guide — Senior SWE (AI Agents)</span><span class="card-path">microsoft_interview_guide.html</span></a>
-        <a class="card" href="nordstrom_interview_guide.html"><span class="card-title">Nordstrom Interview Guide — Senior Full-Stack Engineer (DSP)</span><span class="card-path">nordstrom_interview_guide.html</span></a>
-        <a class="card" href="pricing-toolbox-explainer.html"><span class="card-title">Pricing Toolbox — Agentic Architecture Explained</span><span class="card-path">pricing-toolbox-explainer.html</span></a>
-        <a class="card" href="rag_architecture_explainer.html"><span class="card-title">RAG Architecture — Visual Explainer</span><span class="card-path">rag_architecture_explainer.html</span></a>
-        <a class="card" href="receipt-processing-design.html"><span class="card-title">Receipt Processing Pipeline — System Design</span><span class="card-path">receipt-processing-design.html</span></a>
-        <a class="card" href="staff_design_shipping_walkthrough.html"><span class="card-title">Staff-Level Design Walkthrough — Shipping Rate &amp; Label Service</span><span class="card-path">staff_design_shipping_walkthrough.html</span></a>
-        <a class="card" href="stubhub_codepair_prep_1.html"><span class="card-title">StubHub Code-Pair Prep — Event Recommendation Service (Java)</span><span class="card-path">stubhub_codepair_prep_1.html</span></a>
-        <a class="card" href="stubhub_interview_guide.html"><span class="card-title">StubHub Interview Guide — Senior SWE, Supply</span><span class="card-path">stubhub_interview_guide.html</span></a>
-        <a class="card" href="stubhub_systemdesign_prep.html"><span class="card-title">StubHub System Design Prep — Event Email/Notification System</span><span class="card-path">stubhub_systemdesign_prep.html</span></a>
-        <a class="card" href="senior-engineer-lexicon_2.html"><span class="card-title">The Senior Engineer&#x27;s Lexicon</span><span class="card-path">senior-engineer-lexicon_2.html</span></a>
-        <a class="card" href="token-bucket-rate-limiter_2.html"><span class="card-title">Token Bucket Rate Limiting — A System Design Explainer</span><span class="card-path">token-bucket-rate-limiter_2.html</span></a>
-        <a class="card" href="token-bucket-rate-limiter_1.html"><span class="card-title">Token Bucket Rate Limiting — A System Design Explainer</span><span class="card-path">token-bucket-rate-limiter_1.html</span></a>
+  <div class="wrap">
+    <header>
+      <div class="titlebar">
+        <div>
+          <h1>Dev Notes &amp; Cheat Sheets</h1>
+          <p class="sub"><b>25</b> pages &middot; <b>4</b> categories &middot; updated Jun 10, 2026</p>
+        </div>
+        <button class="theme-btn" id="theme" type="button" title="Toggle theme" aria-label="Toggle theme">&#9789;</button>
       </div>
-    </section>
-    <section class="group" data-group>
-      <h2>System Design <span class="count">2</span></h2>
-      <div class="cards">
-        <a class="card" href="System Design/shipping_architecture_persistence.html"><span class="card-title">Shipping Service — Architecture &amp; Persistence Reference</span><span class="card-path">System Design/shipping_architecture_persistence.html</span></a>
-        <a class="card" href="System Design/tracking_ingestion_design.html"><span class="card-title">Tracking Event Ingestion — High-Level Design</span><span class="card-path">System Design/tracking_ingestion_design.html</span></a>
+    </header>
+    <div class="searchwrap">
+      <div class="searchbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" class="search" type="search" placeholder="Filter by title, category, or filename&hellip;" autofocus>
       </div>
-    </section>
-    <p class="empty" id="empty">No matches.</p>
-  </main>
-  <footer>
-    Auto-generated from the repo on every push. Drop a new <code>.html</code> file
-    in any folder and this page updates itself.
-  </footer>
+    </div>
+    <main id="content">
+      <section class="group" data-group style="--cat: #6ea8fe">
+        <h2><span class="dot"></span>General<span class="count">1</span></h2>
+        <div class="cards">
+          <a class="card" href="companies.html">
+            <span class="card-badge">GE</span>
+            <span class="card-body"><span class="card-title">Job Search — Company List</span><span class="card-path">companies.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+        </div>
+      </section>
+      <section class="group" data-group style="--cat: #5ed3a8">
+        <h2><span class="dot"></span>Cheatsheets<span class="count">7</span></h2>
+        <div class="cards">
+          <a class="card" href="Cheatsheets/ai_agents_mcp_rag_cheatsheet.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">AI / Agents / MCP / RAG — Interview Cheat Sheet</span><span class="card-path">Cheatsheets/ai_agents_mcp_rag_cheatsheet.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Cheatsheets/ai_coding_design_cheatsheet.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">AI-Assisted Interview Cheat Sheet — Coding &amp; Design Rounds</span><span class="card-path">Cheatsheets/ai_coding_design_cheatsheet.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Cheatsheets/db-cheatsheet.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">Database Systems — Interview Cheatsheet</span><span class="card-path">Cheatsheets/db-cheatsheet.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Cheatsheets/design_patterns_cheatsheet.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">Design Patterns Cheat Sheet — Staff Java Engineer</span><span class="card-path">Cheatsheets/design_patterns_cheatsheet.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Cheatsheets/java-bigo-cheatsheet.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">Java Collections · Big-O Cheat Sheet</span><span class="card-path">Cheatsheets/java-bigo-cheatsheet.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Cheatsheets/java-concurrency-exceptions-explained.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">Java Refresher — Exceptions · Threads · ExecutorService · Future</span><span class="card-path">Cheatsheets/java-concurrency-exceptions-explained.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Cheatsheets/senior-engineer-lexicon_2.html">
+            <span class="card-badge">CH</span>
+            <span class="card-body"><span class="card-title">The Senior Engineer&#x27;s Lexicon</span><span class="card-path">Cheatsheets/senior-engineer-lexicon_2.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+        </div>
+      </section>
+      <section class="group" data-group style="--cat: #f4a259">
+        <h2><span class="dot"></span>Company Notes<span class="count">9</span></h2>
+        <div class="cards">
+          <a class="card" href="Company Notes/axon_interview_guide.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">Axon Interview Guide — Sr Software Engineer II</span><span class="card-path">Company Notes/axon_interview_guide.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/ebay_interview_guide.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">eBay Staff Software Engineer Interview Guide</span><span class="card-path">Company Notes/ebay_interview_guide.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/fetch_interview_guide_v2.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">Fetch Rewards Interview Guide</span><span class="card-path">Company Notes/fetch_interview_guide_v2.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/microsoft_system_design_solutions.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">Microsoft AI Systems — System Design Solutions</span><span class="card-path">Company Notes/microsoft_system_design_solutions.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/microsoft_interview_guide.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">Microsoft Interview Guide — Senior SWE (AI Agents)</span><span class="card-path">Company Notes/microsoft_interview_guide.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/nordstrom_interview_guide.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">Nordstrom Interview Guide — Senior Full-Stack Engineer (DSP)</span><span class="card-path">Company Notes/nordstrom_interview_guide.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/stubhub_codepair_prep_1.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">StubHub Code-Pair Prep — Event Recommendation Service (Java)</span><span class="card-path">Company Notes/stubhub_codepair_prep_1.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/stubhub_interview_guide.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">StubHub Interview Guide — Senior SWE, Supply</span><span class="card-path">Company Notes/stubhub_interview_guide.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="Company Notes/stubhub_systemdesign_prep.html">
+            <span class="card-badge">CN</span>
+            <span class="card-body"><span class="card-title">StubHub System Design Prep — Event Email/Notification System</span><span class="card-path">Company Notes/stubhub_systemdesign_prep.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+        </div>
+      </section>
+      <section class="group" data-group style="--cat: #c98bdb">
+        <h2><span class="dot"></span>System Design<span class="count">8</span></h2>
+        <div class="cards">
+          <a class="card" href="System Design/mcp-explainer.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">hotel-tax-mcp — How Your MCP Server Works</span><span class="card-path">System Design/mcp-explainer.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/pricing-toolbox-explainer.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">Pricing Toolbox — Agentic Architecture Explained</span><span class="card-path">System Design/pricing-toolbox-explainer.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/rag_architecture_explainer.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">RAG Architecture — Visual Explainer</span><span class="card-path">System Design/rag_architecture_explainer.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/receipt-processing-design.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">Receipt Processing Pipeline — System Design</span><span class="card-path">System Design/receipt-processing-design.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/shipping_architecture_persistence.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">Shipping Service — Architecture &amp; Persistence Reference</span><span class="card-path">System Design/shipping_architecture_persistence.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/staff_design_shipping_walkthrough.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">Staff-Level Design Walkthrough — Shipping Rate &amp; Label Service</span><span class="card-path">System Design/staff_design_shipping_walkthrough.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/token-bucket-rate-limiter_2.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">Token Bucket Rate Limiting — A System Design Explainer</span><span class="card-path">System Design/token-bucket-rate-limiter_2.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+          <a class="card" href="System Design/tracking_ingestion_design.html">
+            <span class="card-badge">SD</span>
+            <span class="card-body"><span class="card-title">Tracking Event Ingestion — High-Level Design</span><span class="card-path">System Design/tracking_ingestion_design.html</span></span>
+            <span class="card-arrow">&rarr;</span>
+          </a>
+        </div>
+      </section>
+      <p class="empty" id="empty">No matches found.</p>
+    </main>
+    <footer>
+      Auto-generated from the repo on every push &mdash; drop a new <code>.html</code> file
+      in any folder and this page updates itself.
+    </footer>
+  </div>
 <script>
+  // Theme toggle (persists across visits).
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('theme');
+  const saved = localStorage.getItem('theme');
+  if (saved) root.dataset.theme = saved;
+  else if (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches) root.dataset.theme = 'light';
+  const syncIcon = () => themeBtn.innerHTML = root.dataset.theme === 'light' ? '&#9728;' : '&#9789;';
+  syncIcon();
+  themeBtn.addEventListener('click', () => {
+    root.dataset.theme = root.dataset.theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('theme', root.dataset.theme);
+    syncIcon();
+  });
+
+  // Live search.
   const search = document.getElementById('search');
   const groups = [...document.querySelectorAll('[data-group]')];
   const empty = document.getElementById('empty');
@@ -132,6 +302,10 @@
       if (shown) any = true;
     }
     empty.style.display = any ? 'none' : 'block';
+  });
+  // Keyboard: press "/" to focus search.
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== search) { e.preventDefault(); search.focus(); }
   });
 </script>
 </body>
