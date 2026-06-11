@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursor Pagination — Visual Explainer</title>
+<style>
+  :root{
+    --panel:#fff;--ink:#1a1a2e;--muted:#6b7280;--border:#e5e7eb;
+    --indigo:#4f46e5;--indigo-light:#eef2ff;--indigo-dark:#3730a3;
+    --teal:#0d9488;--teal-light:#e6fffb;--teal-dark:#0f766e;
+    --amber:#b7791f;--amber-light:#fef6e0;--red:#c0392b;--red-light:#fdecea;
+    --green:#2d7a4f;--green-light:#e8f5ee;--code-bg:#1e1e2e;--radius:14px;--shadow:0 2px 16px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f8;color:var(--ink);line-height:1.55}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px 50px}
+  header.top{background:linear-gradient(135deg,#3730a3 0%,#4f46e5 55%,#0d9488 125%);color:#fff;padding:34px 0 26px}
+  header.top h1{font-size:1.85rem;font-weight:800;display:flex;align-items:center;gap:12px}
+  header.top p{opacity:.93;margin-top:8px;font-size:.94rem;max-width:760px}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+  .tag{background:rgba(255,255,255,.18);border-radius:20px;padding:4px 13px;font-size:.76rem;font-weight:600}
+
+  section{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 26px;margin-top:20px}
+  h2{font-size:1.22rem;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--indigo-dark)}
+  h2 .n{background:var(--indigo);color:#fff;width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem}
+  p.lead{color:var(--muted);font-size:.92rem;margin:4px 0 10px}
+  pre{background:var(--code-bg);color:#e6e6e6;border-radius:9px;padding:13px 16px;overflow-x:auto;font-size:.79rem;line-height:1.55;margin:8px 0;font-family:'SF Mono','Fira Code',Consolas,monospace}
+  code.inline{background:var(--indigo-light);color:var(--indigo-dark);padding:1px 6px;border-radius:5px;font-size:.83em;font-family:'SF Mono',Consolas,monospace;font-weight:600}
+  .cm{color:#7f86a8;font-style:italic}.st{color:#c3e88d}.kw{color:#c792ea}.ty{color:#82aaff}.an{color:#ffcb6b}.nm{color:#f78c6c}
+  .diagram{background:#fafbff;border:1px solid var(--border);border-radius:10px;padding:14px;margin:12px 0;overflow-x:auto}
+  .callout{border-radius:9px;padding:11px 15px;margin:12px 0;font-size:.87rem}
+  .callout .t{font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+  .gotcha{background:var(--red-light);border-left:4px solid var(--red)}.gotcha .t{color:var(--red)}
+  .tip{background:var(--green-light);border-left:4px solid var(--green)}.tip .t{color:var(--green)}
+  .note{background:var(--amber-light);border-left:4px solid var(--amber)}.note .t{color:var(--amber)}
+  .callout ul{margin:3px 0 0 18px}.callout li{margin:2px 0}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.84rem}
+  th{background:var(--indigo-light);color:var(--indigo-dark);text-align:left;padding:8px 11px;border:1px solid var(--border);font-weight:700}
+  td{padding:8px 11px;border:1px solid var(--border);vertical-align:top}
+  tr:nth-child(even) td{background:#fafbff}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:22px 0 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>🔖 Cursor Pagination — Visual Explainer</h1>
+    <p>A cursor is a <b>bookmark</b>, not a page number. Instead of "give me page 3," you say "give me the items <i>after this one</i>." That one change is what keeps pages stable while data shifts underneath.</p>
+    <div class="tags"><span class="tag">offset vs cursor</span><span class="tag">keyset pagination</span><span class="tag">stable ordering</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2><span class="n">1</span> The problem with offset pagination</h2>
+    <p class="lead">Offset = "skip N, take M" (<code class="inline">LIMIT 10 OFFSET 20</code>). Simple — until the list changes between page loads. A new item shifts everything down by one, so the next page <b>repeats</b> a row you already saw (or an deletion makes you <b>skip</b> one).</p>
+    <div class="diagram">
+      <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:monospace;font-size:12px">
+        <text x="10" y="18" font-weight="bold" fill="#3730a3">Page 1 = OFFSET 0, LIMIT 3</text>
+        <g>
+          <rect x="10"  y="28" width="70" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="45" y="49" text-anchor="middle" fill="#3730a3">e1</text>
+          <rect x="86"  y="28" width="70" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="121" y="49" text-anchor="middle" fill="#3730a3">e2</text>
+          <rect x="162" y="28" width="70" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="197" y="49" text-anchor="middle" fill="#3730a3">e3</text>
+          <rect x="238" y="28" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="273" y="49" text-anchor="middle" fill="#6b7280">e4</text>
+          <rect x="314" y="28" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="349" y="49" text-anchor="middle" fill="#6b7280">e5</text>
+        </g>
+        <text x="10" y="92" fill="#c0392b" font-weight="bold">↓ then a NEW event "e0" is inserted at the top (rankings change)</text>
+        <text x="10" y="120" font-weight="bold" fill="#3730a3">Page 2 = OFFSET 3, LIMIT 3  (after the insert)</text>
+        <g>
+          <rect x="10"  y="130" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="45" y="151" text-anchor="middle" fill="#6b7280">e0</text>
+          <rect x="86"  y="130" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="121" y="151" text-anchor="middle" fill="#6b7280">e1</text>
+          <rect x="162" y="130" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="197" y="151" text-anchor="middle" fill="#6b7280">e2</text>
+          <rect x="238" y="130" width="70" height="34" rx="5" fill="#fdecea" stroke="#c0392b" stroke-width="2"/><text x="273" y="151" text-anchor="middle" fill="#c0392b" font-weight="bold">e3 ⟳</text>
+          <rect x="314" y="130" width="70" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="349" y="151" text-anchor="middle" fill="#3730a3">e4</text>
+          <rect x="390" y="130" width="70" height="34" rx="5" fill="#eef2ff" stroke="#4f46e5"/><text x="425" y="151" text-anchor="middle" fill="#3730a3">e5</text>
+        </g>
+        <text x="238" y="186" fill="#c0392b" font-weight="bold" font-size="11">e3 shown AGAIN — offset 3 now points one slot too late.</text>
+        <text x="10" y="220" fill="#6b7280">Offset counts positions; positions move when the list mutates → duplicates &amp; gaps.</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span> The cursor idea: bookmark the last item</h2>
+    <p class="lead">Instead of "skip 3 positions," remember the <b>sort key of the last item you returned</b> and say "give me items <i>after</i> that key." The cursor is a pointer to a specific row, not a count — so inserts/deletes elsewhere don't move it.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:monospace;font-size:12px">
+        <text x="10" y="18" font-weight="bold" fill="#0f766e">Page 1 → returns e1,e2,e3 and a cursor pointing AT e3</text>
+        <g>
+          <rect x="10"  y="30" width="70" height="34" rx="5" fill="#e6fffb" stroke="#0d9488"/><text x="45" y="51" text-anchor="middle" fill="#0f766e">e1</text>
+          <rect x="86"  y="30" width="70" height="34" rx="5" fill="#e6fffb" stroke="#0d9488"/><text x="121" y="51" text-anchor="middle" fill="#0f766e">e2</text>
+          <rect x="162" y="30" width="70" height="34" rx="5" fill="#e6fffb" stroke="#0d9488" stroke-width="2.5"/><text x="197" y="51" text-anchor="middle" fill="#0f766e" font-weight="bold">e3</text>
+          <rect x="238" y="30" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="273" y="51" text-anchor="middle" fill="#6b7280">e4</text>
+          <rect x="314" y="30" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="349" y="51" text-anchor="middle" fill="#6b7280">e5</text>
+        </g>
+        <text x="197" y="82" text-anchor="middle" fill="#0f766e" font-weight="bold">▲</text>
+        <text x="197" y="98" text-anchor="middle" fill="#0f766e">nextCursor = "e3"</text>
+        <text x="10" y="135" font-weight="bold" fill="#0f766e">Page 2 → "items after e3" → starts at e4, regardless of inserts before e3</text>
+        <g>
+          <rect x="10"  y="147" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="45" y="168" text-anchor="middle" fill="#6b7280">e1</text>
+          <rect x="86"  y="147" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="121" y="168" text-anchor="middle" fill="#6b7280">e2</text>
+          <rect x="162" y="147" width="70" height="34" rx="5" fill="#f7f8fa" stroke="#cbd5e1"/><text x="197" y="168" text-anchor="middle" fill="#6b7280">e3</text>
+          <rect x="238" y="147" width="70" height="34" rx="5" fill="#e6fffb" stroke="#0d9488"/><text x="273" y="168" text-anchor="middle" fill="#0f766e">e4</text>
+          <rect x="314" y="147" width="70" height="34" rx="5" fill="#e6fffb" stroke="#0d9488"/><text x="349" y="168" text-anchor="middle" fill="#0f766e">e5</text>
+          <rect x="390" y="147" width="70" height="34" rx="5" fill="#e6fffb" stroke="#0d9488" stroke-width="2.5"/><text x="425" y="168" text-anchor="middle" fill="#0f766e" font-weight="bold">e6</text>
+        </g>
+        <text x="425" y="200" text-anchor="middle" fill="#0f766e">nextCursor = "e6"</text>
+        <text x="10" y="222" fill="#6b7280">No duplicate, no gap — the cursor is anchored to a row, not a position.</text>
+      </svg>
+    </div>
+    <div class="callout tip"><div class="t">✅ The core idea in one line</div>
+      Offset asks <b>"how many to skip"</b> (a moving target). A cursor asks <b>"after which row"</b> (a fixed anchor). Anchors survive insertions and deletions; counts don't.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span> Why a stable sort order is non-negotiable</h2>
+    <p class="lead">The cursor says "resume after this key." If two calls sort the list differently, "after e3" lands somewhere different each time → overlaps or skips. That's why the code comment shouts <i>STABLE, deterministic order</i>.</p>
+    <div class="callout gotcha"><div class="t">⚠️ The hidden requirement</div>
+      Your sort must be <b>total and deterministic</b> — every element strictly ordered, ties broken by a unique key (e.g. the event id). If you sort only by "distance" and two events tie, their relative order can flip between calls and pagination corrupts. This is exactly why the Q2 design added <code class="inline">.thenComparing(Event::id)</code>.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span> The code, line by line</h2>
+    <pre><code>public Page&lt;Event&gt; recommendPage(Customer c, String cursor, int limit) {
+    // 1. Build the FULL list in one stable, deterministic order (same every call).
+    List&lt;Event&gt; ranked = rankedFor(c);
+
+    // 2. Where do we start?
+    //    First page (cursor == null) → 0.
+    //    Otherwise → the index just AFTER the row the cursor points to.
+    int start = (cursor == null) ? 0 : indexAfter(ranked, cursor);
+
+    // 3. Take `limit` items from start, clamped so the last page can't run past the end.
+    List&lt;Event&gt; slice = ranked.subList(start, Math.min(start + limit, ranked.size()));
+
+    // 4. Is there more after this slice?
+    //    Yes → next cursor = key of the LAST item we just returned.
+    //    No  → null, meaning "this was the last page".
+    String next = (start + limit &lt; ranked.size())
+            ? cursorOf(slice.get(slice.size() - 1)) : null;
+
+    // 5. Hand back the page + the bookmark for the next call.
+    return new Page&lt;&gt;(slice, next);
+}</code></pre>
+    <table>
+      <tr><th>Piece</th><th>Role</th></tr>
+      <tr><td><code>rankedFor(c)</code></td><td>the stable ordered list — the spine cursors index into</td></tr>
+      <tr><td><code>cursor == null</code></td><td>signals the first page → start at 0</td></tr>
+      <tr><td><code>indexAfter(ranked, cursor)</code></td><td>finds the bookmarked row and returns the position right after it</td></tr>
+      <tr><td><code>Math.min(start+limit, size)</code></td><td>guards the final page so <code>subList</code> doesn't throw</td></tr>
+      <tr><td><code>cursorOf(last)</code></td><td>encodes the last returned row as the next bookmark</td></tr>
+      <tr><td><code>next == null</code></td><td>tells the caller "no more pages — stop"</td></tr>
+    </table>
+    <div class="callout note"><div class="t">📌 The caller loop</div>
+      The client just repeats: call with the last <code class="inline">nextCursor</code>, render the items, stop when <code class="inline">nextCursor</code> is <code class="inline">null</code>. It never deals with page numbers or offsets.
+      <pre style="margin-top:8px"><code>String cursor = null;
+do {
+    Page&lt;Event&gt; page = recommendPage(c, cursor, 10);
+    render(page.items());
+    cursor = page.nextCursor();
+} while (cursor != null);</code></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span> Trade-offs &amp; real-world notes</h2>
+    <table>
+      <tr><th></th><th>Offset</th><th>Cursor (keyset)</th></tr>
+      <tr><td>Stable under insert/delete</td><td>no (drifts)</td><td>yes</td></tr>
+      <tr><td>Jump to arbitrary page N</td><td>yes</td><td>no (sequential only)</td></tr>
+      <tr><td>DB performance deep in list</td><td>slow (<code>OFFSET 100000</code> scans &amp; skips)</td><td>fast (<code>WHERE key &gt; ?</code> uses an index)</td></tr>
+      <tr><td>Total count / "page 5 of 20"</td><td>easy</td><td>hard</td></tr>
+    </table>
+    <div class="callout note"><div class="t">📌 In a real database</div>
+      This in-memory <code class="inline">subList</code> demo mirrors the SQL pattern: instead of <code class="inline">OFFSET 30</code> you write <code class="inline">WHERE (sort_key, id) &gt; (:lastKey, :lastId) ORDER BY sort_key, id LIMIT 10</code>. The cursor encodes <code class="inline">(lastKey, lastId)</code> — often base64'd so clients treat it as opaque. The index on <code class="inline">(sort_key, id)</code> makes it O(log n) to locate, not a scan.</div>
+    <div class="callout gotcha"><div class="t">⚠️ Watch out for</div>
+      <ul>
+        <li><b>Unstable sort key</b> → overlaps/skips. Always end the sort with a unique tiebreaker.</li>
+        <li><b>Bad / expired cursor</b> → decide a policy: treat as start-of-list, or reject. Don't crash.</li>
+        <li><b>Unbounded <code class="inline">limit</code></b> → clamp it (e.g. max 100) so a caller can't request a million.</li>
+        <li><b>Opaque cursors</b> → encode/encrypt so clients can't forge offsets into your data.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>Cursor (keyset) pagination · a bookmark beats a page number · built for Karthik</footer>
+</div>
+
+<script>
+(function(){
+  const TOKEN = new RegExp([
+    '(\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*)',
+    '("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\')',
+    '(@\\w+)',
+    '\\b(public|private|protected|static|final|abstract|class|interface|record|enum|new|return|if|else|for|while|do|switch|case|default|void|int|long|double|float|boolean|char|byte|short|var|import|package|throws|throw|try|catch|finally|extends|implements|this|super|true|false|null|instanceof)\\b',
+    '\\b([A-Z][A-Za-z0-9_]*)\\b',
+    '\\b(\\d[\\d_]*[LlFfDd]?)\\b'
+  ].join('|'),'g');
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  document.querySelectorAll('pre code, pre').forEach(function(block){
+    if(block.tagName==='PRE' && block.querySelector('code')) return;
+    var src=block.textContent,out='',last=0,m; TOKEN.lastIndex=0;
+    while((m=TOKEN.exec(src))){
+      out+=esc(src.slice(last,m.index));
+      var t=m[0],cls=m[1]?'cm':m[2]?'st':m[3]?'an':m[4]?'kw':m[5]?'ty':m[6]?'nm':'';
+      out+=cls?'<span class="'+cls+'">'+esc(t)+'</span>':esc(t);
+      last=m.index+t.length;
+    }
+    out+=esc(src.slice(last));
+    block.innerHTML=out;
+  });
+})();
+</script>
+</body>
+</html>

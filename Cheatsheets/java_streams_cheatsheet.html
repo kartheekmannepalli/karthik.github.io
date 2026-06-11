@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Streams Cheatsheet — java.util.stream</title>
+<style>
+  :root{
+    --panel:#fff;--ink:#1a1a2e;--muted:#6b7280;--border:#e5e7eb;
+    --grn:#0d9488;--grn-light:#e6fffb;--grn-dark:#0f766e;
+    --indigo:#4f46e5;--indigo-light:#eef2ff;--indigo-dark:#3730a3;
+    --amber:#b7791f;--amber-light:#fef6e0;--red:#c0392b;--red-light:#fdecea;
+    --green:#2d7a4f;--green-light:#e8f5ee;--code-bg:#1e1e2e;--radius:14px;--shadow:0 2px 16px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f8;color:var(--ink);line-height:1.55}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px 50px}
+  header.top{background:linear-gradient(135deg,#0f766e 0%,#0d9488 55%,#4f46e5 130%);color:#fff;padding:34px 0 26px}
+  header.top h1{font-size:1.85rem;font-weight:800;display:flex;align-items:center;gap:12px}
+  header.top p{opacity:.93;margin-top:8px;font-size:.93rem;max-width:760px}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+  .tag{background:rgba(255,255,255,.18);border-radius:20px;padding:4px 13px;font-size:.76rem;font-weight:600}
+
+  section{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 26px;margin-top:20px}
+  h2{font-size:1.22rem;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:6px;color:var(--grn-dark)}
+  h2 .n{background:var(--grn);color:#fff;width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem}
+  p.lead{color:var(--muted);font-size:.9rem;margin:4px 0 8px}
+  pre{background:var(--code-bg);color:#e6e6e6;border-radius:9px;padding:12px 15px;overflow-x:auto;font-size:.79rem;line-height:1.5;margin:6px 0;font-family:'SF Mono','Fira Code',Consolas,monospace}
+  code.inline{background:var(--grn-light);color:var(--grn-dark);padding:1px 6px;border-radius:5px;font-size:.83em;font-family:'SF Mono',Consolas,monospace;font-weight:600}
+  .cm{color:#7f86a8;font-style:italic}.st{color:#c3e88d}.kw{color:#c792ea}.ty{color:#82aaff}.an{color:#ffcb6b}.nm{color:#f78c6c}
+
+  table{width:100%;border-collapse:collapse;margin:8px 0;font-size:.83rem}
+  th{background:var(--grn-light);color:var(--grn-dark);text-align:left;padding:8px 11px;border:1px solid var(--border);font-weight:700}
+  td{padding:8px 11px;border:1px solid var(--border);vertical-align:top}
+  tr:nth-child(even) td{background:#fafdfc}
+  td code,th code{background:#e6fffb;color:var(--grn-dark);padding:1px 5px;border-radius:4px;font-family:'SF Mono',monospace;font-size:.92em}
+
+  .callout{border-radius:9px;padding:11px 15px;margin:12px 0;font-size:.86rem}
+  .callout .t{font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+  .gotcha{background:var(--red-light);border-left:4px solid var(--red)}.gotcha .t{color:var(--red)}
+  .tip{background:var(--green-light);border-left:4px solid var(--green)}.tip .t{color:var(--green)}
+  .note{background:var(--amber-light);border-left:4px solid var(--amber)}.note .t{color:var(--amber)}
+  .callout ul{margin:3px 0 0 18px}.callout li{margin:2px 0}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.8rem;margin:10px 0}
+  .flow .b{background:#eef2ff;border:1px solid #c7d2fe;color:var(--indigo-dark);border-radius:7px;padding:6px 11px;font-weight:700;font-family:'SF Mono',monospace}
+  .flow .a{color:var(--muted);font-weight:700}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:22px 0 0}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>🌊 Java Streams Cheatsheet</h1>
+    <p><code style="color:#a7f3d0">java.util.stream</code> — declarative data pipelines over collections. Build a chain of operations, run it once. Each op is lazy until a terminal op pulls the data through.</p>
+    <div class="tags"><span class="tag">Lazy pipelines</span><span class="tag">map vs flatMap</span><span class="tag">Collectors</span><span class="tag">Java 8+</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2><span class="n">★</span> The pipeline model</h2>
+    <p class="lead">Every stream is three stages. Intermediate ops are <b>lazy</b> (they just describe work); nothing runs until the <b>terminal</b> op fires. A stream is single-use — consume it once.</p>
+    <div class="flow">
+      <span class="b">source</span><span class="a">→</span>
+      <span class="b">0+ intermediate ops</span><span class="a">→</span>
+      <span class="b">1 terminal op</span><span class="a">= result</span>
+    </div>
+    <pre><code>List&lt;Event&gt; result = events.stream()      // source
+    .filter(e -&gt; e.cityId().equals("NYC")) // intermediate (lazy)
+    .sorted(comparing(Event::date))         // intermediate (lazy)
+    .limit(10)                              // intermediate (lazy)
+    .toList();                              // terminal → runs the whole chain</code></pre>
+    <div class="callout note"><div class="t">📌 Three things to remember</div>
+      Intermediate ops return a <b>new Stream</b> (chainable, lazy). Terminal ops return a <b>value/collection</b> and end the pipeline. A stream can't be reused — call <code class="inline">.stream()</code> again for a fresh one.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">1</span> Creating a stream</h2>
+    <table>
+      <tr><th>From</th><th>Code</th></tr>
+      <tr><td>a collection</td><td><code>coll.stream()</code></td></tr>
+      <tr><td>explicit values</td><td><code>Stream.of("a", "b", "c")</code></td></tr>
+      <tr><td>an array</td><td><code>Arrays.stream(arr)</code></td></tr>
+      <tr><td>a number range</td><td><code>IntStream.range(0, n)</code> · <code>rangeClosed(1, n)</code></td></tr>
+      <tr><td>infinite / generated</td><td><code>Stream.iterate(1, x -&gt; x*2)</code> · <code>Stream.generate(Math::random)</code> (cap with <code>limit</code>)</td></tr>
+      <tr><td>empty</td><td><code>Stream.empty()</code></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="n">2</span> Intermediate ops <span style="font-size:.7rem;color:var(--muted);font-weight:600">(lazy)</span></h2>
+    <table>
+      <tr><th>Op</th><th>Use when you want to…</th></tr>
+      <tr><td><code>filter(pred)</code></td><td>keep only elements matching a condition</td></tr>
+      <tr><td><code>map(fn)</code></td><td>transform each element 1-to-1</td></tr>
+      <tr><td><code>flatMap(fn)</code></td><td>transform 1-to-many and flatten nested streams into one</td></tr>
+      <tr><td><code>mapToInt/Long/Double</code></td><td>convert to a primitive stream (unlocks <code>sum</code>/<code>average</code>)</td></tr>
+      <tr><td><code>distinct()</code></td><td>drop duplicates (uses <code>equals</code>/<code>hashCode</code>)</td></tr>
+      <tr><td><code>sorted()</code> / <code>sorted(cmp)</code></td><td>sort naturally or by a comparator</td></tr>
+      <tr><td><code>limit(n)</code> / <code>skip(n)</code></td><td>take the first n / drop the first n</td></tr>
+      <tr><td><code>takeWhile</code> / <code>dropWhile</code></td><td>take/drop from the start until a predicate flips (Java 9+)</td></tr>
+      <tr><td><code>peek(action)</code></td><td>debug/log mid-pipeline — not for real side effects</td></tr>
+    </table>
+    <pre><code>List&lt;String&gt; out = events.stream()
+    .filter(e -&gt; e.price() &lt; 100)            // narrow
+    .map(Event::name)                         // 1-to-1 transform
+    .distinct()                               // dedup
+    .sorted()                                 // order
+    .limit(5)                                 // first 5
+    .toList();
+
+// flatMap: each recommender returns a List&lt;Event&gt; → flatten to one stream
+List&lt;Event&gt; all = recommenders.stream()
+    .flatMap(r -&gt; r.recommend(customer).stream())  // .stream() → flatMap needs a Stream
+    .distinct()
+    .toList();</code></pre>
+    <div class="callout gotcha"><div class="t">⚠️ map vs flatMap</div>
+      <b>map</b> = 1-to-1 (returns one element each). If your fn returns a <code class="inline">List</code>, you get a nested <code class="inline">Stream&lt;List&lt;T&gt;&gt;</code>. <b>flatMap</b> = 1-to-many; it flattens one level, so a <code class="inline">List</code> per element becomes a single flat stream. Its fn must return a <b>Stream</b> — hence the inner <code class="inline">.stream()</code>.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">3</span> Terminal ops <span style="font-size:.7rem;color:var(--muted);font-weight:600">(eager — run the pipeline)</span></h2>
+    <table>
+      <tr><th>Op</th><th>Returns / use for</th></tr>
+      <tr><td><code>collect(collector)</code></td><td>general "gather into something" (list/map/string)</td></tr>
+      <tr><td><code>toList()</code></td><td>quick unmodifiable List (Java 16+)</td></tr>
+      <tr><td><code>toArray()</code></td><td>an array</td></tr>
+      <tr><td><code>forEach(action)</code></td><td>do something per element (order loose in parallel)</td></tr>
+      <tr><td><code>reduce(...)</code></td><td>fold all elements into one value</td></tr>
+      <tr><td><code>count()</code></td><td>how many elements (long)</td></tr>
+      <tr><td><code>min(cmp)</code> / <code>max(cmp)</code></td><td>extreme element → <code>Optional</code></td></tr>
+      <tr><td><code>anyMatch/allMatch/noneMatch</code></td><td>a boolean; short-circuits</td></tr>
+      <tr><td><code>findFirst()</code> / <code>findAny()</code></td><td>one element → <code>Optional</code> (<code>findAny</code> faster in parallel)</td></tr>
+      <tr><td><code>sum()</code> / <code>average()</code></td><td>aggregate — primitive streams only</td></tr>
+    </table>
+    <pre><code>long cheap   = events.stream().filter(e -&gt; e.price() &lt; 50).count();
+boolean any  = events.stream().anyMatch(e -&gt; e.cityId().equals("NYC"));
+Optional&lt;Event&gt; first = events.stream().filter(...).findFirst();
+int total    = events.stream().mapToInt(Event::seats).sum();      // primitive stream
+String names = events.stream().map(Event::name)
+                     .collect(Collectors.joining(", "));
+// reduce: fold to one value (identity + accumulator)
+int seatSum  = events.stream().reduce(0, (acc, e) -&gt; acc + e.seats(), Integer::sum);</code></pre>
+    <div class="callout tip"><div class="t">✅ Prefer specifics over reduce</div>
+      For sums/counts/averages, a primitive stream (<code class="inline">mapToInt(...).sum()</code>) reads better than a hand-rolled <code class="inline">reduce</code>. Reach for <code class="inline">reduce</code> only for genuinely custom folds.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">4</span> Collectors <span style="font-size:.7rem;color:var(--muted);font-weight:600">(the argument to collect)</span></h2>
+    <table>
+      <tr><th>Collector</th><th>Produces</th></tr>
+      <tr><td><code>toList()</code> / <code>toSet()</code></td><td>a List / Set</td></tr>
+      <tr><td><code>toMap(keyFn, valFn)</code></td><td>a Map (add a merge fn for key clashes)</td></tr>
+      <tr><td><code>groupingBy(classifier)</code></td><td><code>Map&lt;K, List&lt;V&gt;&gt;</code> — bucket by key</td></tr>
+      <tr><td><code>partitioningBy(pred)</code></td><td><code>Map&lt;Boolean, List&lt;V&gt;&gt;</code> — split true/false</td></tr>
+      <tr><td><code>joining(sep)</code></td><td>one concatenated String</td></tr>
+      <tr><td><code>counting()</code> / <code>summingInt(fn)</code></td><td>counts/sums, usually downstream of <code>groupingBy</code></td></tr>
+    </table>
+    <pre><code>// group events by city → Map&lt;String, List&lt;Event&gt;&gt;
+Map&lt;String, List&lt;Event&gt;&gt; byCity = events.stream()
+    .collect(Collectors.groupingBy(Event::cityId));
+
+// count per city → Map&lt;String, Long&gt;
+Map&lt;String, Long&gt; countByCity = events.stream()
+    .collect(Collectors.groupingBy(Event::cityId, Collectors.counting()));
+
+// index by id → Map&lt;String, Event&gt; (keep first on duplicate id)
+Map&lt;String, Event&gt; byId = events.stream()
+    .collect(Collectors.toMap(Event::id, e -&gt; e, (a, b) -&gt; a));
+
+// split cheap vs pricey → Map&lt;Boolean, List&lt;Event&gt;&gt;
+Map&lt;Boolean, List&lt;Event&gt;&gt; split = events.stream()
+    .collect(Collectors.partitioningBy(e -&gt; e.price() &lt; 100));</code></pre>
+    <div class="callout gotcha"><div class="t">⚠️ toMap throws on duplicate keys</div>
+      <code class="inline">toMap(Event::id, e -&gt; e)</code> throws <code class="inline">IllegalStateException</code> if two elements share a key. Always pass the 3rd merge arg <code class="inline">(a, b) -&gt; a</code> when keys might collide.</div>
+  </section>
+
+  <section>
+    <h2><span class="n">5</span> Gotchas — quick scan</h2>
+    <div class="callout gotcha"><div class="t">⚠️ The ones that bite</div>
+      <ul>
+        <li><b>Streams are single-use.</b> Reusing a consumed stream throws <code class="inline">IllegalStateException</code> — make a new one.</li>
+        <li><b>Intermediate ops do nothing alone.</b> Without a terminal op the pipeline never runs (lazy).</li>
+        <li><b>No side effects in map/filter.</b> Keep them pure; use <code class="inline">forEach</code> for effects, not <code class="inline">peek</code>.</li>
+        <li><b>Infinite streams need <code class="inline">limit</code></b> or they never terminate.</li>
+        <li><b><code class="inline">toList()</code> (Java 16) is unmodifiable;</b> <code class="inline">collect(toList())</code> historically isn't guaranteed either way — don't mutate the result.</li>
+        <li><b>Parallel streams are rarely worth it</b> — only for large, CPU-bound, stateless work. Default to sequential.</li>
+        <li><b>Primitive vs object:</b> use <code class="inline">IntStream</code>/<code class="inline">mapToInt</code> for numeric aggregation to avoid boxing and get <code class="inline">sum</code>/<code class="inline">average</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>java.util.stream cheatsheet · lazy pipelines, run once · Java 8+ · built for Karthik</footer>
+</div>
+
+<script>
+(function(){
+  const TOKEN = new RegExp([
+    '(\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*)',
+    '("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\')',
+    '(@\\w+)',
+    '\\b(public|private|protected|static|final|abstract|class|interface|record|enum|new|return|if|else|for|while|do|switch|case|default|void|int|long|double|float|boolean|char|byte|short|var|import|package|throws|throw|try|catch|finally|extends|implements|this|super|true|false|null|instanceof)\\b',
+    '\\b([A-Z][A-Za-z0-9_]*)\\b',
+    '\\b(\\d[\\d_]*[LlFfDd]?)\\b'
+  ].join('|'),'g');
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  document.querySelectorAll('pre code, pre').forEach(function(block){
+    if(block.tagName==='PRE' && block.querySelector('code')) return;
+    var src=block.textContent,out='',last=0,m; TOKEN.lastIndex=0;
+    while((m=TOKEN.exec(src))){
+      out+=esc(src.slice(last,m.index));
+      var t=m[0],cls=m[1]?'cm':m[2]?'st':m[3]?'an':m[4]?'kw':m[5]?'ty':m[6]?'nm':'';
+      out+=cls?'<span class="'+cls+'">'+esc(t)+'</span>':esc(t);
+      last=m.index+t.length;
+    }
+    out+=esc(src.slice(last));
+    block.innerHTML=out;
+  });
+})();
+</script>
+</body>
+</html>

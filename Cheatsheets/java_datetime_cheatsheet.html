@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Date &amp; Time Cheatsheet — java.time (JSR-310)</title>
+<style>
+  :root{
+    --bg:#0f1226; --panel:#ffffff; --ink:#1a1a2e; --muted:#6b7280; --border:#e5e7eb;
+    --indigo:#4f46e5; --indigo-light:#eef2ff; --indigo-dark:#3730a3;
+    --teal:#0d9488; --teal-light:#e6fffb;
+    --amber:#b7791f; --amber-light:#fef6e0;
+    --red:#c0392b; --red-light:#fdecea;
+    --green:#2d7a4f; --green-light:#e8f5ee;
+    --code-bg:#1e1e2e; --radius:14px; --shadow:0 2px 16px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f3f4f8;color:var(--ink);line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+  header.top{background:linear-gradient(135deg,#312e81 0%,#4f46e5 55%,#0d9488 120%);color:#fff;padding:38px 0 30px;margin-bottom:8px}
+  header.top .wrap{padding-bottom:0}
+  header.top h1{font-size:1.95rem;font-weight:800;display:flex;align-items:center;gap:12px}
+  header.top p{opacity:.92;margin-top:8px;font-size:.95rem;max-width:780px}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .tag{background:rgba(255,255,255,.18);border-radius:20px;padding:4px 13px;font-size:.76rem;font-weight:600}
+
+  section{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 28px;margin-top:22px}
+  h2{font-size:1.3rem;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:4px;color:var(--indigo-dark)}
+  h2 .n{background:var(--indigo);color:#fff;width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:.95rem}
+  h3{font-size:1.02rem;font-weight:700;margin:22px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+  p.lead{color:var(--muted);font-size:.92rem;margin:6px 0 10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:#fcfcff}
+  .card h4{font-size:.98rem;font-weight:700;margin-bottom:2px;color:var(--indigo-dark);font-family:'SF Mono',Consolas,monospace}
+  .card .sub{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+
+  pre{background:var(--code-bg);color:#e6e6e6;border-radius:9px;padding:14px 16px;overflow-x:auto;font-size:.79rem;line-height:1.55;margin:8px 0;font-family:'SF Mono','Fira Code',Consolas,monospace}
+  code.inline{background:var(--indigo-light);color:var(--indigo-dark);padding:1px 6px;border-radius:5px;font-size:.83em;font-family:'SF Mono',Consolas,monospace;font-weight:600}
+  .cm{color:#7f86a8;font-style:italic}.st{color:#c3e88d}.kw{color:#c792ea}.ty{color:#82aaff}.an{color:#ffcb6b}.nm{color:#f78c6c}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.84rem}
+  th{background:var(--indigo-light);color:var(--indigo-dark);text-align:left;padding:9px 12px;border:1px solid var(--border);font-weight:700}
+  td{padding:9px 12px;border:1px solid var(--border);vertical-align:top}
+  tr:nth-child(even) td{background:#fafbff}
+  td code,th code{background:#eef2ff;color:var(--indigo-dark);padding:1px 5px;border-radius:4px;font-family:'SF Mono',monospace;font-size:.92em}
+
+  .callout{border-radius:9px;padding:12px 16px;margin:14px 0;font-size:.87rem}
+  .callout .t{font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+  .gotcha{background:var(--red-light);border-left:4px solid var(--red)} .gotcha .t{color:var(--red)}
+  .tip{background:var(--green-light);border-left:4px solid var(--green)} .tip .t{color:var(--green)}
+  .note{background:var(--amber-light);border-left:4px solid var(--amber)} .note .t{color:var(--amber)}
+  .callout ul{margin:4px 0 0 18px}.callout li{margin:3px 0}
+
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .toc a{font-size:.8rem;text-decoration:none;background:#fff;border:1px solid #c7d2fe;color:var(--indigo-dark);padding:6px 11px;border-radius:7px;font-weight:600}
+  .toc a:hover{background:var(--indigo-light)}
+  .pill{display:inline-block;background:var(--teal-light);color:var(--teal);border:1px solid #99f6e4;border-radius:6px;padding:1px 8px;font-size:.74rem;font-weight:700;font-family:'SF Mono',monospace}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:26px 0 0}
+  .diagram{background:#fafbff;border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0;overflow-x:auto}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>🕓 Java Date &amp; Time Cheatsheet</h1>
+    <p>The modern <code style="color:#c7d2fe">java.time</code> API (JSR-310, since Java 8) — immutable, thread-safe, and the only date library you should reach for. Small snippets, the Local/Zoned/Instant mental model, and how time zones &amp; daylight saving actually work.</p>
+    <div class="tags">
+      <span class="tag">java.time</span><span class="tag">Immutable &amp; thread-safe</span>
+      <span class="tag">Zones &amp; DST</span><span class="tag">Formatting</span><span class="tag">Testing with Clock</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <h2><span class="n">★</span> The 30-second mental model</h2>
+    <p class="lead">Almost every date bug comes from confusing these three. Pick the one that matches what you actually mean.</p>
+    <div class="grid">
+      <div class="card">
+        <h4>LocalDate / LocalDateTime</h4>
+        <div class="sub">A "wall clock" reading. No zone, no offset.</div>
+        <p style="font-size:.85rem">"June 10th, 9:00 AM" — but <b>whose</b> 9 AM? Unknown. Great for birthdays, business hours, a date on a form. <b>Not</b> a point on the global timeline.</p>
+      </div>
+      <div class="card">
+        <h4>ZonedDateTime</h4>
+        <div class="sub">Wall clock + a real time zone.</div>
+        <p style="font-size:.85rem">"June 10th, 9:00 AM in America/New_York." Now it's unambiguous and DST-aware. Use for events tied to a place &amp; for human display.</p>
+      </div>
+      <div class="card">
+        <h4>Instant</h4>
+        <div class="sub">A machine timestamp — nanoseconds from the 1970 epoch, in UTC.</div>
+        <p style="font-size:.85rem">A single point on the global timeline, zone-free. Use for logs, "created_at", ordering events, and what you <b>store</b> in a DB.</p>
+      </div>
+      <div class="card" style="background:var(--indigo-light);border-color:#c7d2fe">
+        <h4 style="color:var(--indigo-dark)">Rule of thumb</h4>
+        <div class="sub">&nbsp;</div>
+        <p style="font-size:.85rem"><b>Store</b> an <code class="inline">Instant</code> (UTC). <b>Display</b> a <code class="inline">ZonedDateTime</code>. Use <code class="inline">LocalDate</code> only for things that genuinely have no zone (a birthday).</p>
+      </div>
+    </div>
+    <div class="toc">
+      <a href="#types">Core types</a><a href="#create">Create &amp; parse</a><a href="#math">Math &amp; compare</a>
+      <a href="#pd">Period vs Duration</a><a href="#zones">Time zones</a><a href="#dst">Daylight saving</a>
+      <a href="#format">Formatting</a><a href="#legacy">Legacy interop</a><a href="#clock">Testing (Clock)</a>
+      <a href="#store">Storage</a><a href="#extras">More types</a><a href="#gotchas">Top gotchas</a>
+    </div>
+  </section>
+
+  <section id="types">
+    <h2><span class="n">1</span> Core types at a glance</h2>
+    <table>
+      <tr><th>Type</th><th>Holds</th><th>Has zone?</th><th>Typical use</th></tr>
+      <tr><td><code>LocalDate</code></td><td>year-month-day</td><td>no</td><td>birthday, due date, "2026-06-10"</td></tr>
+      <tr><td><code>LocalTime</code></td><td>hour-min-sec-nano</td><td>no</td><td>store opening time "09:00"</td></tr>
+      <tr><td><code>LocalDateTime</code></td><td>date + time</td><td>no</td><td>"meeting at 3pm" (zone implied elsewhere)</td></tr>
+      <tr><td><code>ZonedDateTime</code></td><td>date + time + zone</td><td>yes (rules)</td><td>event at a venue, human display, DST-correct math</td></tr>
+      <tr><td><code>OffsetDateTime</code></td><td>date + time + offset</td><td>fixed offset only</td><td>API/JSON payloads, DB <code>timestamptz</code></td></tr>
+      <tr><td><code>Instant</code></td><td>nanos since 1970 UTC</td><td>UTC</td><td>timestamps, logs, ordering, what you persist</td></tr>
+      <tr><td><code>ZoneId</code></td><td>"America/New_York"</td><td>—</td><td>a region with full DST rules</td></tr>
+      <tr><td><code>ZoneOffset</code></td><td>"+05:30", "Z"</td><td>—</td><td>a fixed offset from UTC (no rules)</td></tr>
+      <tr><td><code>Duration</code></td><td>seconds + nanos</td><td>—</td><td>time-based amount ("90 minutes")</td></tr>
+      <tr><td><code>Period</code></td><td>years/months/days</td><td>—</td><td>date-based amount ("2 months, 3 days")</td></tr>
+      <tr><td><code>MonthDay</code> / <code>YearMonth</code> / <code>Year</code></td><td>partial dates</td><td>no</td><td>recurring birthday, card expiry, leap-year check</td></tr>
+      <tr><td><code>DayOfWeek</code> / <code>Month</code></td><td>enums</td><td>—</td><td>readable, type-safe weekday/month</td></tr>
+      <tr><td><code>Clock</code></td><td>a time source</td><td>yes</td><td>inject "now" so code is testable</td></tr>
+    </table>
+    <div class="callout tip"><div class="t">✅ All immutable &amp; thread-safe</div>
+      Every <code class="inline">java.time</code> type is immutable — methods like <code class="inline">plusDays</code> return a <b>new</b> object. You can share them across threads freely, and <code class="inline">DateTimeFormatter</code> is thread-safe (unlike the old <code class="inline">SimpleDateFormat</code>).</div>
+  </section>
+
+  <section id="create">
+    <h2><span class="n">2</span> Creating &amp; parsing</h2>
+    <pre><code>// now() — reads the system clock (pass a Clock to make it testable, see §9)
+LocalDate today      = LocalDate.now();
+LocalDateTime nowLdt = LocalDateTime.now();
+Instant nowTs        = Instant.now();
+ZonedDateTime nowNyc = ZonedDateTime.now(ZoneId.of("America/New_York"));
+
+// of() — build explicitly (months are 1-based here, unlike the old Date!)
+LocalDate d   = LocalDate.of(2026, 6, 10);          // 2026-06-10
+LocalDate d2  = LocalDate.of(2026, Month.JUNE, 10); // same, more readable
+LocalTime t   = LocalTime.of(9, 30);                // 09:30
+LocalDateTime ldt = LocalDateTime.of(d, t);
+
+// parse() — ISO-8601 by default; throws DateTimeParseException on bad input
+LocalDate p   = LocalDate.parse("2026-06-10");
+Instant i     = Instant.parse("2026-06-10T13:00:00Z");   // Z = UTC
+ZonedDateTime z = ZonedDateTime.parse("2026-06-10T09:00:00-04:00[America/New_York]");
+
+// epoch conversions (Unix time)
+Instant fromMillis = Instant.ofEpochMilli(1_749_560_400_000L);
+long millis        = nowTs.toEpochMilli();
+long seconds       = nowTs.getEpochSecond();</code></pre>
+    <div class="callout note"><div class="t">📌 Months are 1-based in java.time</div>
+      <code class="inline">LocalDate.of(2026, 1, 1)</code> is January 1st — sane. The <i>old</i> <code class="inline">java.util.Calendar</code> used 0-based months (a notorious bug source). One more reason never to go back.</div>
+  </section>
+
+  <section id="math">
+    <h2><span class="n">3</span> Accessing, modifying &amp; comparing</h2>
+    <p class="lead">Every "mutator" returns a new value. Chain them; the original is untouched.</p>
+    <pre><code>LocalDate d = LocalDate.of(2026, 6, 10);
+
+// read parts
+int year       = d.getYear();        // 2026
+Month month    = d.getMonth();       // JUNE
+DayOfWeek dow  = d.getDayOfWeek();   // WEDNESDAY
+boolean leap   = d.isLeapYear();     // false
+
+// plus / minus — returns a NEW LocalDate
+LocalDate next = d.plusDays(5).minusMonths(1);   // 2026-05-15
+LocalDateTime rounded = LocalDateTime.now()
+        .truncatedTo(ChronoUnit.HOURS);          // chop off mins/secs
+
+// with() — set one field
+LocalDate firstOfMonth = d.withDayOfMonth(1);
+
+// compare
+boolean before = d.isBefore(next);   // true
+boolean eq     = d.isEqual(next);    // false
+int cmp        = d.compareTo(next);  // works in sorts / Comparator
+
+// distance between two points — ChronoUnit, NOT manual millis math
+long days  = ChronoUnit.DAYS.between(d, next);   // signed; negative if next < d
+long hours = ChronoUnit.HOURS.between(Instant.now(), Instant.now().plusSeconds(7200));</code></pre>
+    <div class="callout gotcha"><div class="t">⚠️ Never compute gaps with <code class="inline">millis / 86_400_000</code></div>
+      Manual epoch arithmetic breaks across DST and assumes every day is 24h. Use <code class="inline">ChronoUnit.DAYS.between(a, b)</code> — it's correct, signed, and readable. Use <code class="inline">Math.abs(...)</code> if you want an unsigned gap.</div>
+  </section>
+
+  <section id="pd">
+    <h2><span class="n">4</span> Period vs Duration — the subtle one</h2>
+    <p class="lead">Both represent "an amount of time," but they answer different questions — and they diverge across DST.</p>
+    <div class="grid">
+      <div class="card">
+        <h4>Period</h4>
+        <div class="sub">Date-based: years, months, days. "Calendar" thinking.</div>
+        <pre style="font-size:.74rem"><code>Period p = Period.between(
+    LocalDate.of(2026,1,31),
+    LocalDate.of(2026,3,1));     // 1 month, 1 day
+LocalDate due = LocalDate.now()
+    .plus(Period.ofMonths(2));   // calendar months</code></pre>
+      </div>
+      <div class="card">
+        <h4>Duration</h4>
+        <div class="sub">Time-based: hours, minutes, seconds, nanos. "Stopwatch" thinking.</div>
+        <pre style="font-size:.74rem"><code>Duration d = Duration.between(
+    Instant.now(),
+    Instant.now().plusSeconds(90));
+Duration timeout = Duration.ofSeconds(30);
+long mins = d.toMinutes();</code></pre>
+      </div>
+    </div>
+    <div class="callout note"><div class="t">📌 The DST gotcha they love to ask</div>
+      Across a spring-forward day, <code class="inline">zdt.plus(Period.ofDays(1))</code> and <code class="inline">zdt.plus(Duration.ofHours(24))</code> give <b>different</b> results. "Plus 1 day" keeps the same wall-clock time (23h elapsed); "plus 24 hours" advances exactly 24h of real time (wall clock shifts by an hour). Period = calendar days, Duration = elapsed seconds.</div>
+  </section>
+
+  <section id="zones">
+    <h2><span class="n">5</span> Time zones</h2>
+    <p class="lead">A <code class="inline">ZoneId</code> is a <b>region</b> with a full rulebook (offsets + when DST flips). A <code class="inline">ZoneOffset</code> is just a fixed gap from UTC with no rules.</p>
+    <pre><code>// Region IDs come from the IANA tz database — always "Area/City", never "EST"
+ZoneId nyc   = ZoneId.of("America/New_York");
+ZoneId tokyo = ZoneId.of("Asia/Tokyo");
+ZoneId utc   = ZoneOffset.UTC;
+ZoneId sys   = ZoneId.systemDefault();          // the JVM's zone (avoid relying on it)
+
+// attach a zone to a LocalDateTime → a real moment
+LocalDateTime ldt = LocalDateTime.of(2026, 6, 10, 9, 0);
+ZonedDateTime nycTime = ldt.atZone(nyc);        // 09:00 in New York
+
+// SAME INSTANT, different wall clock — what you want for "show me this in Tokyo"
+ZonedDateTime tokyoTime = nycTime.withZoneSameInstant(tokyo);   // 22:00 same day
+
+// SAME WALL CLOCK, different instant — rarely what you want
+ZonedDateTime literal  = nycTime.withZoneSameLocal(tokyo);      // 09:00 in Tokyo
+
+// to/from the timeline
+Instant instant = nycTime.toInstant();          // collapse to UTC point
+ZonedDateTime back = instant.atZone(nyc);       // expand back into a zone</code></pre>
+    <div class="callout gotcha"><div class="t">⚠️ Don't use 3-letter zone abbreviations</div>
+      "EST", "PST", "IST" are ambiguous (IST = India? Israel? Ireland?) and ignore DST. Always use IANA region IDs like <code class="inline">America/New_York</code> or <code class="inline">Asia/Kolkata</code>. The offset for a region <i>changes</i> with DST — that's the whole point of a <code class="inline">ZoneId</code>.</div>
+    <div class="callout note"><div class="t">📌 Offset vs Zone, for APIs</div>
+      Sending a timestamp over JSON/HTTP? Prefer <code class="inline">OffsetDateTime</code> (<code class="inline">2026-06-10T09:00-04:00</code>) or an <code class="inline">Instant</code> in UTC. Don't ship a bare <code class="inline">LocalDateTime</code> — the receiver can't know which zone it meant.</div>
+  </section>
+
+  <section id="dst">
+    <h2><span class="n">6</span> Daylight Saving Time — gaps &amp; overlaps</h2>
+    <p class="lead">Twice a year the wall clock jumps. <code class="inline">ZonedDateTime</code> handles both cases for you — but you should know what it picks.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;font-family:monospace;font-size:12px">
+        <text x="10" y="20" font-weight="bold" fill="#3730a3">Spring forward (gap) — clocks 02:00 → 03:00, 02:30 NEVER happens</text>
+        <line x1="30" y1="55" x2="360" y2="55" stroke="#94a3b8" stroke-width="2"/>
+        <text x="40" y="45" fill="#0d9488">01:30</text>
+        <rect x="120" y="44" width="80" height="22" fill="#fdecea" stroke="#c0392b"/>
+        <text x="160" y="59" text-anchor="middle" fill="#c0392b">02:30 ✗</text>
+        <text x="250" y="45" fill="#0d9488">03:30</text>
+        <text x="30" y="90" fill="#6b7280">java.time pushes a non-existent time FORWARD by the gap → 02:30 becomes 03:30.</text>
+
+        <text x="10" y="130" font-weight="bold" fill="#3730a3">Fall back (overlap) — clocks 02:00 → 01:00, 01:30 happens TWICE</text>
+        <line x1="30" y1="165" x2="360" y2="165" stroke="#94a3b8" stroke-width="2"/>
+        <rect x="110" y="154" width="90" height="22" fill="#fef6e0" stroke="#b7791f"/>
+        <text x="155" y="169" text-anchor="middle" fill="#b7791f">01:30 (×2)</text>
+        <text x="30" y="195" fill="#6b7280">By default java.time picks the EARLIER offset; use withLaterOffsetAtOverlap() for the second.</text>
+      </svg>
+    </div>
+    <pre><code>ZoneId nyc = ZoneId.of("America/New_York");
+
+// --- GAP: 2026-03-08, clocks skip 02:00→03:00, so 02:30 doesn't exist ---
+LocalDateTime gap = LocalDateTime.of(2026, 3, 8, 2, 30);
+ZonedDateTime fixed = gap.atZone(nyc);
+// fixed == 2026-03-08T03:30-04:00  (auto-shifted forward by 1h, now in EDT)
+
+// --- OVERLAP: 2026-11-01, clocks repeat 01:00→01:59, so 01:30 happens twice ---
+LocalDateTime overlap = LocalDateTime.of(2026, 11, 1, 1, 30);
+ZonedDateTime earlier = overlap.atZone(nyc);                      // -04:00 (EDT), the default
+ZonedDateTime later   = earlier.withLaterOffsetAtOverlap();       // -05:00 (EST)
+
+// --- Period vs Duration across the spring-forward day ---
+ZonedDateTime start = LocalDateTime.of(2026, 3, 8, 0, 30).atZone(nyc);
+ZonedDateTime plusDay   = start.plus(Period.ofDays(1));     // 2026-03-09T00:30  (same wall time, 23h later)
+ZonedDateTime plus24h   = start.plus(Duration.ofHours(24)); // 2026-03-09T01:30  (24h real time, clock +1h)</code></pre>
+    <div class="callout tip"><div class="t">✅ What to remember about DST</div>
+      <ul>
+        <li>Do zone-aware math on <code class="inline">ZonedDateTime</code> — it applies DST rules automatically.</li>
+        <li>Do elapsed-time math on <code class="inline">Instant</code> — no zone, no DST, always linear UTC.</li>
+        <li>Gaps shift forward; overlaps default to the earlier offset.</li>
+        <li>Never bake an offset (like <code class="inline">-05:00</code>) into stored data for a future event in a DST zone — store the <code class="inline">ZoneId</code> and resolve later, because the rules can change.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="format">
+    <h2><span class="n">7</span> Formatting &amp; parsing</h2>
+    <pre><code>// Built-in ISO formatters (no pattern needed)
+LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);   // 2026-06-10
+
+// Custom pattern
+DateTimeFormatter f = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy  HH:mm")
+        .withLocale(Locale.US);
+String s = LocalDateTime.now().format(f);   // "Wed, 10 Jun 2026  14:05"
+
+// Parse with the same formatter
+LocalDateTime back = LocalDateTime.parse("Wed, 10 Jun 2026  14:05", f);
+
+// Formatting an Instant REQUIRES a zone (an Instant has no local fields)
+DateTimeFormatter withZone = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z")
+        .withZone(ZoneId.of("America/New_York"));
+String shown = withZone.format(Instant.now());</code></pre>
+    <h3>Pattern letters you actually use</h3>
+    <table>
+      <tr><th>Letter</th><th>Means</th><th>Example</th><th>⚠️ Confused with</th></tr>
+      <tr><td><code>yyyy</code></td><td>year</td><td>2026</td><td><code>YYYY</code> = week-based year (off by days near Jan 1)</td></tr>
+      <tr><td><code>MM</code></td><td>month (01-12)</td><td>06</td><td><code>mm</code> = minutes</td></tr>
+      <tr><td><code>dd</code></td><td>day of month</td><td>10</td><td><code>DD</code> = day of year</td></tr>
+      <tr><td><code>HH</code></td><td>hour 0-23</td><td>14</td><td><code>hh</code> = hour 1-12 (needs <code>a</code>)</td></tr>
+      <tr><td><code>mm</code></td><td>minutes</td><td>05</td><td><code>MM</code> = month</td></tr>
+      <tr><td><code>a</code></td><td>AM/PM</td><td>PM</td><td>—</td></tr>
+      <tr><td><code>z</code> / <code>Z</code> / <code>V</code></td><td>zone name / offset / zone-id</td><td>EDT / -0400 / America/New_York</td><td>—</td></tr>
+    </table>
+    <div class="callout gotcha"><div class="t">⚠️ The classic pattern bugs</div>
+      <code class="inline">YYYY</code> instead of <code class="inline">yyyy</code> silently breaks the last/first week of the year. <code class="inline">mm</code> vs <code class="inline">MM</code> swaps minutes and months. <code class="inline">DD</code> vs <code class="inline">dd</code> gives day-of-year. Always lowercase-d day, lowercase-m minute, uppercase-M month, lowercase-y year.</div>
+  </section>
+
+  <section id="legacy">
+    <h2><span class="n">8</span> Talking to legacy <code style="font-size:1rem">Date</code> / <code style="font-size:1rem">Calendar</code></h2>
+    <p class="lead">You'll still meet old APIs. Convert at the boundary, then work in <code class="inline">java.time</code>.</p>
+    <pre><code>// java.util.Date  &lt;-&gt;  Instant
+Date legacy   = Date.from(Instant.now());
+Instant fromLegacy = legacy.toInstant();
+
+// java.sql types
+java.sql.Date   sqlDate = java.sql.Date.valueOf(LocalDate.now());
+LocalDate fromSql       = sqlDate.toLocalDate();
+
+// Calendar (avoid; convert out fast)
+ZonedDateTime z = ((GregorianCalendar) Calendar.getInstance())
+        .toZonedDateTime();</code></pre>
+    <div class="callout gotcha"><div class="t">⚠️ Things to retire</div>
+      <ul>
+        <li><code class="inline">java.util.Date</code> — mutable, no zone, half its methods deprecated.</li>
+        <li><code class="inline">Calendar</code> — mutable, 0-based months, clumsy.</li>
+        <li><code class="inline">SimpleDateFormat</code> — <b>not thread-safe</b>; a shared static instance corrupts under load. <code class="inline">DateTimeFormatter</code> replaces it and is thread-safe.</li>
+        <li><code class="inline">Joda-Time</code> — was the gold standard pre-Java-8; java.time is its official successor by the same author. New code uses java.time.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="clock">
+    <h2><span class="n">9</span> Testing time — inject a <code style="font-size:1rem">Clock</code></h2>
+    <p class="lead">The single most useful trick: never call <code class="inline">now()</code> with no argument inside business logic. Pass a <code class="inline">Clock</code> (or a fixed "today") so tests are deterministic.</p>
+    <pre><code>// Production wiring uses the real clock
+Clock clock = Clock.systemDefaultZone();
+
+// Tests freeze time — now() becomes 100% reproducible
+Clock fixed = Clock.fixed(
+        Instant.parse("2026-06-10T00:00:00Z"), ZoneOffset.UTC);
+
+LocalDate today = LocalDate.now(fixed);          // always 2026-06-10
+Instant   stamp = Instant.now(fixed);            // always that instant
+
+// Inject it, don't hardcode now() deep in a method:
+class BirthdayService {
+    private final Clock clock;
+    BirthdayService(Clock clock) { this.clock = clock; }
+    boolean isBirthdayToday(LocalDate bday) {
+        LocalDate today = LocalDate.now(clock);   // testable!
+        return MonthDay.from(bday).equals(MonthDay.from(today));
+    }
+}</code></pre>
+    <div class="callout tip"><div class="t">✅ Also handy</div>
+      <code class="inline">Clock.offset(base, Duration.ofHours(2))</code> shifts time, and <code class="inline">Clock.tick(...)</code> truncates resolution — both useful for simulating schedules in tests.</div>
+  </section>
+
+  <section id="store">
+    <h2><span class="n">10</span> How to store time correctly</h2>
+    <table>
+      <tr><th>You're storing…</th><th>Use</th><th>DB column</th></tr>
+      <tr><td>"when did this happen" (created_at, logs, events)</td><td><code>Instant</code> (UTC)</td><td><code>timestamptz</code> / <code>TIMESTAMP WITH TIME ZONE</code></td></tr>
+      <tr><td>a future event tied to a place</td><td><code>LocalDateTime</code> + a <code>ZoneId</code> column</td><td>two columns; resolve to instant at read</td></tr>
+      <tr><td>a birthday / anniversary</td><td><code>LocalDate</code> or <code>MonthDay</code></td><td><code>DATE</code></td></tr>
+      <tr><td>store opening hours</td><td><code>LocalTime</code></td><td><code>TIME</code></td></tr>
+      <tr><td>a card expiry</td><td><code>YearMonth</code></td><td><code>DATE</code> (1st of month)</td></tr>
+    </table>
+    <div class="callout note"><div class="t">📌 The golden rule</div>
+      Persist in <b>UTC</b> (an <code class="inline">Instant</code> or <code class="inline">timestamptz</code>), convert to the user's zone only at the edges (display, input). The one exception: a <b>future</b> wall-clock event in a specific zone (a 9 AM meeting next year) — store the local time + the <code class="inline">ZoneId</code>, because if the government changes DST rules, "9 AM local" must still mean 9 AM.</div>
+  </section>
+
+  <section id="extras">
+    <h2><span class="n">11</span> Lesser-known types worth knowing</h2>
+    <div class="grid">
+      <div class="card"><h4>MonthDay</h4><div class="sub">month + day, no year — perfect for recurring birthdays</div>
+        <pre style="font-size:.74rem"><code>MonthDay bday = MonthDay.of(2, 29);
+LocalDate occ = bday.atYear(2027); // throws! 2027 not leap
+// → catch DateTimeException, fall back to Feb 28</code></pre></div>
+      <div class="card"><h4>YearMonth</h4><div class="sub">year + month — card expiry, billing periods</div>
+        <pre style="font-size:.74rem"><code>YearMonth ym = YearMonth.of(2026, 6);
+int len = ym.lengthOfMonth();   // 30
+LocalDate end = ym.atEndOfMonth();</code></pre></div>
+      <div class="card"><h4>TemporalAdjusters</h4><div class="sub">"next Friday", "last day of month"</div>
+        <pre style="font-size:.74rem"><code>import static java.time.temporal.TemporalAdjusters.*;
+LocalDate d = LocalDate.now()
+    .with(next(DayOfWeek.FRIDAY));
+LocalDate eom = LocalDate.now()
+    .with(lastDayOfMonth());</code></pre></div>
+      <div class="card"><h4>Year / DayOfWeek / Month</h4><div class="sub">tiny but type-safe</div>
+        <pre style="font-size:.74rem"><code>boolean leap = Year.of(2028).isLeap(); // true
+DayOfWeek d = LocalDate.now().getDayOfWeek();
+boolean weekend = d == DayOfWeek.SATURDAY
+                || d == DayOfWeek.SUNDAY;</code></pre></div>
+    </div>
+    <div class="callout note"><div class="t">📌 Need more?</div>
+      The <code class="inline">ThreeTen-Extra</code> library (same author) adds <code class="inline">Interval</code>, <code class="inline">YearWeek</code>, <code class="inline">DayOfYear</code>, and more — only if the JDK types don't cover you. The JDK's <code class="inline">java.time</code> handles ~99% of needs.</div>
+  </section>
+
+  <section id="gotchas">
+    <h2><span class="n">12</span> Top gotchas — quick scan</h2>
+    <div class="callout gotcha"><div class="t">⚠️ The ones that bite</div>
+      <ul>
+        <li><b>LocalDateTime is not a moment.</b> Without a zone it can't be ordered globally or stored as a timestamp.</li>
+        <li><b>millis ÷ 86,400,000</b> for day-gaps → wrong across DST. Use <code class="inline">ChronoUnit.DAYS.between</code>.</li>
+        <li><b>3-letter zones</b> ("EST") are ambiguous &amp; DST-blind. Use IANA <code class="inline">Area/City</code>.</li>
+        <li><b>SimpleDateFormat shared statically</b> → data races. Use <code class="inline">DateTimeFormatter</code>.</li>
+        <li><b><code class="inline">YYYY</code> / <code class="inline">DD</code> / <code class="inline">mm</code></b> in patterns → week-year / day-of-year / minutes. Mind the case.</li>
+        <li><b>Feb 29 + 1 year</b> throws via <code class="inline">atYear()</code> — handle leap years explicitly.</li>
+        <li><b><code class="inline">LocalDate.now()</code> inside logic</b> → untestable. Inject a <code class="inline">Clock</code>.</li>
+        <li><b>Storing an offset for a future zoned event</b> → breaks if DST rules change. Store the <code class="inline">ZoneId</code>.</li>
+        <li><b>Period vs Duration</b> aren't interchangeable: calendar days ≠ 24-hour blocks across DST.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>java.time (JSR-310) cheatsheet · immutable, thread-safe, zone-aware · for Java 8+ · built for Karthik</footer>
+</div>
+
+<script>
+// Lightweight Java syntax highlighter — keeps snippets plain-text in source, colorizes on render.
+(function(){
+  const TOKEN = new RegExp([
+    '(\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*)',                 // 1 comment
+    '("(?:\\\\.|[^"\\\\])*"|\'(?:\\\\.|[^\'\\\\])*\')',       // 2 string/char
+    '(@\\w+)',                                                 // 3 annotation
+    '\\b(public|private|protected|static|final|abstract|class|interface|record|enum|new|return|if|else|for|while|do|switch|case|default|void|int|long|double|float|boolean|char|byte|short|var|import|package|throws|throw|try|catch|finally|extends|implements|this|super|true|false|null|instanceof)\\b', // 4 keyword
+    '\\b([A-Z][A-Za-z0-9_]*)\\b',                             // 5 type / constant
+    '\\b(\\d[\\d_]*[LlFfDd]?)\\b'                             // 6 number
+  ].join('|'),'g');
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  document.querySelectorAll('pre code, pre').forEach(function(block){
+    if(block.tagName==='PRE' && block.querySelector('code')) return; // handled via inner code
+    var src = block.textContent, out='', last=0, m;
+    TOKEN.lastIndex=0;
+    while((m=TOKEN.exec(src))){
+      out += esc(src.slice(last, m.index));
+      var t=m[0], cls = m[1]?'cm':m[2]?'st':m[3]?'an':m[4]?'kw':m[5]?'ty':m[6]?'nm':'';
+      out += cls ? '<span class="'+cls+'">'+esc(t)+'</span>' : esc(t);
+      last = m.index + t.length;
+    }
+    out += esc(src.slice(last));
+    block.innerHTML = out;
+  });
+})();
+</script>
+</body>
+</html>
