@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOA Astoria — Trip &amp; Packing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  :root{--night:#0E1A2B;--surface:#172B45;--surface-2:#1E3756;--line:#284563;--sand:#ECE4D2;--sand-dim:#A9B6C9;
+    --ember:#F2A65A;--ember-deep:#E0822E;--sea:#63B4AC;--violet:#B49DE8;--done:#5C708C;--danger:#E2756B;
+    --shadow:0 12px 30px rgba(0,0,0,.35);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Inter',system-ui,sans-serif;
+    background:radial-gradient(1100px 600px at 80% -5%, rgba(242,166,90,.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(99,180,172,.10), transparent 55%), var(--night);
+    color:var(--sand);line-height:1.5;padding:clamp(16px,3vw,40px);min-height:100vh;}
+  .wrap{max-width:1240px;margin:0 auto}
+  header{position:relative;overflow:hidden;border-radius:20px;background:linear-gradient(135deg,#0C1726,#16294180);
+    border:1px solid var(--line);padding:clamp(22px,4vw,40px);margin-bottom:24px;box-shadow:var(--shadow)}
+  .stars{position:absolute;inset:0;pointer-events:none;opacity:.7}
+  .stars span{position:absolute;background:#fff;border-radius:50%;animation:tw 4s infinite ease-in-out}
+  @keyframes tw{0%,100%{opacity:.15}50%{opacity:.9}}
+  @media (prefers-reduced-motion:reduce){.stars span{animation:none;opacity:.5}}
+  .eyebrow{font-family:'Space Grotesk';letter-spacing:.32em;text-transform:uppercase;font-size:.72rem;color:var(--ember);font-weight:600;position:relative}
+  h1{font-family:'Space Grotesk';font-weight:700;font-size:clamp(1.9rem,5vw,3rem);letter-spacing:-.02em;margin:.25em 0 .15em;position:relative}
+  .sub{color:var(--sand-dim);font-size:.95rem;position:relative;max-width:64ch}
+  .sub b{color:var(--sea);font-weight:600}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;position:relative}
+  .chip{font-family:'Space Grotesk';font-size:.78rem;font-weight:500;background:rgba(99,180,172,.12);
+    border:1px solid rgba(99,180,172,.3);color:#bfe7e2;padding:5px 12px;border-radius:999px}
+  .chip.warm{background:rgba(242,166,90,.12);border-color:rgba(242,166,90,.32);color:#f6d4ac}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin:28px 2px 14px}
+  .sec-head h2{font-family:'Space Grotesk';font-size:1.15rem;font-weight:600;letter-spacing:.02em}
+  .sec-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .table-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .scroll{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:680px;font-size:.86rem}
+  thead th{background:#0F2034;font-family:'Space Grotesk';font-weight:600;text-align:left;color:var(--ember);
+    font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding:12px 14px;border-bottom:1px solid var(--line)}
+  tbody td{padding:12px 14px;border-bottom:1px solid rgba(40,69,99,.5);vertical-align:top;color:var(--sand)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:nth-child(even) td{background:rgba(255,255,255,.012)}
+  .date{font-family:'Space Grotesk';font-weight:600;color:#fff;white-space:nowrap}
+  td.notes{color:var(--sand-dim)} td.notes b{color:var(--sea);font-weight:600}
+  a{color:var(--ember);text-decoration:none;border-bottom:1px dotted var(--ember-deep)} a:hover{color:#ffd9ad}
+  .toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 2px 6px}
+  .track{flex:1;min-width:160px;height:9px;background:#0F2034;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .fill{height:100%;width:0;background:linear-gradient(90deg,var(--sea),var(--ember));border-radius:999px;transition:width .35s ease}
+  .pct{font-family:'Space Grotesk';font-weight:600;font-size:.82rem;color:var(--sand-dim);min-width:128px;text-align:right}
+  .btn{font-family:'Space Grotesk';font-size:.76rem;font-weight:600;cursor:pointer;background:transparent;
+    border:1px solid var(--line);color:var(--sand-dim);padding:7px 13px;border-radius:999px;transition:.2s;white-space:nowrap}
+  .btn:hover{border-color:var(--ember);color:var(--ember)}
+  .btn.primary{background:rgba(242,166,90,.14);border-color:rgba(242,166,90,.4);color:#f6d4ac}
+  .btn.primary:hover{background:rgba(242,166,90,.22);color:#fff}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:2px 2px 12px;align-items:center}
+  .legend .lg{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--sand-dim)}
+  /* filter bar */
+  .filterbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:0 2px 14px;
+    padding:11px 12px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .flabel{font-family:'Space Grotesk';font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--sand-dim);margin-right:2px}
+  .fchip{font-family:'Space Grotesk';font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid var(--line);
+    background:#0F2034;color:var(--sand-dim);padding:6px 11px;border-radius:999px;transition:.15s;display:inline-flex;gap:6px;align-items:center}
+  .fchip:hover{border-color:var(--sea);color:#cfeee9}
+  .fchip.active{background:var(--sea);border-color:var(--sea);color:#08231f}
+  .fchip .c{font-size:.66rem;opacity:.7;font-weight:700}
+  .who{flex:none;min-width:22px;height:19px;padding:0 6px;border-radius:5px;font-family:'Space Grotesk';font-size:.66rem;
+    font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid transparent;white-space:nowrap;transition:.15s;margin-top:1px}
+  .who.h{background:rgba(99,180,172,.18);color:#9fded7;border-color:rgba(99,180,172,.45)}
+  .who.p{background:rgba(242,166,90,.18);color:#f6c890;border-color:rgba(242,166,90,.45)}
+  .who.both{background:rgba(180,157,232,.18);color:#cdbcf2;border-color:rgba(180,157,232,.5)}
+  .who.custom{background:rgba(255,255,255,.06);color:var(--sand-dim);border-color:var(--line);font-size:.6rem}
+  .who.empty{background:transparent;color:#4d5f78;border:1px dashed var(--line)}
+  .who.empty:hover{color:var(--sea);border-color:var(--sea)}
+  .cards{columns:300px;column-gap:16px}
+  .card{break-inside:avoid;background:var(--surface);border:1px solid var(--line);border-radius:16px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .card-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);background:#0F2034}
+  .ico{width:24px;flex:none;font-size:.95rem;text-align:center}
+  .card-top h3{font-family:'Space Grotesk';font-size:.98rem;font-weight:600;flex:1;letter-spacing:.01em;outline:none}
+  .card-top h3:focus{color:#fff;text-decoration:underline dotted var(--sand-dim)}
+  .count{font-family:'Space Grotesk';font-size:.72rem;font-weight:600;color:var(--sand-dim);background:rgba(255,255,255,.05);padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .cat-del{flex:none;cursor:pointer;color:var(--sand-dim);opacity:.45;font-size:1rem;line-height:1;background:none;border:none;padding:2px 4px;transition:.15s}
+  .cat-del:hover{opacity:1;color:var(--danger)}
+  ul{list-style:none;padding:6px}
+  li{display:flex;align-items:flex-start;gap:8px;padding:8px 9px;border-radius:9px;transition:background .15s}
+  li:hover{background:rgba(255,255,255,.035)}
+  .box{width:18px;height:18px;flex:none;margin-top:1px;border-radius:5px;border:1.5px solid var(--sand-dim);display:grid;place-items:center;cursor:pointer;transition:.18s}
+  .box svg{width:11px;height:11px;opacity:0;transform:scale(.5);transition:.18s;stroke:#0E1A2B;stroke-width:3.2;fill:none}
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;cursor:pointer}
+  .txt{font-size:.875rem;color:var(--sand);transition:.18s}
+  .detail{font-size:.72rem;color:var(--sand-dim);line-height:1.35}
+  .store{flex:none;margin-top:1px;font-family:'Space Grotesk';font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:5px;
+    cursor:pointer;white-space:nowrap;border:1px solid transparent;transition:.15s;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+  .store.unset{color:#4d5f78;border:1px dashed var(--line);background:transparent;font-weight:600}
+  .store.unset:hover{color:var(--sea);border-color:var(--sea)}
+  .s-costco{background:rgba(91,143,214,.18);color:#a9c8f2;border-color:rgba(91,143,214,.42)}
+  .s-qfc{background:rgba(90,168,106,.18);color:#a9e0b3;border-color:rgba(90,168,106,.42)}
+  .s-tj{background:rgba(217,104,95,.18);color:#f2afa8;border-color:rgba(217,104,95,.42)}
+  .s-indian{background:rgba(217,154,78,.2);color:#f2cd97;border-color:rgba(217,154,78,.42)}
+  .s-safeway{background:rgba(214,86,72,.18);color:#f2aa9c;border-color:rgba(214,86,72,.42)}
+  .s-home{background:rgba(99,180,172,.16);color:#9fded7;border-color:rgba(99,180,172,.4)}
+  .s-campsite{background:rgba(169,130,78,.2);color:#e2c596;border-color:rgba(169,130,78,.42)}
+  .s-other{background:rgba(255,255,255,.06);color:var(--sand-dim);border-color:var(--line)}
+  .item-edit,.item-del{flex:none;cursor:pointer;color:var(--sand-dim);opacity:0;font-size:.92rem;line-height:1;background:none;border:none;padding:0 2px;transition:.15s;margin-top:1px}
+  li:hover .item-edit,li:hover .item-del{opacity:.5}
+  .item-edit:hover{opacity:1!important;color:var(--sea)} .item-del:hover{opacity:1!important;color:var(--danger)}
+  li.done .box{background:var(--sea);border-color:var(--sea)}
+  li.done .box svg{opacity:1;transform:scale(1)}
+  li.done .txt{color:var(--done);text-decoration:line-through;text-decoration-color:var(--done)}
+  li.done .detail{color:#48586e} li.done .who,li.done .store{opacity:.5}
+  .edit-panel{flex:1;display:flex;flex-direction:column;gap:6px;padding:1px 0}
+  .edit-panel input{background:#0F2034;border:1px solid var(--line);border-radius:7px;color:var(--sand);font-family:'Inter';font-size:.82rem;padding:6px 8px;outline:none;width:100%}
+  .edit-panel input:focus{border-color:var(--sea)}
+  .e-grid{display:flex;gap:6px} .e-grid input{flex:1;min-width:0}
+  .e-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:1px}
+  .e-actions button{font-family:'Space Grotesk';font-size:.72rem;font-weight:600;border-radius:7px;padding:5px 12px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--sand-dim);transition:.15s}
+  .e-save{background:rgba(99,180,172,.2);border-color:rgba(99,180,172,.45);color:#bfe7e2}
+  .e-save:hover{background:rgba(99,180,172,.34);color:#fff}
+  .e-cancel:hover{border-color:var(--danger);color:var(--danger)}
+  .add-row{display:flex;gap:7px;padding:8px 12px 12px}
+  .add-row input{flex:1;background:#0F2034;border:1px solid var(--line);border-radius:9px;color:var(--sand);font-family:'Inter';font-size:.84rem;padding:8px 10px;outline:none}
+  .add-row input:focus{border-color:var(--sea)}
+  .add-row button{flex:none;background:rgba(99,180,172,.15);border:1px solid rgba(99,180,172,.35);color:#bfe7e2;border-radius:9px;cursor:pointer;font-size:1rem;width:36px;transition:.15s}
+  .add-row button:hover{background:rgba(99,180,172,.3);color:#fff}
+  .add-cat{display:block;width:100%;border:1.5px dashed var(--line);background:transparent;color:var(--sand-dim);border-radius:16px;padding:16px;cursor:pointer;font-family:'Space Grotesk';font-weight:600;font-size:.9rem;transition:.2s}
+  .add-cat:hover{border-color:var(--sea);color:var(--sea)}
+  .smenu{position:fixed;z-index:60;background:#13233A;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.5);padding:5px;min-width:158px}
+  .smenu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--sand);font-family:'Inter';font-size:.82rem;padding:7px 10px;border-radius:7px;cursor:pointer}
+  .smenu button:hover{background:rgba(99,180,172,.16);color:#fff}
+  .smenu .sep{height:1px;background:var(--line);margin:4px 2px}
+  .smenu .clear{color:var(--danger)}
+  .empty-note{color:var(--sand-dim);font-size:.85rem;text-align:center;padding:18px;font-style:italic}
+  footer{text-align:center;color:var(--sand-dim);font-size:.78rem;margin-top:30px;font-family:'Space Grotesk';letter-spacing:.04em}
+  .hint{color:var(--sand-dim);font-size:.74rem;margin:4px 2px 8px}
+  @media print{
+    body{background:#fff;color:#000}
+    .toolbar,.filterbar,.stars,.cat-del,.item-edit,.item-del,.add-row,.add-cat,.hint{display:none}
+    .card,.table-card,header{box-shadow:none;border-color:#ccc}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="stars" id="stars"></div>
+    <div class="eyebrow">Space Mission · Oregon Coast</div>
+    <h1>KOA Astoria — Trip &amp; Packing</h1>
+    <p class="sub">Tap an item to mark it done · tap the <b>who-tag</b> to assign · tap the <b>store-tag</b> to set where to buy · ✎ to edit. Filter by store to shop one place at a time.</p>
+    <div class="meta">
+      <span class="chip warm">Sat Jun 27 → Tue Jun 30</span>
+      <span class="chip">Cosmic Celebration · Sat night</span>
+      <span class="chip">Pack warm — coast is windy</span>
+    </div>
+  </header>
+
+  <div class="sec-head"><h2>Itinerary &amp; Meals</h2><span class="rule"></span></div>
+  <div class="table-card"><div class="scroll">
+    <table>
+      <thead><tr><th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>Snacks · Kids · Notes</th></tr></thead>
+      <tbody>
+        <tr><td class="date">Sat · Jun 27</td><td>At home</td><td>Buy out or pack from home</td><td>Indian — pack from Astoria restaurant <b>(H)</b></td><td class="notes"><b>Leave after breakfast.</b> Kids dinner: khichdi if needed. <a href="https://koa.com/campgrounds/astoria/events/cosmic-celebration-your-space-mission-have-an-epic-time_d470e915-7e4d-421f-b3e2-b913ecc000e6/" target="_blank" rel="noopener">Cosmic Celebration at KOA</a>.</td></tr>
+        <tr><td class="date">Sun · Jun 28</td><td>Omelette, bread, chai, boiled eggs</td><td>Burgers</td><td>Pesto pasta</td><td class="notes">Evening snack: Maggi. Kids dinner: mac &amp; cheese. <b>Pool · Wreck of the Peter Iredale · Beach.</b></td></tr>
+        <tr><td class="date">Mon · Jun 29</td><td>Omelette, bread, chai, boiled eggs</td><td>Pizza</td><td>Dal rice</td><td class="notes"><b>Pool · Beach: Jetty Road.</b></td></tr>
+        <tr><td class="date">Tue · Jun 30</td><td>If time, else on the way</td><td>—</td><td>—</td><td class="notes"><b>Leave after breakfast</b> — head home.</td></tr>
+      </tbody>
+    </table>
+  </div></div>
+
+  <div class="sec-head"><h2>Shopping &amp; Packing Checklist</h2><span class="rule"></span></div>
+  <div class="toolbar">
+    <div class="track"><div class="fill" id="fill" style="width: 0%;"></div></div>
+    <span class="pct" id="pct">0 of 73 done · 0%</span>
+    <button class="btn primary" id="saveCopy">⬇ Save shareable copy</button>
+    <button class="btn" id="exportJson">Export backup</button>
+    <button class="btn" id="importBtn">Import backup</button>
+    <button class="btn" id="reset">Reset checks</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden="">
+  </div>
+  <div class="legend">
+    <span class="lg"><span class="who h">H</span> Harshit</span>
+    <span class="lg"><span class="who p">P</span> Pranathi</span>
+    <span class="lg"><span class="who both">Both</span> Shared</span>
+  </div>
+
+  <div class="filterbar" id="filterbar"><span class="flabel">Filter by store</span><button class="fchip active">All <span class="c">73</span></button><button class="fchip">Costco <span class="c">9</span></button><button class="fchip">QFC <span class="c">9</span></button><button class="fchip">Trader Joe's <span class="c">1</span></button><button class="fchip">Indian store <span class="c">3</span></button><button class="fchip">Safeway <span class="c">1</span></button><button class="fchip">Pack from home <span class="c">48</span></button><button class="fchip">Campsite <span class="c">2</span></button></div>
+  <p class="hint">Tap a store filter to see only what's needed there. Tap any item's store-tag to set/change its store. Pre-filled stores are a best guess from your notes — adjust the “+ store” items as you like.</p>
+
+  <div class="cards" id="cards"></div>
+  <button class="add-cat" id="addCat">＋  New list</button>
+
+  <footer>Have an epic time · KOA Astoria</footer>
+</div>
+
+<script id="seed" type="application/json">
+{"savedAt":1782424016405,"cats":[{"id":"food-produce","ico":"🥬","title":"Produce & Veggies","items":[{"id":"ihjziv2","text":"Oranges","who":"H","qty":"1 Costco bag","note":"Astoria Costco","store":"Costco","done":false},{"id":"ijnhxn7","text":"Mango","who":"H","qty":"2 Costco box","note":"Bothell Costco","store":"Costco","done":false},{"id":"i0k3qsw","text":"Banana","who":"H","qty":"8","note":"Astoria Costco","store":"Costco","done":false},{"id":"imbazl9","text":"Tomatoes","who":"H","qty":"","note":"Astoria Costco","store":"Costco","done":false},{"id":"isi1nev","text":"Veggies — onion, green chili","who":"P","qty":"","note":"","store":"QFC","done":false},{"id":"i5it2ll","text":"Veggies — carrot, beans","who":"P","qty":"","note":"","store":"QFC","done":false}]},{"id":"drinks","ico":"🧃","title":"Drinks","items":[{"id":"ikeeku2","text":"Beer","who":"H","qty":"8","note":"","store":"QFC","done":false},{"id":"iil0w3z","text":"Wine","who":"H","qty":"Red + white","note":"Carrying from home","store":"Pack from home","done":false},{"id":"iozd69u","text":"Water","who":"Both","qty":"1 crate (40 pk)","note":"Can buy more if needed","store":"Costco","done":false},{"id":"irrog5y","text":"Milk","who":"H(2), P(1)","qty":"","note":"","store":"QFC","done":false}]},{"id":"kids","ico":"🧒","title":"Kids Food & Snacks","items":[{"id":"it3wihw","text":"Kids juice","who":"P","qty":"Honest brand — no added sugar","note":"","store":"QFC","done":false},{"id":"ikyopwv","text":"Kids yogurt pouches","who":"H","qty":"12","note":"Safeway","store":"Safeway","done":false},{"id":"iwqvnu2","text":"Kids snacks","who":"Both","qty":"","note":"","store":"QFC","done":false},{"id":"iayd9v8","text":"Mac and cheese","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"id8e0cq","text":"Peanut butter & jam","who":"H","qty":"","note":"","store":"Pack from home","done":false}]},{"id":"pantry","ico":"🛒","title":"Cooking Staples & Pantry","items":[{"id":"ictkre3","text":"Eggs","who":"H","qty":"24","note":"Astoria Costco","store":"Costco","done":false},{"id":"iaodicb","text":"Burger buns + bread loaf","who":"P","qty":"","note":"","store":"QFC","done":false},{"id":"iwlbjuw","text":"Veggie patties","who":"P","qty":"","note":"Trader Joe's","store":"Trader Joe's","done":false},{"id":"i74g3di","text":"Pesto sauce","who":"P","qty":"","note":"","store":"Pack from home","done":false},{"id":"iki1id2","text":"Cheese — Amul","who":"P","qty":"","note":"Indian store","store":"Indian store","done":false},{"id":"iphc7gh","text":"Maggi","who":"P","qty":"","note":"Indian store","store":"Indian store","done":false},{"id":"i2fytki","text":"Dal + rice","who":"Both","qty":"","note":"","store":"Pack from home","done":false},{"id":"i3gibw7","text":"Spices","who":"Both","qty":"","note":"","store":"Pack from home","done":false},{"id":"ifcyxmf","text":"Cooking oil / butter","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ij7mml6","text":"Salt / sugar","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"i8x4krt","text":"Tea, sugar, ginger","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"i5or6en","text":"Chai snack — biscuits & namkeen","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ij0r198","text":"Chillies","who":"P","qty":"","note":"","store":"Indian store","done":false}]},{"id":"kitchen","ico":"🍴","title":"Kitchen Gear","items":[{"id":"i40dgmt","text":"Cooking pans / pots","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ixvz8vp","text":"Instapot","who":"P","qty":"","note":"","store":"Pack from home","done":false},{"id":"i18yjyj","text":"Stove + refill","who":"H","qty":"5 butane refills","note":"Pranathi to try if theirs work","store":"Pack from home","done":false},{"id":"ikdzrzs","text":"Knife / peeler / chopping board","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"iq2comp","text":"Tea strainer","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ipma97r","text":"Disposable cups / plates / spoons","who":"H","qty":"","note":"","store":"Costco","done":false},{"id":"inbymmu","text":"Disposable bowls / forks","who":"P","qty":"","note":"","store":"Costco","done":false}]},{"id":"cleaning","ico":"🧼","title":"Cleaning & Bathroom","items":[{"id":"i5c0ohv","text":"Handwash","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ihupth4","text":"Dishwash + scrub","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"izvg4ev","text":"Toilet paper","who":"Both","qty":"","note":"","store":"Pack from home","done":false},{"id":"i31k889","text":"Kitchen paper roll","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ix08owp","text":"Trash bags","who":"H","qty":"8 big","note":"","store":"Costco","done":false}]},{"id":"bonfire","ico":"🔥","title":"Bonfire","items":[{"id":"ib3peg3","text":"Fire starter","who":"H","qty":"","note":"","store":"Campsite","done":false},{"id":"iw2eyxy","text":"Wood for bonfire","who":"","qty":"","note":"Buy at campsite","store":"Campsite","done":false},{"id":"icl9rwe","text":"S'mores kit","who":"P","qty":"","note":"","store":"QFC","done":false},{"id":"iek02wn","text":"Skewers","who":"H","qty":"","note":"","store":"QFC","done":false}]},{"id":"outdoor","ico":"⛺","title":"Outdoor & Activities","items":[{"id":"i67pi0j","text":"Camping chairs","who":"Both","qty":"","note":"","store":"Pack from home","done":false},{"id":"i9e1u17","text":"Canopy","who":"H","qty":"","note":"","store":"Pack from home","done":false},{"id":"ipjuln6","text":"Floats for swimming pool","who":"Both","qty":"","note":"","store":"Pack from home","done":false},{"id":"itrt9xb","text":"Kite","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iaa7i6e","text":"Bicycle","who":"Both","qty":"","note":"","store":"Pack from home","done":false}]},{"id":"sleep","ico":"🛏️","title":"Sleep & Bedding","items":[{"id":"ieyi2rl","text":"Blankets","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"il1d6sa","text":"Pillows","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"ii6uool","text":"Bedsheets","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"il17uim","text":"Kids' comfort toy","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"ipu3703","text":"Warm layers for night","who":"","qty":"","note":"","store":"Pack from home","done":false}]},{"id":"toiletries","ico":"🧴","title":"Toiletries & Health","items":[{"id":"i6nzd6w","text":"Toothbrushes + toothpaste","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"inaovyb","text":"Soap / body wash / shampoo","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"ij7d9ro","text":"Bath towels","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"i4ektqi","text":"Sunscreen","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"i47heis","text":"Bug spray","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iicczrr","text":"First-aid + medications","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"ifioo8o","text":"Wet wipes / hand sanitizer","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iv640nq","text":"Deodorant / lotion","who":"","qty":"","note":"","store":"Pack from home","done":false}]},{"id":"clothing","ico":"🧥","title":"Clothing & Layers","items":[{"id":"iew5p43","text":"Warm jackets / fleece","who":"","qty":"","note":"Coast runs cold","store":"Pack from home","done":false},{"id":"ivz3l9u","text":"Rain jacket / windbreaker","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"ils1zas","text":"Swimsuits","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"i92cfto","text":"Comfortable shoes","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"i2dgw4u","text":"Hats / beanies","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"ipbu8mu","text":"Underwear & socks","who":"","qty":"","note":"","store":"Pack from home","done":false}]},{"id":"tech","ico":"🔌","title":"Tech & Lighting","items":[{"id":"i83se6v","text":"Phone chargers / power bank","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iuneap8","text":"Flashlights / headlamps / lantern","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iuzebio","text":"Reusable water bottles","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iad10qh","text":"Cash for camp store","who":"","qty":"","note":"","store":"Pack from home","done":false},{"id":"iuxaet9","text":"Camera / binoculars","who":"","qty":"","note":"","store":"Pack from home","done":false}]}]}
+</script>
+<script>
+const KEY='koa-astoria-checklist-v4';
+const check=`<svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>`;
+const uid=p=> p+Math.random().toString(36).slice(2,8);
+let editingId=null, activeStore=null; // null=all, '__none__'=unassigned, else store name
+const PRESET_STORES=['Costco','QFC','Trader Joe\'s','Indian store','Safeway','Pack from home','Campsite'];
+
+function normalize(raw){
+  return {savedAt:raw.savedAt||0, cats:(raw.cats||[]).map(c=>({
+    id:c.id||uid('c'), ico:c.ico||'📋', title:c.title||'List',
+    items:(c.items||[]).map(it=> typeof it==='string'
+      ? {id:uid('i'),text:it,who:'',qty:'',note:'',store:'',done:false}
+      : {id:it.id||uid('i'),text:it.text||'',who:it.who||'',qty:it.qty||'',note:it.note||'',store:it.store||'',done:!!it.done})
+  }))};
+}
+const seed=normalize(JSON.parse(document.getElementById('seed').textContent));
+let stored=null; try{ stored=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+let model=(stored && (stored.savedAt||0)>=seed.savedAt) ? normalize(stored) : seed;
+function save(){ model.savedAt=Date.now(); try{ localStorage.setItem(KEY,JSON.stringify(model)); }catch(e){} }
+
+const cardsEl=document.getElementById('cards');
+const fbar=document.getElementById('filterbar');
+const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function whoClass(w){ if(!w) return 'empty'; if(w==='H') return 'h'; if(w==='P') return 'p'; if(w==='Both') return 'both'; return 'custom'; }
+function cycleWho(w){ const o=['','H','P','Both']; const i=o.indexOf(w); return i===-1?'H':o[(i+1)%4]; }
+function storeClass(s){ const m={'Costco':'s-costco','QFC':'s-qfc',"Trader Joe's":'s-tj','Indian store':'s-indian','Safeway':'s-safeway','Pack from home':'s-home','Campsite':'s-campsite'}; return m[s]||'s-other'; }
+function visible(it){ if(activeStore===null) return true; if(activeStore==='__none__') return !it.store; return it.store===activeStore; }
+
+function renderFilters(){
+  const counts={}; let total=0, none=0;
+  model.cats.forEach(c=>c.items.forEach(it=>{ total++; if(it.store){counts[it.store]=(counts[it.store]||0)+1;} else none++; }));
+  const customs=Object.keys(counts).filter(s=>!PRESET_STORES.includes(s)).sort();
+  const order=[...PRESET_STORES.filter(s=>counts[s]),...customs];
+  fbar.innerHTML='<span class="flabel">Filter by store</span>';
+  const mk=(label,val,n)=>{
+    const b=document.createElement('button'); b.className='fchip'+((activeStore===val)?' active':'');
+    b.innerHTML=esc(label)+(n!=null?` <span class="c">${n}</span>`:'');
+    b.addEventListener('click',()=>{ activeStore=(activeStore===val?null:val); render(); });
+    fbar.appendChild(b);
+  };
+  mk('All',null,total);
+  order.forEach(s=>mk(s,s,counts[s]));
+  if(none) mk('Unassigned','__none__',none);
+}
+
+function render(){
+  renderFilters();
+  cardsEl.innerHTML='';
+  let shown=0;
+  model.cats.forEach(cat=>{
+    const vis=cat.items.filter(visible);
+    if(activeStore!==null && vis.length===0) return; // hide empty cards when filtering
+    shown++;
+    const card=document.createElement('div'); card.className='card'; card.dataset.cid=cat.id;
+    card.innerHTML=`
+      <div class="card-top"><span class="ico">${cat.ico}</span>
+        <h3 contenteditable="true" spellcheck="false"></h3>
+        <span class="count"></span>
+        <button class="cat-del" title="Delete list">✕</button></div>
+      <ul></ul>
+      <div class="add-row"><input type="text" placeholder="Add an item…"><button title="Add">＋</button></div>`;
+    const h3=card.querySelector('h3'); h3.textContent=cat.title;
+    h3.addEventListener('blur',()=>{ cat.title=h3.textContent.trim()||'List'; save(); });
+    h3.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault(); h3.blur();} });
+    card.querySelector('.cat-del').addEventListener('click',()=>{ if(confirm('Delete the "'+cat.title+'" list?')){ model.cats=model.cats.filter(c=>c!==cat); save(); render(); } });
+    const ul=card.querySelector('ul');
+    (activeStore===null?cat.items:vis).forEach(it=> ul.appendChild(it.id===editingId ? editRow(cat,it) : itemRow(cat,it)));
+    sortList(ul);
+    const inp=card.querySelector('.add-row input');
+    const addItem=()=>{ const v=inp.value.trim(); if(!v) return;
+      cat.items.push({id:uid('i'),text:v,who:'',qty:'',note:'',store:(activeStore&&activeStore!=='__none__')?activeStore:'',done:false}); save(); render();
+      const ni=cardsEl.querySelector('[data-cid="'+cat.id+'"] .add-row input'); if(ni) ni.focus(); };
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') addItem(); });
+    card.querySelector('.add-row button').addEventListener('click',addItem);
+    cardsEl.appendChild(card);
+    updateCount(card,cat);
+  });
+  if(shown===0){ cardsEl.innerHTML='<p class="empty-note">No items for this store yet.</p>'; }
+  updateTotal();
+  if(editingId){ const f=cardsEl.querySelector('.edit-panel .e-text'); if(f){ f.focus(); f.select(); } }
+}
+
+function itemRow(cat,it){
+  const li=document.createElement('li'); if(it.done) li.classList.add('done');
+  const detail=[it.qty,it.note].filter(Boolean).join(' · ');
+  const sCls=it.store?storeClass(it.store):'unset';
+  li.innerHTML=`<span class="box">${check}</span>
+    <span class="who ${whoClass(it.who)}" title="Tap to set who">${esc(it.who)||'+'}</span>
+    <div class="main"><span class="txt"></span>${detail?'<span class="detail"></span>':''}</div>
+    <span class="store ${sCls}" title="Tap to set store">${esc(it.store)||'+ store'}</span>
+    <button class="item-edit" title="Edit">✎</button><button class="item-del" title="Remove">✕</button>`;
+  li.querySelector('.txt').textContent=it.text;
+  if(detail) li.querySelector('.detail').textContent=detail;
+  const toggle=()=>{ it.done=!it.done; li.classList.toggle('done',it.done); save(); sortList(li.closest('ul')); updateCount(li.closest('.card'),cat); updateTotal(); };
+  li.querySelector('.box').addEventListener('click',toggle);
+  li.querySelector('.main').addEventListener('click',toggle);
+  li.querySelector('.who').addEventListener('click',e=>{ e.stopPropagation(); it.who=cycleWho(it.who); save(); render(); });
+  li.querySelector('.store').addEventListener('click',e=>{ e.stopPropagation(); openStoreMenu(it,e.currentTarget); });
+  li.querySelector('.item-edit').addEventListener('click',e=>{ e.stopPropagation(); editingId=it.id; render(); });
+  li.querySelector('.item-del').addEventListener('click',e=>{ e.stopPropagation(); cat.items=cat.items.filter(x=>x!==it); save(); render(); });
+  return li;
+}
+
+function editRow(cat,it){
+  const li=document.createElement('li'); if(it.done) li.classList.add('done');
+  li.innerHTML=`<div class="edit-panel">
+      <input class="e-text" placeholder="Item name">
+      <div class="e-grid"><input class="e-qty" placeholder="Qty / detail"><input class="e-who" placeholder="Who — H / P / Both"></div>
+      <div class="e-grid"><input class="e-store" placeholder="Store"><input class="e-note" placeholder="Note"></div>
+      <div class="e-actions"><button class="e-cancel">Cancel</button><button class="e-save">Save</button></div></div>`;
+  const t=li.querySelector('.e-text'),q=li.querySelector('.e-qty'),w=li.querySelector('.e-who'),st=li.querySelector('.e-store'),n=li.querySelector('.e-note');
+  t.value=it.text; q.value=it.qty||''; w.value=it.who||''; st.value=it.store||''; n.value=it.note||'';
+  const saveEdit=()=>{ it.text=t.value.trim()||it.text; it.qty=q.value.trim(); it.who=w.value.trim(); it.store=st.value.trim(); it.note=n.value.trim(); editingId=null; save(); render(); };
+  const cancel=()=>{ editingId=null; render(); };
+  li.querySelector('.e-save').addEventListener('click',saveEdit);
+  li.querySelector('.e-cancel').addEventListener('click',cancel);
+  li.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();saveEdit();} else if(e.key==='Escape'){e.preventDefault();cancel();} });
+  return li;
+}
+
+let openMenu=null;
+function closeMenu(){ if(openMenu){ openMenu.remove(); openMenu=null; document.removeEventListener('click',closeMenu); } }
+function openStoreMenu(it,anchor){
+  closeMenu();
+  const m=document.createElement('div'); m.className='smenu';
+  PRESET_STORES.forEach(s=>{ const b=document.createElement('button'); b.textContent=s;
+    b.addEventListener('click',ev=>{ ev.stopPropagation(); it.store=s; save(); closeMenu(); render(); }); m.appendChild(b); });
+  const sep=document.createElement('div'); sep.className='sep'; m.appendChild(sep);
+  const cl=document.createElement('button'); cl.className='clear'; cl.textContent='Clear store';
+  cl.addEventListener('click',ev=>{ ev.stopPropagation(); it.store=''; save(); closeMenu(); render(); }); m.appendChild(cl);
+  document.body.appendChild(m);
+  const r=anchor.getBoundingClientRect();
+  let top=r.bottom+6, left=Math.min(r.left, window.innerWidth-m.offsetWidth-10);
+  if(top+m.offsetHeight>window.innerHeight-8) top=r.top-m.offsetHeight-6;
+  m.style.top=top+'px'; m.style.left=Math.max(8,left)+'px';
+  openMenu=m;
+  setTimeout(()=>document.addEventListener('click',closeMenu),0);
+}
+
+function sortList(ul){ [...ul.children].sort((a,b)=>(a.classList.contains('done')?1:0)-(b.classList.contains('done')?1:0)).forEach(r=>ul.appendChild(r)); }
+function updateCount(card,cat){ const d=cat.items.filter(i=>i.done).length; card.querySelector('.count').textContent=d+' / '+cat.items.length; }
+function updateTotal(){ let a=0,d=0; model.cats.forEach(c=>{a+=c.items.length;d+=c.items.filter(i=>i.done).length;});
+  const p=a?Math.round(d/a*100):0; document.getElementById('fill').style.width=p+'%';
+  document.getElementById('pct').textContent=d+' of '+a+' done · '+p+'%'; }
+
+document.getElementById('addCat').addEventListener('click',()=>{ const name=prompt('Name this list:'); if(!name) return;
+  model.cats.push({id:uid('c'),ico:'📋',title:name.trim(),items:[]}); save(); render(); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); });
+document.getElementById('reset').addEventListener('click',()=>{ if(!confirm('Uncheck every item? (Items, lists, who & store labels are kept.)')) return;
+  model.cats.forEach(c=>c.items.forEach(i=>i.done=false)); save(); render(); });
+document.getElementById('saveCopy').addEventListener('click',()=>{ editingId=null; closeMenu();
+  const snap=JSON.parse(JSON.stringify(model)); snap.savedAt=Date.now();
+  document.getElementById('seed').textContent='\n'+JSON.stringify(snap)+'\n';
+  const stars=document.getElementById('stars'), sh=stars.innerHTML, ch=cardsEl.innerHTML;
+  stars.innerHTML=''; cardsEl.innerHTML='';
+  const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  stars.innerHTML=sh; cardsEl.innerHTML=ch;
+  download(html,'koa-astoria-trip-shared.html','text/html'); });
+document.getElementById('exportJson').addEventListener('click',()=> download(JSON.stringify(model,null,2),'koa-packing-backup.json','application/json'));
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',ev=>{ const f=ev.target.files[0]; if(!f) return; const r=new FileReader();
+  r.onload=()=>{ try{ model=normalize(JSON.parse(r.result)); editingId=null; activeStore=null; save(); render(); } catch(e){ alert('That file could not be read as a valid backup.'); } };
+  r.readAsText(f); ev.target.value=''; });
+function download(text,name,type){ const b=new Blob([text],{type}),u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); }
+
+const sky=document.getElementById('stars');
+for(let i=0;i<46;i++){const s=document.createElement('span');const sz=Math.random()*2+1;
+  s.style.width=s.style.height=sz+'px';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=(Math.random()*4)+'s';sky.appendChild(s);}
+render();
+</script>
+
+
+</body></html>
